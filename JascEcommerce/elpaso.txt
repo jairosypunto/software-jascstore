@@ -1,0 +1,40 @@
+workon
+pip install virtualenvwrapper-win
+mkvirtualenv JascEcommerce
+deactivate
+workon 
+pip install django
+pip freeze
+django.admin startproject categoria
+python manager.py runserver
+ctls c = 'para salir'
+se crea nuevo archivo en JascEcommerce views.py
+en setting.py en INSTALLED_APPS = [
+    'django.contrib.staticfiles',
+    'categorias', 'agregué categorias'
+]
+en views.py agrego importacion
+ from  django.http import HttpResponse  
+ def inicio(request):
+    return HttpResponse("Hola Mundo. Proyecto Django")
+
+SE descargó ngrok se descomprime en disco c y se abre
+en setting 
+
+copio desde ngrok este comando
+ngrok config add-authtoken 33OnDsvf3EJlbgmmOM0RwhIK4ev_4sycWJPWBL48oNLinyKKp
+y despues este otro 
+ngrok http 8000 enter
+me genera este link
+  https://unsalted-kendall-unblushing.ngrok-free.dev
+  lo abro despues de correr el Proyecto python manager.py runserver
+
+  y woola puedo compartir el link 
+
+ALLOWED_HOSTS = ['unsalted-kendall-unblushing.ngrok-free.dev ',
+                 '127.0.0.1',
+                 'localhost']
+
+CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
+# Application definition
+
