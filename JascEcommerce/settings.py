@@ -13,13 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-                 'unsalted-kendall-unblushing.ngrok-free.dev',
-                 '127.0.0.1',
-                 'localhost',
-                 ]
+    'jairosypunto.pythonanywhere.com',  # dominio de producción
+    '127.0.0.1',                         # desarrollo local
+    'localhost',                         # desarrollo local
+]
 
 CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
 # Application definition
