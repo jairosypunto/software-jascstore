@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'jairos.pythonanywhere.com',  # ← este es el que falta
+    'jairos.pythonanywhere.com',
     'jairosypunto.pythonanywhere.com',
     '127.0.0.1',
     'localhost',
