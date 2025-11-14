@@ -16,10 +16,12 @@ SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'jairosypunto.pythonanywhere.com',  # dominio de producción
-    '127.0.0.1',                         # desarrollo local
-    'localhost',                         # desarrollo local
+    'jairos.pythonanywhere.com',  # ← este es el que falta
+    'jairosypunto.pythonanywhere.com',
+    '127.0.0.1',
+    'localhost',
 ]
+
 
 CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
 # Application definition
