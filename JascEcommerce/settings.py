@@ -157,6 +157,9 @@ LOGOUT_REDIRECT_URL = '/home/'      # Redirige a la portada tras cerrar sesión
 # 📧 Backend de correo para desarrollo (recuperación de contraseña)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Muestra correos en consola para pruebas
 
+from datetime import datetime
+STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
+
 # 📌 Para producción, reemplaza el backend de correo por uno real:
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
