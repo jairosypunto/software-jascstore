@@ -1,62 +1,70 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'home/css/navbar.css' %}" / >
+<!-- Carga el archivo CSS específico para la barra de navegación -->
+<link rel="stylesheet" href="{% static 'home/css/navbar.css' %}" />
+
 <nav class="navbar">
-      <div class="nav-container">
-        <a href="#" class="logo">
-          <div class="logo-icon">🛒</div>
-          <span class="logo-text">LatinShop</span>
-        </a>
-        <div class="search-bar">
-          <select class="search-select" id="searchCategory">
+  <div class="nav-container">
+    <!-- Logo del ecommerce -->
+    <a href="/" class="logo">
+      <div class="logo-icon">🛒</div>
+      <span class="logo-text">LatinShop</span>
+    </a>
 
-           {% comment %}  {% for category in links %}
+    <!-- Barra de búsqueda con categorías dinámicas -->
+    <div class="search-bar">
+      <select class="search-select" id="searchCategory">
+        <option value="all">Todas las categorías</option>
+        {% for category in links %}
+        <option value="{{ category.slug }}">
+          {{ category.nombre_categoria }}
+        </option>
+        {% endfor %}
+      </select>
 
-            <li>
-              <a href="{{ category.get_url }}">{{ category.nombre }}</a>
-            </li>  {% endfor %} {% endcomment %}
-            <option value="all">Todas las categorías</option>
-            
-            {% for category in links %}
-             
-             <option value="{{ category.slug }}">{{ category.nombre_categoria }}</option>
-            {% endfor %}
-
-            
-
-            {% comment %} <option value="all">Todas las categorías</option>
-            <option value="electronics">Electrónica</option>
-            <option value="fashion">Moda</option>
-            <option value="home">Hogar</option>
-            <option value="sports">Deportes</option>
-            <option value="books">Libros</option>
-            <option value="toys">Juguetes</option> {% endcomment %}
-          </select>
-          
-          <input
-            type="text"
-            class="search-input"
-            placeholder="¿Qué estás buscando?"
-          />
-          <button class="search-btn">
-            <span class="search-icon">🔍</span>
-          </button>
-        </div>
-        <div class="hamburger" onclick="toggleMenu()">
-          <span></span> <span></span> <span></span>
-        </div>
-        <ul class="nav-menu" id="navMenu">
-          <li><a href="#nosotros" class="nav-link">Nosotros</a></li>
-          <li><a href="{% url 'store:store' %}" class="nav-link">Tienda</a></li>
-          <li><a href="#contacto" class="nav-link">Contacto</a></li>
-          <div class="nav-buttons">
-            <a href="#login" class="btn btn-login">Login</a>
-            <a href="#registro" class="btn btn-register">Registro</a>
-            <a href="#registro" class="bi bi-box-arrow-right">x</a>
-          </div>
-        </ul>
-      </div>
-    </nav>
-    <div class="content">
-      <h1>Welcome to DevTeam</h1>
-      <p>Tu ecommerce moderno con diseño responsive y profesional</p>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="¿Qué estás buscando?"
+      />
+      <button class="search-btn">
+        <span class="search-icon">🔍</span>
+      </button>
     </div>
+
+    <!-- Menú hamburguesa para dispositivos móviles -->
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span> <span></span> <span></span>
+    </div>
+
+    <!-- Menú de navegación principal -->
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="#nosotros" class="nav-link">Nosotros</a></li>
+      <li><a href="{% url 'store:store' %}" class="nav-link">Tienda</a></li>
+      <li><a href="#contacto" class="nav-link">Contacto</a></li>
+
+      <!-- Botones de sesión: login, registro, dashboard, logout -->
+      <div class="nav-buttons">
+        {% if user.is_authenticated %}
+        <span>Hola {{ user.email }}</span>
+        <a href="{% url 'dashboard' %}" class="btn btn-dashboard"
+          >Mi Dashboard</a
+        >
+        <!-- ✅ Botón seguro para cerrar sesión -->
+        <form action="{% url 'logout' %}" method="post" style="display: inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-logout">Cerrar sesión</button>
+        </form>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn btn-login">Login</a>
+        <a href="{% url 'register' %}" class="btn btn-register">Registro</a>
+        {% endif %}
+      </div>
+    </ul>
+  </div>
+</nav>
+
+<!-- Mensaje de bienvenida en la portada -->
+<div class="content">
+  <h1>Welcome to DevTeam</h1>
+  <p>Tu ecommerce moderno con diseño responsive y profesional</p>
+</div>

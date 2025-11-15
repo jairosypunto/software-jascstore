@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'jairos.pythonanywhere.com',
@@ -144,13 +144,23 @@ JAZZMIN_SETTINGS = {
     "copyright": "Jasc Ecommerce Ltd 2025",  
 }
 
-MEDIA_URL = '/media/'  # URL para acceder a los archivos multimedia
-MEDIA_ROOT = BASE_DIR / 'media'  # Directorio donde se almacenan los archivos multimedia
+# 📁 Archivos multimedia (imágenes de productos, usuarios, etc.)
+MEDIA_URL = '/media/'  # URL pública para acceder a archivos multimedia
+MEDIA_ROOT = BASE_DIR / 'media'  # Carpeta local donde se guardan los archivos subidos
 
-LOGIN_REDIRECT_URL = 'dashboard'  # redirigir al panel después del inicio de sesión 
-LOGIN_URL = 'login'  # URL de inicio de sesión
-LOGOUT_URL = 'logout'  # URL de cierre de sesión
+# 🔐 Redirecciones de autenticación
+LOGIN_URL = 'login'                 # URL de inicio de sesión (name='login' en usuario/urls.py)
+LOGIN_REDIRECT_URL = '/account/'    # Redirige al dashboard tras login exitoso
+LOGOUT_URL = 'logout'               # URL para cerrar sesión (name='logout')
+LOGOUT_REDIRECT_URL = '/home/'      # Redirige a la portada tras cerrar sesión
 
+# 📧 Backend de correo para desarrollo (recuperación de contraseña)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Muestra correos en consola para pruebas
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # para desarrollo, imprime correos en la consola
-# Para producción, configure un backend de correo real
+# 📌 Para producción, reemplaza el backend de correo por uno real:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'tu_correo@gmail.com'
+# EMAIL_HOST_PASSWORD = 'tu_contraseña_o_token'
