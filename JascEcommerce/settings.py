@@ -1,18 +1,10 @@
-
-
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# 📁 Base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# 🔐 Seguridad
 SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = [
@@ -22,12 +14,11 @@ ALLOWED_HOSTS = [
     'localhost',
 ]
 
-
 CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
-# Application definition
 
+# 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
-    'usuario.apps.UsuarioConfig', #aplicacion creada para gestionar usuarios
+    'usuario.apps.UsuarioConfig',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,6 +33,7 @@ INSTALLED_APPS = [
     'django_extensions',
 ]
 
+# ⚙️ Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -52,8 +44,63 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# 🌐 URLs y WSGI
 ROOT_URLCONF = 'JascEcommerce.urls'
+WSGI_APPLICATION = 'JascEcommerce.wsgi.application'
 
+# 🧠 Modelo de usuario personalizado
+AUTH_USER_MODEL = 'auths.Auth'
+
+# 🗃️ Base de datos
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# 🔐 Validación de contraseñas
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# 🌍 Internacionalización
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+# 🎨 Archivos estáticos
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'JascEcommerce/static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 🖼️ Archivos multimedia
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# 🔐 Redirecciones de autenticación
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = '/account/'
+LOGOUT_URL = 'logout'
+LOGOUT_REDIRECT_URL = '/home/'
+
+# 📧 Backend de correo para desarrollo
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# 🎨 Configuración de Jazzmin
+JAZZMIN_SETTINGS = {
+    "site_title": "Library Admin",
+    "site_header": "Library",
+    "site_brand": "Library",
+    "welcome_sign": "Welcome to the Library Admin",
+    "copyright": "Jasc Ecommerce Ltd 2025",
+}
+
+# 🧠 Plantillas
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -70,65 +117,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'JascEcommerce.wsgi.application'
-AUTH_USER_MODEL = 'auths.Auth'  # modelo de usuario personalizado
-
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'JascEcommerce/static'
-]
-STATIC_ROOT = BASE_DIR / 'staticfiles' 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
+# 🆔 Campo por defecto para claves primarias
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+<<<<<<< HEAD
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
@@ -167,3 +158,5 @@ STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'tu_correo@gmail.com'
 # EMAIL_HOST_PASSWORD = 'tu_contraseña_o_token'
+=======
+>>>>>>> 1ea3a60ecec9258775da3c37c0c354c873b81433
