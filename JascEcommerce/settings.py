@@ -119,7 +119,7 @@ TEMPLATES = [
 
 # 🆔 Campo por defecto para claves primarias
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-<<<<<<< HEAD
+
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
@@ -158,5 +158,4 @@ STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'tu_correo@gmail.com'
 # EMAIL_HOST_PASSWORD = 'tu_contraseña_o_token'
-=======
->>>>>>> 1ea3a60ecec9258775da3c37c0c354c873b81433
+
