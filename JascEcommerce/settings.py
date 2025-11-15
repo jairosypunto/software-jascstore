@@ -159,7 +159,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Muestra corr
 HEAD
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # para desarrollo, imprime correos en la consola
 # Para producción, configure un backend de correo real
-=======
 # 📌 Para producción, reemplaza el backend de correo por uno real:
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
