@@ -1,3 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tienda - LatinShop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<!-- Aquí va todo tu contenido actual de tienda.html -->
+
 <!-- tienda.html -->
  {% load static %}
  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
@@ -45,99 +58,100 @@
         </div>
 
         <!-- Grid de productos -->
-        <div class="products-grid">
-            {% for product in all_products %}
-            <article class="product-card {% if not producto.esta_disponible %}out-of-stock{% endif %}">
-                
-                <!-- Imagen del producto -->
-                <div class="product-image-wrapper">
-                    <img src="{{ product.image.url }}" alt="{{ product.nombre }}" class="product-img">
-                    
-                    <!-- Badges -->
-                    <div class="product-badges">
-                        {% if not producto.esta_disponible %}
-                        <span class="badge badge-unavailable">Agotado</span>
-                        {% elif producto.stock < 5 %}
-                        <span class="badge badge-low-stock">¡Últimas unidades!</span>
-                        {% endif %}
-                        
-                        {% if producto.fecha_creacion|timesince < "7 days" %}
-                        <span class="badge badge-new">Nuevo</span>
-                        {% endif %}
-                    </div>
+<!-- Grid de productos -->
+<div class="products-grid">
+    {% for product in productos %}
+    <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
 
-                    <!-- Botón quick view -->
-                    <a href="#" class="quick-view">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        <span>Vista rápida</span>
-                    </a>
-                </div>
+        <!-- Imagen del producto -->
+        <div class="product-image-wrapper">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
 
-                <!-- Info del producto -->
-                <div class="product-content">
-                    <!-- Categoría -->
-                    <span class="product-category">{{ producto.categoria.nombre }}</span>
-                    
-                    <!-- Nombre -->
-                    <h3 class="product-name">
-                        <a href="#">
-                            {{ producto.nombre }}
-                        </a>
-                    </h3>
-                    
-                    <!-- Descripción -->
-                    <p class="product-description">{{ producto.descripcion|truncatewords:12 }}</p>
-                    
-                    <!-- Footer: Precio y acciones -->
-                    <div class="product-footer">
-                        <div class="price-section">
-                            <span class="price">${{ producto.precio|floatformat:0 }}</span>
-                            <span class="stock-info">
-                                {% if producto.stock > 10 %}
-                                <span class="stock-dot stock-available"></span> En stock
-                                {% elif producto.stock > 0 %}
-                                <span class="stock-dot stock-low"></span> {{ producto.stock }} disponibles
-                                {% else %}
-                                <span class="stock-dot stock-out"></span> Agotado
-                                {% endif %}
-                            </span>
-                        </div>
+            <!-- Badges -->
+            <div class="product-badges">
+                {% if not product.is_available %}
+                <span class="badge badge-unavailable">Agotado</span>
+                {% elif product.stock < 5 %}
+                <span class="badge badge-low-stock">¡Últimas unidades!</span>
+                {% endif %}
 
-                        <!-- Botón agregar al carrito -->
-                        {% if producto.esta_disponible and producto.stock > 0 %}
-                        <form action="" method="POST" class="add-to-cart-form">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-add-cart">
-                                <svg class="cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                </svg>
-                                <span>Agregar</span>
-                            </button>
-                        </form>
-                        {% else %}
-                        <button class="btn-add-cart btn-disabled" disabled>
-                            <svg class="cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            <span>No disponible</span>
-                        </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </article>
-            {% empty %}
-            <div class="no-products">
-                <svg class="no-products-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                </svg>
-                <h3>No hay productos disponibles</h3>
-                <p>Lo sentimos, no encontramos productos en este momento.</p>
+                {% if product.date_register|timesince < "7 days" %}
+                <span class="badge badge-new">Nuevo</span>
+                {% endif %}
             </div>
-            {% endfor %}
+
+            <!-- Botón quick view -->
+            <a href="#" class="quick-view">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span>Vista rápida</span>
+            </a>
         </div>
+
+        <!-- Info del producto -->
+        <div class="product-content">
+            <!-- Categoría -->
+            <span class="product-category">{{ product.category.name }}</span>
+
+            <!-- Nombre -->
+            <h3 class="product-name">
+                <a href="#">
+                    {{ product.name }}
+                </a>
+            </h3>
+
+            <!-- Descripción -->
+            <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+
+            <!-- Footer: Precio y acciones -->
+            <div class="product-footer">
+                <div class="price-section">
+                    <span class="price">${{ product.cost|floatformat:0 }}</span>
+                    <span class="stock-info">
+                        {% if product.stock > 10 %}
+                        <span class="stock-dot stock-available"></span> En stock
+                        {% elif product.stock > 0 %}
+                        <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
+                        {% else %}
+                        <span class="stock-dot stock-out"></span> Agotado
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Botón agregar al carrito -->
+                {% if product.is_available and product.stock > 0 %}
+                <form action="" method="POST" class="add-to-cart-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-add-cart">
+                        <svg class="cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span>Agregar</span>
+                    </button>
+                </form>
+                {% else %}
+                <button class="btn-add-cart btn-disabled" disabled>
+                    <svg class="cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span>No disponible</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="no-products">
+        <svg class="no-products-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+        </svg>
+        <h3>No hay productos disponibles</h3>
+        <p>Lo sentimos, no encontramos productos en este momento.</p>
+    </div>
+    {% endfor %}
+</div>
 
         <!-- Paginación -->
         {% if productos.has_other_pages %}
@@ -199,3 +213,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endblock %}

@@ -1,11 +1,12 @@
-from  django.urls import path
+from django.urls import path
 from . import views
 
 app_name = 'store'
 
 urlpatterns = [
-    path('', views.store, name='store'),  
-    path('category/<str:category_slug>/', views.store, name='productos_por_categoria')
+    # 🛍️ Ruta principal de la tienda: /store/
+    path('', views.store, name='store'),
 
-    # path('<str:category_slug>/', views.store, name='products-category'),
-    ]
+    # 🗂️ Ruta para filtrar productos por categoría usando slug: /store/category/electronica/
+    path('category/<str:category_slug>/', views.store, name='productos_por_categoria'),
+]

@@ -1,69 +1,62 @@
 {% load static %}
-<!-- Carga el archivo CSS específico para la barra de navegación -->
+<!-- ✅ Carga el CSS específico para la barra de navegación -->
 <link rel="stylesheet" href="{% static 'home/css/navbar.css' %}" />
 
+<!-- ✅ Estructura principal del navbar -->
 <nav class="navbar">
   <div class="nav-container">
-    <!-- Logo del ecommerce -->
+
+    <!-- 🛒 Logo del ecommerce -->
     <a href="/" class="logo">
       <div class="logo-icon">🛒</div>
       <span class="logo-text">LatinShop</span>
     </a>
 
-    <!-- Barra de búsqueda con categorías dinámicas -->
+    <!-- 🔍 Barra de búsqueda con categorías dinámicas -->
     <div class="search-bar">
       <select class="search-select" id="searchCategory">
         <option value="all">Todas las categorías</option>
         {% for category in links %}
-        <option value="{{ category.slug }}">
-          {{ category.nombre_categoria }}
-        </option>
+        <option value="{{ category.slug }}">{{ category.nombre_categoria }}</option>
         {% endfor %}
       </select>
 
-      <input
-        type="text"
-        class="search-input"
-        placeholder="¿Qué estás buscando?"
-      />
-      <button class="search-btn">
-        <span class="search-icon">🔍</span>
-      </button>
+      <input type="text" class="search-input" placeholder="¿Qué estás buscando?" />
+      <button class="search-btn"><span class="search-icon">🔍</span></button>
     </div>
 
-    <!-- Menú hamburguesa para dispositivos móviles -->
+    <!-- 📱 Menú hamburguesa para dispositivos móviles -->
     <div class="hamburger" onclick="toggleMenu()">
-      <span></span> <span></span> <span></span>
+      <span></span><span></span><span></span>
     </div>
 
-    <!-- Menú de navegación principal -->
+    <!-- 📌 Menú de navegación principal -->
     <ul class="nav-menu" id="navMenu">
       <li><a href="#nosotros" class="nav-link">Nosotros</a></li>
       <li><a href="{% url 'store:store' %}" class="nav-link">Tienda</a></li>
       <li><a href="#contacto" class="nav-link">Contacto</a></li>
 
-      <!-- Botones de sesión: login, registro, dashboard, logout -->
+      <!-- 👤 Botones de sesión: login, registro, dashboard, logout -->
       <div class="nav-buttons">
         {% if user.is_authenticated %}
-        <span>Hola {{ user.email }}</span>
-        <a href="{% url 'dashboard' %}" class="btn btn-dashboard"
-          >Mi Dashboard</a
-        >
-        <!-- ✅ Botón seguro para cerrar sesión -->
-        <form action="{% url 'logout' %}" method="post" style="display: inline">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-logout">Cerrar sesión</button>
-        </form>
+          <span>Hola {{ user.email }}</span>
+          <a href="{% url 'dashboard' %}" class="btn btn-dashboard">Mi Dashboard</a>
+
+          <!-- ✅ Botón seguro para cerrar sesión -->
+          <form action="{% url 'logout' %}" method="post" style="display: inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-logout">Cerrar sesión</button>
+          </form>
         {% else %}
-        <a href="{% url 'login' %}" class="btn btn-login">Login</a>
-        <a href="{% url 'register' %}" class="btn btn-register">Registro</a>
+          <a href="{% url 'login' %}" class="btn btn-login">Login</a>
+          <a href="{% url 'register' %}" class="btn btn-register">Registro</a>
         {% endif %}
       </div>
     </ul>
   </div>
 </nav>
 
-<!-- Mensaje de bienvenida en la portada -->
+<!-- 🎉 Mensaje de bienvenida en la portada -->
 <div class="content">
   <h1>Welcome to DevTeam</h1>
   <p>Tu ecommerce moderno con diseño responsive y profesional</p>

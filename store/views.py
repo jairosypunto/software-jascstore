@@ -1,19 +1,30 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from .models import Product
 from categorias.models import Category
-# Create your views here.
-def store(request,category_slug=None):
-    category = None
-    products = None
-    if category_slug != None:
-        category = get_object_or_404(Category, slug=category_slug)
-        products = Product.objects.all().filter(is_available=True) 
-        counter_products = products.count()
-    else:
-        products = Product.objects.all().filter(is_available=True)
-        counter_products = products.count()
-    context={
-        'all_products': products,
-        'counter_products': counter_products,
-    }
-    return render(request, 'store/tienda.html',context=context)
+
+def store(request, category_slug=None):
+    productos = Product.objects.filter(is_available=True)  # ✅ Solo productos disponibles
+    categorias = Category.objects.all()
+
+    query = request.GET.get('q')
+    if query:
+        productos = productos.filter(name__icontains=query)
+
+    categoria_id = request.GET.get('categoria')
+    if categoria_id and categoria_id != '0':
+        productos = productos.filter(category_id=categoria_id)
+
+    if category_slug:
+        productos = productos.filter(category__slug=category_slug)
+
+    orden = request.GET.get('orden')
+    if orden == 'precio_asc':
+        productos = productos.order_by('cost')
+    elif orden == 'precio_desc':
+        productos = productos.order_by('-cost')
+
+    return render(request, 'store/tienda.html', {
+        'productos': productos,
+        'categorias': categorias,
+        'section': 'store'
+    })

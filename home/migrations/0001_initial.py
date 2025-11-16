@@ -12,15 +12,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name='Product',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
-                ('slug', models.SlugField(max_length=100, unique=True)),
+                ('is_available', models.BooleanField(default=True)),
             ],
-            options={
-                'verbose_name': 'Categoría',
-                'verbose_name_plural': 'Categorías',
-            },
         ),
     ]

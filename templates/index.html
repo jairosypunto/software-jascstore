@@ -1,16 +1,10 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <title>Django de nuevo</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Inicio - LatinShop{% endblock %}
 
-    <h1 class="texto"> Hola desde Django! Avanzando en el proyecto JascEcommerce 2025 Novienbre:) </h1>
-    <h1 class="titulo">Hola Codelatinos</h1>
-    <p style="color: red;">Actualizado login</p>
-</body>
-</html>
+{% block content %}
+<div class="text-center mt-5">
+  <h1 class="display-4">Bienvenido a LatinShop</h1>
+  <p class="lead">Tu ecommerce educativo con diseño responsivo y profesional</p>
+  <a href="{% url 'store:store' %}" class="btn btn-success btn-lg mt-3">Ver productos</a>
+</div>
+{% endblock %}

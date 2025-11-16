@@ -4,17 +4,17 @@ from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 
 urlpatterns = [
-    # 🔐 Login con redirección al home después de autenticarse
+    # 🔐 Login: muestra formulario y redirige al /home/ si ya está autenticado
     path('login/', LoginView.as_view(
         template_name='account/login.html',
         redirect_authenticated_user=True,
-        next_page='/home/'  # ✅ redirige al home después del login
+        next_page='/home/'  # ✅ Redirección después del login
     ), name='login'),
 
-    # 🔓 Logout (redirige según LOGOUT_REDIRECT_URL en settings.py)
+    # 🔓 Logout: cierra sesión y redirige según LOGOUT_REDIRECT_URL en settings.py
     path('logout/', LogoutView.as_view(), name='logout'),
 
-    # 🔑 Cambio de contraseña
+    # 🔑 Cambio de contraseña (requiere estar autenticado)
     path('password-change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
     path('password-change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
@@ -27,9 +27,11 @@ urlpatterns = [
     # 📝 Registro de nuevos usuarios
     path('register/', views.register, name='register'),
 
-    # 🧑 Panel de usuario (dashboard)
-    path('', views.dashboard, name='dashboard'),
+    # 🧑 Dashboard del usuario (solo si está autenticado)
+    # ⚠️ Esta ruta usa '', lo que significa que al entrar a /account/ se carga el dashboard
+    # ✅ No compite con la raíz del proyecto, que usa views.inicio
+    path('dashboard/', views.dashboard, name='dashboard')  # ✅ Ruta clara y específica
 
-    # 🧪 Aquí puedes agregar rutas futuras como perfil, historial, etc.
+    # 🧪 Rutas futuras (perfil, historial, etc.)
     # path('perfil/', views.perfil, name='perfil'),
 ]

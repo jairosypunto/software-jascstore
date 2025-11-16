@@ -1,11 +1,11 @@
 from django.contrib import admin
-# Register your models here.
-from .models import Category  # ✅
-#admin.site.register(Categoria)
+from .models import Category
+
+# ✅ Configuración del panel de administración para categorías
 @admin.register(Category)
 class CategoriaAdmin(admin.ModelAdmin):
-    list_display = ('nombre_categoria', 'slug', 'descripcion')
-    prepopulated_fields = {'slug': ('nombre_categoria',)}
-    search_fields = ('nombre_categoria', 'descripcion',)
-    list_filter = ('nombre_categoria',)
-    list_per_page = 2 
+    list_display = ('name', 'slug')  # ✅ Campos que sí existen en el modelo
+    prepopulated_fields = {'slug': ('name',)}  # ✅ Autocompletar slug desde name
+    search_fields = ('name',)  # ✅ Búsqueda por nombre
+    list_filter = ('name',)    # ✅ Filtro lateral por nombre
+    list_per_page = 10         # ✅ Paginación
