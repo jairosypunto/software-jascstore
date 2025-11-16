@@ -1,9 +1,6 @@
 from django.shortcuts import render
-from .models import Product  # ✅ Import correcto
+from store.models import Product
 
 def home(request):
     products = Product.objects.filter(is_available=True)
-    context = {
-        'products': products,
-    }
-    return render(request, "home/home.html", context)
+    return render(request, "home/home.html", {'products': products})

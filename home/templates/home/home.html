@@ -1,28 +1,62 @@
-{% load static %} <!DOCTYPE html>
+{% load static %}
+<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inicio</title>
+
+    <!-- 🎨 Estilos base -->
     <link rel="stylesheet" href="{% static 'home/css/bootstrap.css' %}" />
+
+    <!-- 🎨 Estilos del navbar -->
+    <link rel="stylesheet" href="{% static 'home/css/navbar.css' %}" />
+
+    <!-- 🎨 Estilos de productos (reutilizados desde tienda) -->
+    <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}" />
+
+    <!-- 🧪 Estilos mínimos para validar visualización de imágenes -->
+    <style>
+      .product-grid img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 1px solid #ccc;
+      }
+    </style>
   </head>
   <body>
+    <!-- 🔗 Navbar con logo, búsqueda y navegación -->
     {% include 'home/navbar.html' %}
-    <div class="row">
-      {% for product in products %}
-      <div class="col-md-3">
-        <div class="card product-grid">
-          <a href="#" class="img-wrap">
-            <img width="256" src="{{ product.image.url }}" alt="" />
-          </a>
-          <figcaption class="info-wrap">
-            <a href="#" class="title-product"> {{ product.name }} </a>
-            <div class="price mt-1">{{ product.cost }}</div>
-          </figcaption>
+
+    <!-- 🛍️ Grid de productos debajo del mensaje de bienvenida -->
+    <div class="container mt-4">
+      <div class="row">
+        {% for product in products %}
+        <div class="col-md-3 mb-4">
+          <div class="card product-grid">
+            <a href="#" class="img-wrap">
+              <!-- ✅ Imagen del producto -->
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" />
+            </a>
+            <figcaption class="info-wrap p-2">
+              <!-- 🏷️ Nombre del producto -->
+              <a href="#" class="title-product"> {{ product.name }} </a>
+              <!-- 💰 Precio -->
+              <div class="price mt-1">${{ product.cost|floatformat:0 }}</div>
+            </figcaption>
+          </div>
         </div>
+        {% empty %}
+        <!-- 🧾 Mensaje si no hay productos -->
+        <div class="col-12 text-center">
+          <p>No hay productos disponibles en este momento.</p>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
+
+    <!-- 🧠 Script JS para interacciones -->
     <script src="{% static 'home/js/home.js' %}"></script>
   </body>
 </html>
