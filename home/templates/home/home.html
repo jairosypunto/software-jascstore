@@ -27,7 +27,13 @@
   </head>
   <body>
     <!-- 🔗 Navbar con logo, búsqueda y navegación -->
-    {% include 'home/navbar.html' %}
+    {% include 'home/navbar.html' with links=links %}
+
+    <!-- 📌 Opciones de ordenamiento -->
+    <div class="container mt-3 text-end">
+      <a href="?order=name" class="btn btn-outline-primary btn-sm">Ordenar por nombre</a>
+      <a href="?order=price" class="btn btn-outline-secondary btn-sm">Ordenar por precio</a>
+    </div>
 
     <!-- 🛍️ Grid de productos debajo del mensaje de bienvenida -->
     <div class="container mt-4">
@@ -55,6 +61,18 @@
         {% endfor %}
       </div>
     </div>
+
+    <script>
+  // ✅ Envía el formulario al cambiar categoría
+  document.getElementById('searchCategory').addEventListener('change', function () {
+    this.form.submit();
+  });
+
+  // ✅ Envía el formulario al cambiar ordenamiento
+  document.getElementById('searchOrder').addEventListener('change', function () {
+    this.form.submit();
+  });
+</script>
 
     <!-- 🧠 Script JS para interacciones -->
     <script src="{% static 'home/js/home.js' %}"></script>

@@ -7,210 +7,167 @@
 <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
 {% endblock %}
 
-
 {% block content %}
-<!-- Aquí va todo tu contenido actual de tienda.html -->
-
-<!-- tienda.html -->
- {% load static %}
- <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
 <section class="shop-section">
-    <div class="shop-container">
-        
-        <!-- Hero Banner -->
-        <div class="shop-hero">
-            <div class="hero-content">
-                <h1 class="hero-title">Nuestra Tienda</h1>
-                <p class="hero-subtitle">Descubre productos increíbles con los mejores precios</p>
-            </div>
-        </div>
+  <div class="shop-container">
 
-        <!-- Barra de búsqueda y filtros -->
-        <div class="shop-controls">
-            <div class="search-box">
-                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                <input type="text" class="search-input" placeholder="Buscar productos..." id="searchInput">
-            </div>
+    <!-- 🏷️ Hero Banner -->
+    <div class="shop-hero">
+      <div class="hero-content">
+        <h1 class="hero-title">Nuestra Tienda</h1>
+        <p class="hero-subtitle">Descubre productos increíbles con los mejores precios</p>
+      </div>
+    </div>
 
-            <div class="filter-group">
-                <select class="filter-select" id="categoryFilter">
-                    <option value="">Todas las categorías</option>
-                    {% for categoria in categorias %}
-                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                    {% endfor %}
-                </select>
+    <!-- 🔍 Filtros: búsqueda, ordenamiento y categorías -->
+<form method="get" id="filterForm">
+  <div class="shop-controls">
 
-                <select class="filter-select" id="sortFilter">
-                    <option value="">Ordenar por</option>
-                    <option value="precio_asc">Precio: Menor a Mayor</option>
-                    <option value="precio_desc">Precio: Mayor a Menor</option>
-                    <option value="nombre">Nombre: A-Z</option>
-                    <option value="reciente">Más recientes</option>
-                </select>
-            </div>
-        </div>
+    <!-- 🔍 Búsqueda -->
+    <div class="search-box">
+      <input type="text" name="q" class="search-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+    </div>
 
-        <!-- Contador de productos -->
-        <div class="products-count">
-            <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
-        </div>
+    <!-- 🗂️ Filtros -->
+    <div class="filter-group">
 
-        <!-- Grid de productos -->
-<!-- Grid de productos -->
-<div class="products-grid">
-    {% for product in productos %}
-    <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+      <!-- ✅ Categorías como menú desplegable -->
+      <select name="category" class="filter-select" id="categoryFilter">
+        <option value="">Todas las categorías</option>
+        {% for categoria in categorias %}
+          <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
+            {{ categoria.nombre }}
+          </option>
+        {% endfor %}
+      </select>
 
-        <!-- Imagen del producto -->
+      <!-- ✅ Ordenamiento -->
+      <select name="order" class="filter-select" id="sortFilter">
+        <option value="">Ordenar por</option>
+        <option value="precio_asc" {% if request.GET.order == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
+        <option value="precio_desc" {% if request.GET.order == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+        <option value="nombre" {% if request.GET.order == 'nombre' %}selected{% endif %}>Nombre: A-Z</option>
+        <option value="reciente" {% if request.GET.order == 'reciente' %}selected{% endif %}>Más recientes</option>
+      </select>
+
+    </div>
+  </div>
+</form>
+
+    <!-- 📦 Contador de productos -->
+    <div class="products-count">
+      <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
+    </div>
+
+    <!-- 🛍️ Grid de productos -->
+    <div class="products-grid">
+      {% for product in productos %}
+      <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+
+        <!-- Imagen -->
         <div class="product-image-wrapper">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
 
-            <!-- Badges -->
-            <div class="product-badges">
-                {% if not product.is_available %}
-                <span class="badge badge-unavailable">Agotado</span>
-                {% elif product.stock < 5 %}
-                <span class="badge badge-low-stock">¡Últimas unidades!</span>
-                {% endif %}
+          <!-- Badges -->
+          <div class="product-badges">
+            {% if not product.is_available %}
+              <span class="badge badge-unavailable">Agotado</span>
+            {% elif product.stock < 5 %}
+              <span class="badge badge-low-stock">¡Últimas unidades!</span>
+            {% endif %}
+            {% if product.date_register|timesince < "7 days" %}
+              <span class="badge badge-new">Nuevo</span>
+            {% endif %}
+          </div>
 
-                {% if product.date_register|timesince < "7 days" %}
-                <span class="badge badge-new">Nuevo</span>
-                {% endif %}
-            </div>
-
-            <!-- Botón quick view -->
-            <a href="#" class="quick-view">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                </svg>
-                <span>Vista rápida</span>
-            </a>
+          <!-- Vista rápida -->
+          <a href="#" class="quick-view">
+            <span>Vista rápida</span>
+          </a>
         </div>
 
-        <!-- Info del producto -->
+        <!-- Info -->
         <div class="product-content">
-            <!-- Categoría -->
-            <span class="product-category">{{ product.category.name }}</span>
+          <span class="product-category">{{ product.category.name }}</span>
+          <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
+          <p class="product-description">{{ product.description|truncatewords:12 }}</p>
 
-            <!-- Nombre -->
-            <h3 class="product-name">
-                <a href="#">
-                    {{ product.name }}
-                </a>
-            </h3>
-
-            <!-- Descripción -->
-            <p class="product-description">{{ product.description|truncatewords:12 }}</p>
-
-            <!-- Footer: Precio y acciones -->
-            <div class="product-footer">
-                <div class="price-section">
-                    <span class="price">${{ product.cost|floatformat:0 }}</span>
-                    <span class="stock-info">
-                        {% if product.stock > 10 %}
-                        <span class="stock-dot stock-available"></span> En stock
-                        {% elif product.stock > 0 %}
-                        <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
-                        {% else %}
-                        <span class="stock-dot stock-out"></span> Agotado
-                        {% endif %}
-                    </span>
-                </div>
-
-                <!-- Botón agregar al carrito -->
-                {% if product.is_available and product.stock > 0 %}
-                <form action="" method="POST" class="add-to-cart-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-add-cart">
-                        <svg class="cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        <span>Agregar</span>
-                    </button>
-                </form>
+          <div class="product-footer">
+            <div class="price-section">
+              <span class="price">${{ product.cost|floatformat:0 }}</span>
+              <span class="stock-info">
+                {% if product.stock > 10 %}
+                  <span class="stock-dot stock-available"></span> En stock
+                {% elif product.stock > 0 %}
+                  <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
                 {% else %}
-                <button class="btn-add-cart btn-disabled" disabled>
-                    <svg class="cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <span>No disponible</span>
-                </button>
+                  <span class="stock-dot stock-out"></span> Agotado
                 {% endif %}
+              </span>
             </div>
+
+            <!-- 🛒 Botón agregar al carrito -->
+            {% if product.is_available and product.stock > 0 %}
+            <form method="POST" class="add-to-cart-form">
+              {% csrf_token %}
+              <button type="submit" class="btn-add-cart">
+                <span>Agregar</span>
+              </button>
+            </form>
+            {% else %}
+            <button class="btn-add-cart btn-disabled" disabled>
+              <span>No disponible</span>
+            </button>
+            {% endif %}
+          </div>
         </div>
-    </article>
-    {% empty %}
-    <div class="no-products">
-        <svg class="no-products-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-        </svg>
+      </article>
+      {% empty %}
+      <div class="no-products">
         <h3>No hay productos disponibles</h3>
         <p>Lo sentimos, no encontramos productos en este momento.</p>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
-        <!-- Paginación -->
-        {% if productos.has_other_pages %}
-        <div class="pagination">
-            {% if productos.has_previous %}
-            <a href="?page={{ productos.previous_page_number }}" class="pagination-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-                Anterior
-            </a>
-            {% endif %}
-
-            <div class="pagination-numbers">
-                {% for num in productos.paginator.page_range %}
-                    {% if productos.number == num %}
-                    <span class="pagination-number active">{{ num }}</span>
-                    {% else %}
-                    <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            {% if productos.has_next %}
-            <a href="?page={{ productos.next_page_number }}" class="pagination-btn">
-                Siguiente
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </a>
-            {% endif %}
-        </div>
-        {% endif %}
-
+    <!-- 🔄 Paginación -->
+    {% if productos.has_other_pages %}
+    <div class="pagination">
+      {% if productos.has_previous %}
+        <a href="?page={{ productos.previous_page_number }}" class="pagination-btn">Anterior</a>
+      {% endif %}
+      <div class="pagination-numbers">
+        {% for num in productos.paginator.page_range %}
+          {% if productos.number == num %}
+            <span class="pagination-number active">{{ num }}</span>
+          {% else %}
+            <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if productos.has_next %}
+        <a href="?page={{ productos.next_page_number }}" class="pagination-btn">Siguiente</a>
+      {% endif %}
     </div>
+    {% endif %}
+
+  </div>
 </section>
 
-<!-- Script para búsqueda en tiempo real (opcional) -->
+<!-- ✅ Script para envío automático -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const productCards = document.querySelectorAll('.product-card');
+  document.getElementById('sortFilter').addEventListener('change', function () {
+    document.getElementById('filterForm').submit();
+  });
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            
-            productCards.forEach(card => {
-                const productName = card.querySelector('.product-name').textContent.toLowerCase();
-                const productDesc = card.querySelector('.product-description').textContent.toLowerCase();
-                
-                if (productName.includes(searchTerm) || productDesc.includes(searchTerm)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
+  document.getElementById('categoryFilter').addEventListener('change', function () {
+    document.getElementById('filterForm').submit();
+  });
+
+  document.querySelector('.search-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      document.getElementById('filterForm').submit();
     }
-});
+  });
 </script>
 {% endblock %}

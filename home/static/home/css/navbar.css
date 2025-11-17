@@ -406,3 +406,12 @@
     align-items: stretch;
   }
 }
+
+/* ✅ Corrige visibilidad de las opciones del select */
+/* ✅ Corrige visibilidad del campo y sus opciones */
+#searchCategory,
+#searchCategory option {
+  background-color: #ffffff !important;
+  color: #1a1f36 !important;
+  font-size: 14px !important;
+}

@@ -72,18 +72,20 @@
             background: #ffffff;
         }
 
-        .search-select {
-            padding: 0.75rem 1rem;
-            border: none;
-            background: transparent;
-            font-size: 0.9rem;
-            color: #334155;
-            font-weight: 500;
-            cursor: pointer;
-            border-right: 2px solid #e2e8f0;
-            outline: none;
-            min-width: 140px;
-        }
+ /* ✅ Estilo para el menú desplegable */
+.search-select {
+  background-color: #ffffff; /* Fondo blanco */
+  color: #333333;            /* Texto oscuro */
+  border: 1px solid #ccc;
+  padding: 6px;
+  font-size: 14px;
+}
+
+/* ✅ Estilo para las opciones del dropdown */
+.search-select option {
+  background-color: #ffffff;
+  color: #333333;
+}
 
         .search-select:hover {
             background: rgba(16, 185, 129, 0.05);

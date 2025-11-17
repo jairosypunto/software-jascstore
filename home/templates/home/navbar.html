@@ -12,19 +12,35 @@
       <span class="logo-text">LatinShop</span>
     </a>
 
-    <!-- 🔍 Barra de búsqueda con categorías dinámicas -->
-    <div class="search-bar">
-      <select class="search-select" id="searchCategory">
+   
+    <!-- 🔍 Barra de búsqueda con formulario funcional -->
+    <!-- 🔍 Formulario de búsqueda completo -->
+    <form method="get" action="{% url 'home:home' %}" class="search-bar">
+      <!-- 🗂️ Categorías dinámicas -->
+      <select name="category" class="search-select" id="searchCategory">
         <option value="all">Todas las categorías</option>
         {% for category in links %}
-        <option value="{{ category.slug }}">{{ category.nombre_categoria }}</option>
+          <option value="{{ category.slug }}">{{ category.nombre_categoria }}</option>
+        {% empty %}
+          <option disabled>No hay categorías disponibles</option>
         {% endfor %}
       </select>
 
-      <input type="text" class="search-input" placeholder="¿Qué estás buscando?" />
-      <button class="search-btn"><span class="search-icon">🔍</span></button>
-    </div>
+      <!-- 🔤 Campo de búsqueda -->
+      <input type="text" name="q" class="search-input" placeholder="¿Qué estás buscando?" />
 
+      <!-- 🔃 Ordenamiento -->
+      <select name="order" class="search-select" id="searchOrder">
+        <option value="">Ordenar por...</option>
+        <option value="name">Nombre</option>
+        <option value="price">Precio</option>
+      </select>
+
+      <!-- 🔍 Botón de búsqueda -->
+      <button type="submit" class="search-btn">
+        <span class="search-icon">🔍</span>
+      </button>
+    </form>
     <!-- 📱 Menú hamburguesa para dispositivos móviles -->
     <div class="hamburger" onclick="toggleMenu()">
       <span></span><span></span><span></span>
