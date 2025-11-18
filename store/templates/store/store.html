@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
@@ -9,14 +8,14 @@
 {% endblock %}
 
 {% block content %}
- <!-- 🧩 Contenedor centrado -->
+<!-- 🧩 Contenedor centrado -->
 <div class="contenedor-tienda">
 
   <!-- 🎯 Filtros en línea horizontal -->
   <div class="barra-filtros-store">
     <form method="get" action="{% url 'store:store' %}" class="formulario-filtros-store d-flex justify-content-center align-items-center flex-wrap gap-3">
       
-      <input type="text" name="q" class="form-control filtro-input" placeholder="Buscar productos...">
+      <input type="text" name="q" class="form-control filtro-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
 
       <select name="category" class="form-select filtro-select">
         <option value="all">Todas las categorías</option>
@@ -30,10 +29,10 @@
 
       <select name="order" class="form-select filtro-select">
         <option value="">Ordenar por...</option>
-        <option value="name">Nombre</option>
-        <option value="price">Precio ascendente</option>
-        <option value="price_desc">Precio descendente</option>
-        <option value="recent">Más reciente</option>
+        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre</option>
+        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio ascendente</option>
+        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
+        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más reciente</option>
       </select>
 
       <button type="submit" class="btn btn-primary">Aplicar filtros store</button>
@@ -46,11 +45,12 @@
     <div class="row justify-content-center">
       {% for producto in productos %}
         <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm position-relative">
+          <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
+            
             {% if producto.image %}
-              <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
+              <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
             {% else %}
-              <img src="{% static 'store/img/default.jpg' %}" class="card-img-top" alt="Sin imagen">
+              <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
             {% endif %}
 
             {% if producto.nuevo %}
@@ -58,9 +58,33 @@
             {% endif %}
 
             <div class="card-body text-center">
-              <h5 class="card-title">{{ producto.name }}</h5>
-              <p class="card-text">Precio: ${{ producto.cost|floatformat:0 }}</p>
-              <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">🛒 Comprar</a>
+             <h5 class="card-title">{{ producto.name }}</h5>
+
+              <p class="card-description text-muted">
+                {% if producto.description %}
+                  {{ producto.description|truncatewords:15 }}
+                {% else %}
+                  <em>Descripción no disponible</em>
+                {% endif %}
+              </p>
+
+              <p class="card-text fw-bold">Precio: ${{ producto.cost|floatformat:0 }}</p>
+              <!-- Estado de disponibilidad -->
+              <p class="mb-2">
+                Estado: 
+                {% if producto.is_available %}
+                  <span class="text-success fw-bold">Disponible</span>
+                {% else %}
+                  <span class="text-danger fw-bold">No disponible</span>
+                {% endif %}
+              </p>
+
+              <!-- Botón de compra -->
+              {% if producto.is_available and producto.stock > 0 %}
+                <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">🛒 Comprar</a>
+              {% else %}
+                <button class="btn btn-secondary w-100" disabled>Producto no disponible</button>
+              {% endif %}
             </div>
           </div>
         </div>

@@ -36,7 +36,16 @@
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
           {% if user.is_authenticated %}
             <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'store:ver_carrito' %}">🛒 Carrito</a></li>
+            <li class="nav-item position-relative">
+              <a class="nav-link" href="{% url 'store:ver_carrito' %}">
+                🛒 Carrito
+                {% if total_items_carrito > 0 %}
+                  <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill">
+                    {{ total_items_carrito }}
+                  </span>
+                {% endif %}
+              </a>
+            </li>
             <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Contraseña</a></li>
             <li class="nav-item">

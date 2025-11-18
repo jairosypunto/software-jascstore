@@ -127,6 +127,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'categorias.context_processors.menu_links',  # ✅ Menú dinámico de categorías
+                'store.context_processors.total_items_carrito',  # ✅ Total de ítems en el carrito
             ],
         },
     },

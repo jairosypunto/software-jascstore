@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Resumen de tu compra</h2>
+
+  {% if items %}
+    <table class="table table-bordered table-hover text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Imagen</th>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio unitario</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            {% if item.producto.image %}
+              <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" width="60">
+            {% else %}
+              <img src="{% static 'store/img/default.jpg' %}" alt="Sin imagen" width="60">
+            {% endif %}
+          </td>
+          <td>{{ item.producto.name }}</td>
+          <td>{{ item.cantidad }}</td>
+          <td>${{ item.producto.cost|floatformat:0 }}</td>
+          <td>${{ item.subtotal|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="text-end">
+      <h4>Total: ${{ total|floatformat:0 }}</h4>
+      <a href="#" class="btn btn-success">Confirmar pago</a>
+    </div>
+  {% else %}
+    <p class="text-muted text-center">Tu carrito está vacío.</p>
+  {% endif %}
+</div>
+{% endblock %}
