@@ -119,3 +119,9 @@ def checkout(request):
         'total': total,
     }
     return render(request, 'store/checkout.html', context)
+
+def nosotros(request):
+    return render(request, 'store/nosotros.html')
+
+def contacto(request):
+    return render(request, 'store/contacto.html')

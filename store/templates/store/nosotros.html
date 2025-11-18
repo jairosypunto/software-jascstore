@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nosotros - LatinShop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'store/css/nosotros.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="nosotros-section py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1 class="display-5 fw-bold text-primary">¿Quiénes somos?</h1>
+      <p class="lead text-muted">Una tienda virtual con propósito, pasión y visión educativa</p>
+    </div>
+
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6">
+        <img src="{% static 'store/img/equipo.jpg' %}" alt="Equipo LatinShop" class="img-fluid rounded shadow">
+      </div>
+      <div class="col-md-6">
+        <h3 class="fw-semibold">Nuestra historia</h3>
+        <p>LatinShop nació del deseo de crear una experiencia de compra accesible, visual y confiable para todos. Somos un equipo autodidacta apasionado por la tecnología, el diseño y la educación. Cada producto que ves aquí ha sido seleccionado con cuidado, pensando en ti.</p>
+      </div>
+    </div>
+
+    <div class="row text-center mb-5">
+      <div class="col-md-4">
+        <div class="icon-box">
+          <img src="{% static 'store/img/icono-mision.png' %}" alt="Misión" width="60">
+          <h5 class="mt-3">Misión</h5>
+          <p>Ofrecer productos de calidad con una experiencia visual clara, accesible y educativa.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="icon-box">
+          <img src="{% static 'store/img/icono-vision.png' %}" alt="Visión" width="60">
+          <h5 class="mt-3">Visión</h5>
+          <p>Ser una tienda virtual referente para autodidactas y emprendedores digitales en Latinoamérica.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="icon-box">
+          <img src="{% static 'store/img/icono-valores.png' %}" alt="Valores" width="60">
+          <h5 class="mt-3">Valores</h5>
+          <p>Transparencia, aprendizaje continuo, empatía, accesibilidad y compromiso con la comunidad.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <h4 class="fw-bold">Gracias por ser parte de nuestra historia</h4>
+      <p class="text-muted">En LatinShop no solo vendemos productos, construimos confianza y comunidad.</p>
+      <a href="{% url 'store:store' %}" class="btn btn-outline-primary mt-3">Explorar la tienda</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
