@@ -2,19 +2,15 @@
 venv/
 env/
 
-# Archivos de Python compilados
+# Archivos compilados
 *.pyc
 __pycache__/
 
 # Base de datos local
 db.sqlite3
 
-# Archivos de sistema
-desktop.ini
-Thumbs.db
-
 # Archivos estáticos recolectados
-/staticfiles/
+staticfiles/
 
 # Archivos de configuración local
 *.env
@@ -27,6 +23,20 @@ Thumbs.db
 # Migraciones innecesarias
 */migrations/__pycache__/
 */migrations/*.pyc
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de backup
+*.bak
+*.tmp
+
+# Archivos de traducción
+*.mo
+*.pot
 
 # Netlify (por si lo usas en el futuro)
 .netlify/
