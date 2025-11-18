@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 
 # 📁 Base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,7 +20,7 @@ CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
 # 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
     'usuario.apps.UsuarioConfig',
-    'jazzmin',
+    # 'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -68,14 +69,20 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # 🌍 Internacionalización
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'es-co'
+TIME_ZONE = 'America/Bogota'
 USE_I18N = True
 USE_TZ = True
 
 # 🎨 Archivos estáticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'JascEcommerce/static']
+STATICFILES_DIRS = [
+    BASE_DIR / 'usuario' / 'static',
+    BASE_DIR / 'store' / 'static',
+    BASE_DIR / 'home' / 'static',
+    BASE_DIR / 'auths' / 'static',
+    BASE_DIR / 'categorias' / 'static',
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # 🖼️ Archivos multimedia
@@ -101,17 +108,25 @@ JAZZMIN_SETTINGS = {
 }
 
 # 🧠 Plantillas
+# 🧠 Plantillas
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',  # ✅ Carpeta global para base.html y templates compartidos
+            BASE_DIR / 'usuario' / 'templates',
+            BASE_DIR / 'store' / 'templates',
+            BASE_DIR / 'home' / 'templates',
+            BASE_DIR / 'auths' / 'templates',
+            BASE_DIR / 'categorias' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'categorias.context_processors.menu_links',
+                'categorias.context_processors.menu_links',  # ✅ Menú dinámico de categorías
             ],
         },
     },
@@ -120,42 +135,5 @@ TEMPLATES = [
 # 🆔 Campo por defecto para claves primarias
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Library Admin",
-
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "Library",
-
-    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "Library",
-    "welcome_sign": "Welcome to the Library Admin",
-    
-    "copyright": "Jasc Ecommerce Ltd 2025",  
-}
-
-# 📁 Archivos multimedia (imágenes de productos, usuarios, etc.)
-MEDIA_URL = '/media/'  # URL pública para acceder a archivos multimedia
-MEDIA_ROOT = BASE_DIR / 'media'  # Carpeta local donde se guardan los archivos subidos
-
-# 🔐 Redirecciones de autenticación
-LOGIN_URL = 'login'                 # URL de inicio de sesión (name='login' en usuario/urls.py)
-LOGIN_REDIRECT_URL = '/account/'    # Redirige al dashboard tras login exitoso
-LOGOUT_URL = 'logout'               # URL para cerrar sesión (name='logout')
-LOGOUT_REDIRECT_URL = '/home/'      # Redirige a la portada tras cerrar sesión
-
-# 📧 Backend de correo para desarrollo (recuperación de contraseña)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Muestra correos en consola para pruebas
-
-from datetime import datetime
+# 📁 Versión estática para cache busting
 STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
-
-# 📌 Para producción, reemplaza el backend de correo por uno real:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'tu_correo@gmail.com'
-# EMAIL_HOST_PASSWORD = 'tu_contraseña_o_token'
-

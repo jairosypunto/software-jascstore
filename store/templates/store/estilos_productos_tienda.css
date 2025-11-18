@@ -795,3 +795,27 @@ body {
         font-size: 0.95rem;
     }
 }
+
+#categoryFilter {
+  border: 3px dashed green !important;
+}
+
+body {
+  background-color: yellow !important;
+}
+
+#categoryFilter {
+  border: 3px dashed red !important;
+  background-color: #fff !important;
+  color: #000 !important;
+  font-size: 16px;
+  padding: 8px;
+  z-index: 10;
+  position: relative;
+}
+.navbar .navbar-nav .nav-link {
+  margin-right: 1rem;
+}
+.navbar .btn {
+  margin-left: 0.5rem;
+}

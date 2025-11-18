@@ -1,4 +1,23 @@
 from django.shortcuts import HttpResponse, render
 
-def inicio(request):
-    return render(request, 'index.html', {'section': 'inicio'})
+from models import Product
+
+def home(request):
+    productos = Product.objects.filter(is_available=True)
+
+    search_query = request.GET.get('q')
+    if search_query:
+        productos = productos.filter(name__icontains=search_query)
+
+    order = request.GET.get('order')
+    if order == 'name':
+        productos = productos.order_by('name')
+    elif order == 'price':
+        productos = productos.order_by('cost')
+    elif order == 'price_desc':
+        productos = productos.order_by('-cost')
+
+    context = {
+        'productos_destacados': productos,
+    }
+    return render(request, 'home/home.html', context)

@@ -847,3 +847,43 @@ body {
   color: var(--white);
   box-shadow: var(--shadow-md);
 }
+
+#categoryFilter,
+#categoryFilter option {
+  background-color: #ffffff !important;
+  color: #1f2937 !important; /* texto oscuro */
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  border: 2px solid #6366f1 !important;
+  padding: 10px 20px !important;
+  border-radius: 50px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+#categoryFilter {
+  border: 3px dashed red !important;
+}
+
+/* ✅ Estilo seguro para menú desplegable de categorías */
+body {
+  background-color: yellow !important;
+}
+
+#categoryFilter {
+  border: 3px dashed red !important;
+  background-color: #fff !important;
+  color: #000 !important;
+  font-size: 16px;
+  padding: 8px;
+  z-index: 10;
+  position: relative;
+}
+
+.navbar .navbar-nav .nav-link {
+  margin-right: 1rem;
+}
+.navbar .btn {
+  margin-left: 0.5rem;
+}

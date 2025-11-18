@@ -1,80 +1,65 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inicio</title>
 
-    <!-- 🎨 Estilos base -->
-    <link rel="stylesheet" href="{% static 'home/css/bootstrap.css' %}" />
+{% block title %}Inicio - LatinShop{% endblock %}
 
-    <!-- 🎨 Estilos del navbar -->
-    <link rel="stylesheet" href="{% static 'home/css/navbar.css' %}" />
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'home/css/home.css' %}">
+{% endblock %}
 
-    <!-- 🎨 Estilos de productos (reutilizados desde tienda) -->
-    <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}" />
+{% block content %}
+<!-- 🎉 Bienvenida -->
+<div class="container mt-4 text-center">
+  <h1>Bienvenido a LatinShop</h1>
+  <p>Tu ecommerce educativo con diseño responsivo y profesional</p>
+</div>
 
-    <!-- 🧪 Estilos mínimos para validar visualización de imágenes -->
-    <style>
-      .product-grid img {
-        width: 100%;
-        height: auto;
-        display: block;
-        border: 1px solid #ccc;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- 🔗 Navbar con logo, búsqueda y navegación -->
-    {% include 'home/navbar.html' with links=links %}
-
-    <!-- 📌 Opciones de ordenamiento -->
-    <div class="container mt-3 text-end">
-      <a href="?order=name" class="btn btn-outline-primary btn-sm">Ordenar por nombre</a>
-      <a href="?order=price" class="btn btn-outline-secondary btn-sm">Ordenar por precio</a>
+<!-- 🧭 Filtros -->
+<div class="container mt-4">
+  <form method="get" action="{% url 'inicio' %}" class="row g-3">
+    <div class="col-md-4">
+      <input type="text" name="q" class="form-control" placeholder="Buscar productos...">
     </div>
+    <div class="col-md-4">
+      <select name="order" class="form-select">
+        <option value="">Ordenar por...</option>
+        <option value="name">Nombre</option>
+        <option value="price">Precio ascendente</option>
+        <option value="price_desc">Precio descendente</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-primary w-100">Aplicar filtros home</button>
+    </div>
+  </form>
+</div>
 
-    <!-- 🛍️ Grid de productos debajo del mensaje de bienvenida -->
-    <div class="container mt-4">
-      <div class="row">
-        {% for product in products %}
-        <div class="col-md-3 mb-4">
-          <div class="card product-grid">
-            <a href="#" class="img-wrap">
-              <!-- ✅ Imagen del producto -->
-              <img src="{{ product.image.url }}" alt="{{ product.name }}" />
-            </a>
-            <figcaption class="info-wrap p-2">
-              <!-- 🏷️ Nombre del producto -->
-              <a href="#" class="title-product"> {{ product.name }} </a>
-              <!-- 💰 Precio -->
-              <div class="price mt-1">${{ product.cost|floatformat:0 }}</div>
-            </figcaption>
+<!-- 🖼️ Vitrina de productos destacados -->
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">Productos destacados</h2>
+  <div class="row">
+    {% for producto in productos_destacados %}
+      <div class="col-md-3 mb-4">
+        <div class="card h-100 shadow-sm position-relative">
+          <a href="{% url 'store:store' %}">
+          
+            {% if producto.image %}
+              <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
+            {% else %}
+              <img src="{% static 'store/img/default.jpg' %}" class="card-img-top" alt="Sin imagen">
+            {% endif %}
+          </a>
+          {% if producto.nuevo %}
+            <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
+          {% endif %}
+          <div class="card-body text-center">
+            <h6 class="card-title">{{ producto.name }}</h6>
           </div>
         </div>
-        {% empty %}
-        <!-- 🧾 Mensaje si no hay productos -->
-        <div class="col-12 text-center">
-          <p>No hay productos disponibles en este momento.</p>
-        </div>
-        {% endfor %}
       </div>
-    </div>
-
-    <script>
-  // ✅ Envía el formulario al cambiar categoría
-  document.getElementById('searchCategory').addEventListener('change', function () {
-    this.form.submit();
-  });
-
-  // ✅ Envía el formulario al cambiar ordenamiento
-  document.getElementById('searchOrder').addEventListener('change', function () {
-    this.form.submit();
-  });
-</script>
-
-    <!-- 🧠 Script JS para interacciones -->
-    <script src="{% static 'home/js/home.js' %}"></script>
-  </body>
-</html>
+    {% empty %}
+      <p class="text-muted text-center">No hay productos destacados por el momento.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

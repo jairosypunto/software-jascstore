@@ -1,17 +1,20 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{# ✅ Título dinámico para la pestaña del navegador #}
 {% block title %}Tienda - LatinShop{% endblock %}
 
+{# ✅ Estilos específicos para esta vista #}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
+  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
 {% endblock %}
 
+{# ✅ Contenido principal de la tienda #}
 {% block content %}
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- 🏷️ Hero Banner -->
+    {# 🏷️ Banner de bienvenida #}
     <div class="shop-hero">
       <div class="hero-content">
         <h1 class="hero-title">Nuestra Tienda</h1>
@@ -19,56 +22,52 @@
       </div>
     </div>
 
-    <!-- 🔍 Filtros: búsqueda, ordenamiento y categorías -->
-<form method="get" id="filterForm">
-  <div class="shop-controls">
+    {# 🔍 Filtros: búsqueda, ordenamiento y categorías #}
+    <form method="get" id="filterForm">
+      <div class="shop-controls">
 
-    <!-- 🔍 Búsqueda -->
-    <div class="search-box">
-      <input type="text" name="q" class="search-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
-    </div>
+        {# 🔍 Campo de búsqueda #}
+        <div class="search-box">
+          <input type="text" name="q" class="search-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+        </div>
 
-    <!-- 🗂️ Filtros -->
-    <div class="filter-group">
+        {# 🗂️ Filtros de categoría y ordenamiento #}
+        <div class="filter-group">
+          <select name="category" class="filter-select" id="categoryFilter">
+            <option value="">Todas las categorías</option>
+            {% for categoria in categorias %}
+              <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
+                {{ categoria.nombre }}
+              </option>
+            {% endfor %}
+          </select>
 
-      <!-- ✅ Categorías como menú desplegable -->
-      <select name="category" class="filter-select" id="categoryFilter">
-        <option value="">Todas las categorías</option>
-        {% for categoria in categorias %}
-          <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
-            {{ categoria.nombre }}
-          </option>
-        {% endfor %}
-      </select>
+          <select name="order" class="filter-select" id="sortFilter">
+            <option value="">Ordenar por</option>
+            <option value="precio_asc" {% if request.GET.order == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
+            <option value="precio_desc" {% if request.GET.order == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+            <option value="nombre" {% if request.GET.order == 'nombre' %}selected{% endif %}>Nombre: A-Z</option>
+            <option value="reciente" {% if request.GET.order == 'reciente' %}selected{% endif %}>Más recientes</option>
+          </select>
+        </div>
+      </div>
+    </form>
 
-      <!-- ✅ Ordenamiento -->
-      <select name="order" class="filter-select" id="sortFilter">
-        <option value="">Ordenar por</option>
-        <option value="precio_asc" {% if request.GET.order == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
-        <option value="precio_desc" {% if request.GET.order == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-        <option value="nombre" {% if request.GET.order == 'nombre' %}selected{% endif %}>Nombre: A-Z</option>
-        <option value="reciente" {% if request.GET.order == 'reciente' %}selected{% endif %}>Más recientes</option>
-      </select>
-
-    </div>
-  </div>
-</form>
-
-    <!-- 📦 Contador de productos -->
+    {# 📦 Contador de productos #}
     <div class="products-count">
       <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
     </div>
 
-    <!-- 🛍️ Grid de productos -->
+    {# 🛍️ Grid de productos #}
     <div class="products-grid">
       {% for product in productos %}
       <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
 
-        <!-- Imagen -->
+        {# 🖼️ Imagen del producto #}
         <div class="product-image-wrapper">
           <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
 
-          <!-- Badges -->
+          {# 🏷️ Badges de estado #}
           <div class="product-badges">
             {% if not product.is_available %}
               <span class="badge badge-unavailable">Agotado</span>
@@ -80,13 +79,13 @@
             {% endif %}
           </div>
 
-          <!-- Vista rápida -->
+          {# 👁️ Vista rápida (puedes enlazar a detalle) #}
           <a href="#" class="quick-view">
             <span>Vista rápida</span>
           </a>
         </div>
 
-        <!-- Info -->
+        {# 📋 Información del producto #}
         <div class="product-content">
           <span class="product-category">{{ product.category.name }}</span>
           <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
@@ -105,8 +104,9 @@
                 {% endif %}
               </span>
             </div>
-
-            <!-- 🛒 Botón agregar al carrito -->
+            
+            
+            {# 🛒 Botón de agregar al carrito #}
             {% if product.is_available and product.stock > 0 %}
             <form method="POST" class="add-to-cart-form">
               {% csrf_token %}
@@ -130,7 +130,7 @@
       {% endfor %}
     </div>
 
-    <!-- 🔄 Paginación -->
+    {# 🔄 Paginación #}
     {% if productos.has_other_pages %}
     <div class="pagination">
       {% if productos.has_previous %}
@@ -154,7 +154,7 @@
   </div>
 </section>
 
-<!-- ✅ Script para envío automático -->
+{# ✅ Script para envío automático de filtros #}
 <script>
   document.getElementById('sortFilter').addEventListener('change', function () {
     document.getElementById('filterForm').submit();

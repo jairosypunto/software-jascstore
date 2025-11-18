@@ -1,29 +1,74 @@
+
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>hola desde store</h1>
-    <span class="mr-md-auto"><b>{{ counter_products}}</b>Resultado</span>
-     <div class="row">
-      {% for product in products %}
-      <div class="col-md-3">
-        <div class="card product-grid">
-          <a href="#" class="img-wrap">
-            <img width="256" src="{{ product.image.url }}" alt="" />
-          </a>
-          <figcaption class="info-wrap">
-            <a href="#" class="title-product"> {{ product.name }} </a>
-            <div class="price mt-1">{{ product.cost }}</div>
-          </figcaption>
+
+{% block title %}Tienda - LatinShop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'store/css/store.css' %}">
+{% endblock %}
+
+{% block content %}
+ <!-- 🧩 Contenedor centrado -->
+<div class="contenedor-tienda">
+
+  <!-- 🎯 Filtros en línea horizontal -->
+  <div class="barra-filtros-store">
+    <form method="get" action="{% url 'store:store' %}" class="formulario-filtros-store d-flex justify-content-center align-items-center flex-wrap gap-3">
+      
+      <input type="text" name="q" class="form-control filtro-input" placeholder="Buscar productos...">
+
+      <select name="category" class="form-select filtro-select">
+        <option value="all">Todas las categorías</option>
+        {% for category in categorias %}
+          <option value="{{ category.slug }}"
+            {% if categoria_actual and categoria_actual.slug == category.slug %}selected{% endif %}>
+            {{ category.nombre_categoria }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="order" class="form-select filtro-select">
+        <option value="">Ordenar por...</option>
+        <option value="name">Nombre</option>
+        <option value="price">Precio ascendente</option>
+        <option value="price_desc">Precio descendente</option>
+        <option value="recent">Más reciente</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary">Aplicar filtros store</button>
+    </form>
+  </div>
+
+  <!-- 🛍️ Productos disponibles -->
+  <section class="productos-tienda">
+    <h2 class="mb-4 text-center text-primary">Productos disponibles</h2>
+    <div class="row justify-content-center">
+      {% for producto in productos %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm position-relative">
+            {% if producto.image %}
+              <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
+            {% else %}
+              <img src="{% static 'store/img/default.jpg' %}" class="card-img-top" alt="Sin imagen">
+            {% endif %}
+
+            {% if producto.nuevo %}
+              <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
+            {% endif %}
+
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ producto.name }}</h5>
+              <p class="card-text">Precio: ${{ producto.cost|floatformat:0 }}</p>
+              <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">🛒 Comprar</a>
+            </div>
+          </div>
         </div>
-      </div>
+      {% empty %}
+        <p class="text-muted text-center">No hay productos disponibles.</p>
       {% endfor %}
     </div>
-    </div>
-</body>
-</html>
+  </section>
+
+</div>
+{% endblock %}

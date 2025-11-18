@@ -10149,3 +10149,8 @@ h3 {
 }
 
 /*# sourceMappingURL=bootstrap.css.map */
+
+.filter-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Productos en {{ categoria.name }}{% endblock %}
+{% block content %}
+  <h1>Productos en {{ categoria.name }}</h1>
+  <ul>
+    {% for p in productos %}
+      <li>{{ p.name }} - ${{ p.cost }}</li>
+    {% empty %}
+      <li>No hay productos en esta categoría.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

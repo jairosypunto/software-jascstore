@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Carrito - LatinShop{% endblock %}
+
+{% block content %}
+<section class="cart-section">
+  <h1>Tu carrito de compras</h1>
+
+  {% if items %}
+    <ul class="list-group mb-3">
+      {% for it in items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ it.producto.name }}</strong>
+            <div class="small text-muted">Precio unitario: ${{ it.producto.cost|floatformat:0 }}</div>
+          </div>
+          <div class="text-end">
+            <div>Cantidad: <span class="badge bg-primary">{{ it.cantidad }}</span></div>
+            <div class="mt-2">Subtotal: <strong>${{ it.subtotal|floatformat:0 }}</strong></div>
+          </div>
+        </li>
+      {% endfor %}
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Total</strong>
+        <strong>${{ total|floatformat:0 }}</strong>
+      </li>
+    </ul>
+
+    <div class="d-flex gap-2">
+      <a href="{% url 'store:store' %}" class="btn btn-secondary">Continuar comprando</a>
+      <form method="post" action="{% url 'store:vaciar_carrito' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">Vaciar carrito</button>
+      </form>
+      <a href="{% url 'store:checkout' %}" class="btn btn-primary">Ir a pagar</a>
+    </div>
+
+  {% else %}
+    <p>Tu carrito está vacío.</p>
+    <a class="btn btn-primary" href="{% url 'store:store' %}">Ir a la tienda</a>
+  {% endif %}
+</section>
+{% endblock %}

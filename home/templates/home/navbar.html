@@ -1,79 +1,57 @@
 {% load static %}
 <!-- ✅ Carga el CSS específico para la barra de navegación -->
-<link rel="stylesheet" href="{% static 'home/css/navbar.css' %}" />
 
-<!-- ✅ Estructura principal del navbar -->
-<nav class="navbar">
-  <div class="nav-container">
+<link rel="stylesheet" href="{% static 'home/css/bootstrap.css' %}" />
 
-    <!-- 🛒 Logo del ecommerce -->
-    <a href="/" class="logo">
-      <div class="logo-icon">🛒</div>
-      <span class="logo-text">LatinShop</span>
-    </a>
+<!-- ✅ Navbar visual principal -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-gradient navbar-fijo shadow">
+  <div class="container-xl">
 
-   
-    <!-- 🔍 Barra de búsqueda con formulario funcional -->
-    <!-- 🔍 Formulario de búsqueda completo -->
-    <form method="get" action="{% url 'home:home' %}" class="search-bar">
-      <!-- 🗂️ Categorías dinámicas -->
-      <select name="category" class="search-select" id="searchCategory">
-        <option value="all">Todas las categorías</option>
-        {% for category in links %}
-          <option value="{{ category.slug }}">{{ category.nombre_categoria }}</option>
-        {% empty %}
-          <option disabled>No hay categorías disponibles</option>
-        {% endfor %}
-      </select>
+    <!-- 🔵 Logo -->
+    <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">LatinShop</a>
 
-      <!-- 🔤 Campo de búsqueda -->
-      <input type="text" name="q" class="search-input" placeholder="¿Qué estás buscando?" />
+    <!-- 🍔 Botón hamburguesa -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-      <!-- 🔃 Ordenamiento -->
-      <select name="order" class="search-select" id="searchOrder">
-        <option value="">Ordenar por...</option>
-        <option value="name">Nombre</option>
-        <option value="price">Precio</option>
-      </select>
+    <!-- 🔗 Contenido colapsable -->
+    <div class="collapse navbar-collapse" id="navbarContenido">
+      <!-- 🟡 Navegación pública -->
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+        <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
+        <li class="nav-item"><a class="nav-link" href="#nosotros">Nosotros</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Menú 1</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Menú 2</a></li>
+      </ul>
 
-      <!-- 🔍 Botón de búsqueda -->
-      <button type="submit" class="search-btn">
-        <span class="search-icon">🔍</span>
-      </button>
-    </form>
-    <!-- 📱 Menú hamburguesa para dispositivos móviles -->
-    <div class="hamburger" onclick="toggleMenu()">
-      <span></span><span></span><span></span>
-    </div>
-
-    <!-- 📌 Menú de navegación principal -->
-    <ul class="nav-menu" id="navMenu">
-      <li><a href="#nosotros" class="nav-link">Nosotros</a></li>
-      <li><a href="{% url 'store:store' %}" class="nav-link">Tienda</a></li>
-      <li><a href="#contacto" class="nav-link">Contacto</a></li>
-
-      <!-- 👤 Botones de sesión: login, registro, dashboard, logout -->
-      <div class="nav-buttons">
+      <!-- 🟢 Usuario y sesión -->
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
         {% if user.is_authenticated %}
-          <span>Hola {{ user.email }}</span>
-          <a href="{% url 'dashboard' %}" class="btn btn-dashboard">Mi Dashboard</a>
-
-          <!-- ✅ Botón seguro para cerrar sesión -->
-          <form action="{% url 'logout' %}" method="post" style="display: inline">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-logout">Cerrar sesión</button>
-          </form>
+          <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:ver_carrito' %}">🛒 Ver carrito</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Mi Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Cambiar contraseña</a></li>
+          <li class="nav-item">
+            <form action="{% url 'logout' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+            </form>
+          </li>
         {% else %}
-          <a href="{% url 'login' %}" class="btn btn-login">Login</a>
-          <a href="{% url 'register' %}" class="btn btn-register">Registro</a>
+          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+          <li class="nav-item"><a class="nav-link text-success fw-bold" href="{% url 'register' %}">Registro</a></li>
         {% endif %}
-      </div>
-    </ul>
+      </ul>
+    </div>
   </div>
 </nav>
 
-<!-- 🎉 Mensaje de bienvenida en la portada -->
-<div class="content">
+<!-- 🎉 Mensaje de bienvenida en la portada (solo en home) -->
+{% if request.resolver_match.url_name == 'home' %}
+<div class="content text-center mt-4">
   <h1>Welcome to DevTeam</h1>
   <p>Tu ecommerce moderno con diseño responsive y profesional</p>
 </div>
+{% endif %}

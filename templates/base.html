@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}LatinShop{% endblock %}</title>
+
+  <!-- ✅ Bootstrap CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- ✅ Tus estilos -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- ✅ NAVBAR FIJO Y PROFESIONAL -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fijo">
+    <div class="container-xl">
+      <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">LatinShop</a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContenido">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
+          <li class="nav-item"><a class="nav-link" href="#nosotros">Nosotros</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Menú 1</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Menú 2</a></li>
+        </ul>
+
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+          {% if user.is_authenticated %}
+            <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'store:ver_carrito' %}">🛒 Carrito</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Contraseña</a></li>
+            <li class="nav-item">
+              <form action="{% url 'logout' %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+              </form>
+            </li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+            <li class="nav-item"><a class="nav-link text-success fw-bold" href="{% url 'register' %}">Registro</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ CONTENIDO -->
+  <main class="contenido-principal">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ✅ Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

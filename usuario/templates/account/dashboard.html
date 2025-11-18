@@ -1,13 +1,6 @@
-{% extends "base.html" %}
-
-{% block title %}Dashboard{% endblock %}
-
 {% block content %}
-    <h1>Bienvenido al Panel de Usuario</h1>
-    <p>Welcome Dashboard
-       <form action="{% url 'logout' %}" method="post">
-          {% csrf_token %}
-          <button type="submit">Cerrar sesión</button>
-       </form>
-    </p>
+<div class="container mt-4">
+  <h2>Bienvenido a tu panel</h2>
+  <p>Gestiona tus pedidos, perfil y productos.</p>
+</div>
 {% endblock %}
