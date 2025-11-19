@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp'
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'jairos.pythonanywhere.com',
@@ -77,7 +77,7 @@ USE_TZ = True
 
 # 🎨 Archivos estáticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
+#STATICFILES_DIRS = [
     BASE_DIR / 'usuario' / 'static',
     BASE_DIR / 'store' / 'static',
     BASE_DIR / 'home' / 'static',
