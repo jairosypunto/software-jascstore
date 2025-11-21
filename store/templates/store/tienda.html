@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
 {% endblock %}
 
-{# ✅ Contenido principal de la tienda #}
 {% block content %}
 <section class="shop-section">
   <div class="shop-container">
@@ -104,8 +103,7 @@
                 {% endif %}
               </span>
             </div>
-            
-            
+
             {# 🛒 Botón de agregar al carrito #}
             {% if product.is_available and product.stock > 0 %}
             <form method="POST" class="add-to-cart-form">
@@ -123,10 +121,15 @@
         </div>
       </article>
       {% empty %}
-      <div class="no-products">
-        <h3>No hay productos disponibles</h3>
-        <p>Lo sentimos, no encontramos productos en este momento.</p>
-      </div>
+        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
+          {% if request.GET.q %}
+            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
+            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
+          {% else %}
+            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
+            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+          {% endif %}
+        </div>
       {% endfor %}
     </div>
 

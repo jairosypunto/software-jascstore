@@ -603,11 +603,3 @@ body {
   min-height: 3em;
   margin-bottom: 0.5em;
 }
-
-#categoryFilter,
-#categoryFilter option {
-  background-color: #fff !important;
-  color: #1f2937 !important; /* texto oscuro */
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-} 

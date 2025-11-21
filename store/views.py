@@ -19,7 +19,7 @@ def agregar_al_carrito(request, product_id):
     return redirect('store:ver_carrito')
 
 
- # 🛍️ Vista principal de la tienda con filtros
+# 🛍️ Vista principal de la tienda con filtros
 def store(request):
     productos = Product.objects.filter(is_available=True)
     categoria = None
@@ -59,8 +59,7 @@ def store(request):
     return render(request, 'store/store.html', context)
 
 
-  # 🧺 Ver contenido del carrito
-  
+# 🧺 Ver contenido del carrito
 def ver_carrito(request):
     carrito = request.session.get('carrito', {})
     product_ids = [int(pid) for pid in carrito.keys()] if carrito else []
@@ -85,8 +84,7 @@ def ver_carrito(request):
     return render(request, 'store/carrito.html', context)
 
 
- # 🗂️ Productos por categoría
- 
+# 🗂️ Productos por categoría
 def productos_por_categoria(request, category_slug):
     categoria = get_object_or_404(Category, slug=category_slug)
     productos = Product.objects.filter(category=categoria, is_available=True)
@@ -96,6 +94,7 @@ def productos_por_categoria(request, category_slug):
     }
     return render(request, 'store/productos_por_categoria.html', context)
 
+
 # 🧹 Vaciar carrito
 def vaciar_carrito(request):
     request.session['carrito'] = {}
@@ -104,39 +103,6 @@ def vaciar_carrito(request):
 
 # 💳 Confirmar pago y generar factura
 def confirmar_pago(request):
-    if request.method == "POST":
-        carrito = request.session.get('carrito', {})
-        if not carrito:
-            messages.error(request, "Tu carrito está vacío.")
-            return redirect('store:checkout')
-
-        total = 0
-        # Crear factura
-        factura = Factura.objects.create(usuario=request.user, total=0)
-
-        # Crear detalles y acumular total
-        for pid, qty in carrito.items():
-            producto = Product.objects.get(id=int(pid))
-            subtotal = producto.cost * qty
-            DetalleFactura.objects.create(
-                factura=factura,
-                producto=producto,
-                cantidad=qty,
-                subtotal=subtotal
-            )
-            total += subtotal
-
-        factura.total = total
-        factura.save()
-
-        # Vaciar carrito
-        request.session['carrito'] = {}
-
-        # Mostrar factura (no redirect)
-        return render(request, "store/factura.html", {"factura": factura})
-
-    return redirect('store:checkout')
-
     if request.method == "POST":
         carrito = request.session.get('carrito', {})
         if not carrito:
@@ -172,6 +138,7 @@ def confirmar_pago(request):
     # Si alguien entra por GET, lo mandamos de nuevo al checkout
     return redirect('store:checkout')
 
+
 # 💳 Checkout visual con resumen
 def checkout(request):
     carrito = request.session.get('carrito', {})
@@ -196,64 +163,10 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
+
 # 📄 Páginas informativas
 def nosotros(request):
     return render(request, 'store/nosotros.html')
 
 def contacto(request):
     return render(request, 'store/contacto.html')
-
-
-# 🛍️ Vista principal de la tienda con filtros y sugerencias
-def store(request):
-    productos = Product.objects.filter(is_available=True)
-    categoria = None
-    sugerencias = None
-
-    # Filtro por categoría
-    category_slug = request.GET.get('category')
-    if category_slug and category_slug != 'all':
-        categoria = get_object_or_404(Category, slug=category_slug)
-        productos = productos.filter(category=categoria)
-
-    # Filtro por búsqueda
-    search_query = request.GET.get('q', '').strip()
-    if search_query:
-        productos = productos.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
-
-        # Si no hay resultados, buscar sugerencias por letra inicial
-        if not productos.exists():
-            letra = search_query[0].lower()
-            if letra.isalpha():
-                siguiente = chr(ord(letra) + 1) if letra != 'z' else ''
-                sugerencias = Product.objects.filter(
-                    Q(name__istartswith=letra) | Q(name__istartswith=siguiente),
-                    is_available=True
-                )[:6]
-    else:
-        search_query = ''
-
-    # Ordenamiento
-    order = request.GET.get('order')
-    if order == 'name':
-        productos = productos.order_by('name')
-    elif order == 'price':
-        productos = productos.order_by('cost')
-    elif order == 'price_desc':
-        productos = productos.order_by('-cost')
-    elif order == 'recent':
-        productos = productos.order_by('-date_register')
-
-    categorias = Category.objects.all()
-
-    context = {
-        'productos': productos,
-        'sugerencias': sugerencias,
-        'categorias': categorias,
-        'categoria_actual': categoria,
-        'q': search_query,
-    }
-    return render(request, 'store/store.html', context)

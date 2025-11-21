@@ -42,7 +42,7 @@
     <div class="text-end">
       <h4>Total: ${{ total|floatformat:0 }}</h4>
 
-      <!-- ✅ Formulario que envía POST a confirmar_pago -->
+      <!-- ✅ Único botón correcto: formulario POST -->
       <form method="POST" action="{% url 'store:confirmar_pago' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-success">

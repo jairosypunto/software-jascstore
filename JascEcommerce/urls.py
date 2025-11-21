@@ -11,6 +11,7 @@ urlpatterns = [
     path('store/', include('store.urls')),
     path('home/', include('home.urls')),  # opcional si querés mantener /home/
     path('categorias/', include('categorias.urls')),
+    path('pedidos/', include('pedidos.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

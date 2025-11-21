@@ -40,3 +40,7 @@ Thumbs.db
 
 # Netlify (por si lo usas en el futuro)
 .netlify/
+
+db.sqlite3
+__pycache__/
+*.pyc

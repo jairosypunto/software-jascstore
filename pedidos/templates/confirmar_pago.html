@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-center">Confirmar Pago</h2>
+  <hr>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="metodo_pago">Selecciona el método de pago:</label>
+      <select name="metodo_pago" id="metodo_pago" class="form-control" required>
+        <option value="">-- Selecciona --</option>
+        <option value="transferencia">Transferencia bancaria</option>
+        <option value="contraentrega">Pago contra entrega</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Confirmar Pedido</button>
+  </form>
+</div>
+{% endblock %}

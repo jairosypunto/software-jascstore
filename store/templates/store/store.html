@@ -24,7 +24,7 @@
     <div class="col">
       <select name="category" class="form-select">
         <option value="all">Todas las categorías</option>
-       {% for category in categorias %}
+        {% for category in categorias %}
           <option value="{{ category.slug }}"
             {% if categoria_actual and categoria_actual.slug == category.slug %}selected{% endif %}>
             {{ category.name }}
@@ -50,73 +50,85 @@
   <p class="text-muted text-center">Mostrando {{ productos|length }} productos</p>
 
   <!-- 🛍️ Tarjetas -->
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-    {% for producto in productos %}
-      <div class="col">
-        <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
-          
-          {% if producto.image %}
-            <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
-          {% else %}
-            <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
-          {% endif %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+  {% for producto in productos %}
+    <!-- Tarjeta de producto -->
+    <div class="col">
+      <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
+        {% if producto.image %}
+          <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
+        {% else %}
+          <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
+        {% endif %}
 
-          {% if producto.nuevo %}
-            <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
-          {% endif %}
-          {% if producto.destacado %}
-            <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">⭐ DESTACADO</span>
-          {% endif %}
+        {% if producto.nuevo %}
+          <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
+        {% endif %}
+        {% if producto.destacado %}
+          <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">⭐ DESTACADO</span>
+        {% endif %}
 
-          <div class="card-body text-center">
-            <h5 class="card-title fw-bold">{{ producto.name }}</h5>
-            <p class="card-text">
-              <strong>Categoría:</strong> {{ producto.category.nombre_categoria }}<br>
-              {% if producto.description %}
-                <strong>Material:</strong> {{ producto.description|truncatewords:10 }}<br>
-              {% endif %}
-              <strong>Precio:</strong> ${{ producto.cost|floatformat:0 }}<br>
-              <strong>Estado:</strong>
-              {% if producto.is_available %}
-                <span class="text-success fw-bold">Disponible</span>
-              {% else %}
-                <span class="text-danger fw-bold">No disponible</span>
-              {% endif %}
-            </p>
-
-            {% if producto.is_available and producto.stock > 0 %}
-              <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">Agregar</a>
-            {% else %}
-              <button class="btn btn-secondary w-100" disabled>No disponible</button>
+        <div class="card-body text-center">
+          <h5 class="card-title fw-bold">{{ producto.name }}</h5>
+          <p class="card-text">
+            <strong>Categoría:</strong> {{ producto.category.nombre_categoria }}<br>
+            {% if producto.description %}
+              <strong>Material:</strong> {{ producto.description|truncatewords:10 }}<br>
             {% endif %}
-          </div>
+            <strong>Precio:</strong> ${{ producto.cost|floatformat:0 }}<br>
+            <strong>Estado:</strong>
+            {% if producto.is_available %}
+              <span class="text-success fw-bold">Disponible</span>
+            {% else %}
+              <span class="text-danger fw-bold">No disponible</span>
+            {% endif %}
+          </p>
+
+          {% if producto.is_available and producto.stock > 0 %}
+            <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">Agregar</a>
+          {% else %}
+            <button class="btn btn-secondary w-100" disabled>No disponible</button>
+          {% endif %}
         </div>
       </div>
-{% empty %}
-{% if sugerencias %}
-  <div class="mt-4">
-    <h5 class="text-center text-primary">🔎 Sugerencias similares</h5>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-      {% for producto in sugerencias %}
-        <div class="col">
-          <div class="card h-100 shadow-sm">
-            {% if producto.image %}
-              <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
-            {% else %}
-              <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
-            {% endif %}
-            <div class="card-body text-center">
-              <h5 class="card-title">{{ producto.name }}</h5>
-              <p class="card-text fw-bold">${{ producto.cost|floatformat:0 }}</p>
-              <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-outline-primary btn-sm">Agregar</a>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
     </div>
-  </div>
-{% endif %}
-{% endfor %}
-  </div>
+  {% empty %}
+    {% if sugerencias %}
+      <!-- Bloque de sugerencias -->
+      <div class="mt-4">
+        <h5 class="text-center text-primary">🔎 Sugerencias similares</h5>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+          {% for producto in sugerencias %}
+            <div class="col">
+              <div class="card h-100 shadow-sm">
+                {% if producto.image %}
+                  <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
+                {% else %}
+                  <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
+                {% endif %}
+                <div class="card-body text-center">
+                  <h5 class="card-title">{{ producto.name }}</h5>
+                  <p class="card-text fw-bold">${{ producto.cost|floatformat:0 }}</p>
+                  <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-outline-primary btn-sm">Agregar</a>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            {% if request.GET.q %}
+              <p class="text-danger text-center fw-bold">
+                No se encontraron productos que coincidan con “{{ request.GET.q }}”.
+              </p>
+            {% else %}
+              <p class="text-muted text-center">No hay productos disponibles.</p>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <p class="text-muted text-center">No hay productos disponibles.</p>
+    {% endif %}
+  {% endfor %}
+</div>
+
 </div>
 {% endblock %}
