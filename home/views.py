@@ -19,6 +19,7 @@ def home(request):
     elif order == 'price_desc':
         productos = productos.order_by('-cost')
 
+    # 📦 Contexto para el template
     context = {
         'productos_destacados': productos,  # 👈 Este nombre sí tiene sentido ahora
     }
