@@ -611,3 +611,12 @@ body {
   font-size: 1rem !important;
   font-weight: 600 !important;
 } 
+
+.shop-hero {
+  position: sticky;   /* se queda pegado */
+  top: 0;             /* en la parte superior */
+  z-index: 1000;      /* por encima del contenido */
+  background: #fff;   /* fondo sólido para que no se mezcle */
+  padding: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* sombra ligera */
+}
