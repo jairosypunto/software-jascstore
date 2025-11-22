@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp'
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'jairos.pythonanywhere.com',
@@ -20,6 +20,8 @@ CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
 # 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
     'usuario.apps.UsuarioConfig',
+
+  #  'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

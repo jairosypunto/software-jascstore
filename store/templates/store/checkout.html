@@ -5,9 +5,10 @@
 
 {% block content %}
 <div class="container mt-5">
-  <h2 class="text-center mb-4">Resumen de tu compra</h2>
+  <h2 class="text-center mb-4">🧾 Resumen de tu compra</h2>
 
   {% if items %}
+    <!-- 🧩 Tabla de productos en el carrito -->
     <table class="table table-bordered table-hover text-center">
       <thead class="table-dark">
         <tr>
@@ -37,11 +38,20 @@
       </tbody>
     </table>
 
+    <!-- 💰 Total y botón de confirmar pago -->
     <div class="text-end">
       <h4>Total: ${{ total|floatformat:0 }}</h4>
-      <a href="#" class="btn btn-success">Confirmar pago</a>
+
+      <!-- ✅ Formulario que envía POST a confirmar_pago -->
+      <form method="POST" action="{% url 'store:confirmar_pago' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">
+          Confirmar pago
+        </button>
+      </form>
     </div>
   {% else %}
+    <!-- 🛒 Carrito vacío -->
     <p class="text-muted text-center">Tu carrito está vacío.</p>
   {% endif %}
 </div>

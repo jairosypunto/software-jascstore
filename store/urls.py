@@ -10,6 +10,8 @@ urlpatterns = [
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('vaciar/', views.vaciar_carrito, name='vaciar_carrito'),
     path('checkout/', views.checkout, name='checkout'),
+     path('confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),  # ✅ nueva ruta
+
     path('nosotros/', views.nosotros, name='nosotros'),
     path('contacto/', views.contacto, name='contacto'),
 

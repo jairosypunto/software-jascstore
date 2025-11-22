@@ -1,23 +1,28 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Tienda - LatinShop{% endblock %}
+{% block title %}Nuestra Tienda - LatinShop{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block content %}
-<!-- 🧩 Contenedor centrado -->
-<div class="contenedor-tienda">
+<!-- 🎨 Encabezado visual -->
+<div class="bg-gradient text-white text-center py-4" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+  <h2 class="fw-bold">Nuestra Tienda</h2>
+  <p class="lead">Descubre productos increíbles con los mejores precios</p>
+</div>
 
-  <!-- 🎯 Filtros en línea horizontal -->
-  <div class="barra-filtros-store">
-    <form method="get" action="{% url 'store:store' %}" class="formulario-filtros-store d-flex justify-content-center align-items-center flex-wrap gap-3">
-      
-      <input type="text" name="q" class="form-control filtro-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
-
-      <select name="category" class="form-select filtro-select">
+<div class="container mt-4">
+  <!-- 🎯 Filtros -->
+  <form method="get" action="{% url 'store:store' %}" class="row row-cols-1 row-cols-md-5 g-3 mb-4 align-items-center">
+    <div class="col">
+      <input type="text" name="q" class="form-control" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+    </div>
+    <div class="col">
+      <select name="category" class="form-select">
         <option value="all">Todas las categorías</option>
         {% for category in categorias %}
           <option value="{{ category.slug }}"
@@ -26,73 +31,92 @@
           </option>
         {% endfor %}
       </select>
-
-      <select name="order" class="form-select filtro-select">
+    </div>
+    <div class="col">
+      <select name="order" class="form-select">
         <option value="">Ordenar por...</option>
         <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre</option>
         <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio ascendente</option>
         <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
         <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más reciente</option>
       </select>
+    </div>
+    <div class="col">
+      <button type="submit" class="btn btn-primary w-100">Aplicar filtros</button>
+    </div>
+  </form>
 
-      <button type="submit" class="btn btn-primary">Aplicar filtros store</button>
-    </form>
-  </div>
+  <!-- 📦 Contador -->
+  <p class="text-muted text-center">Mostrando {{ productos|length }} productos</p>
 
-  <!-- 🛍️ Productos disponibles -->
-  <section class="productos-tienda">
-    <h2 class="mb-4 text-center text-primary">Productos disponibles</h2>
-    <div class="row justify-content-center">
-      {% for producto in productos %}
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
-            
+  <!-- 🛍️ Tarjetas -->
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+    {% for producto in productos %}
+      <div class="col">
+        <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
+          
+          {% if producto.image %}
+            <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
+          {% else %}
+            <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
+          {% endif %}
+
+          {% if producto.nuevo %}
+            <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
+          {% endif %}
+          {% if producto.destacado %}
+            <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">⭐ DESTACADO</span>
+          {% endif %}
+
+          <div class="card-body text-center">
+            <h5 class="card-title fw-bold">{{ producto.name }}</h5>
+            <p class="card-text">
+              <strong>Categoría:</strong> {{ producto.category.nombre_categoria }}<br>
+              {% if producto.description %}
+                <strong>Material:</strong> {{ producto.description|truncatewords:10 }}<br>
+              {% endif %}
+              <strong>Precio:</strong> ${{ producto.cost|floatformat:0 }}<br>
+              <strong>Estado:</strong>
+              {% if producto.is_available %}
+                <span class="text-success fw-bold">Disponible</span>
+              {% else %}
+                <span class="text-danger fw-bold">No disponible</span>
+              {% endif %}
+            </p>
+
+            {% if producto.is_available and producto.stock > 0 %}
+              <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">Agregar</a>
+            {% else %}
+              <button class="btn btn-secondary w-100" disabled>No disponible</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+{% empty %}
+{% if sugerencias %}
+  <div class="mt-4">
+    <h5 class="text-center text-primary">🔎 Sugerencias similares</h5>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+      {% for producto in sugerencias %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
             {% if producto.image %}
               <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
             {% else %}
               <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
             {% endif %}
-
-            {% if producto.nuevo %}
-              <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
-            {% endif %}
-
             <div class="card-body text-center">
-             <h5 class="card-title">{{ producto.name }}</h5>
-
-              <p class="card-description text-muted">
-                {% if producto.description %}
-                  {{ producto.description|truncatewords:15 }}
-                {% else %}
-                  <em>Descripción no disponible</em>
-                {% endif %}
-              </p>
-
-              <p class="card-text fw-bold">Precio: ${{ producto.cost|floatformat:0 }}</p>
-              <!-- Estado de disponibilidad -->
-              <p class="mb-2">
-                Estado: 
-                {% if producto.is_available %}
-                  <span class="text-success fw-bold">Disponible</span>
-                {% else %}
-                  <span class="text-danger fw-bold">No disponible</span>
-                {% endif %}
-              </p>
-
-              <!-- Botón de compra -->
-              {% if producto.is_available and producto.stock > 0 %}
-                <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">🛒 Comprar</a>
-              {% else %}
-                <button class="btn btn-secondary w-100" disabled>Producto no disponible</button>
-              {% endif %}
+              <h5 class="card-title">{{ producto.name }}</h5>
+              <p class="card-text fw-bold">${{ producto.cost|floatformat:0 }}</p>
+              <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-outline-primary btn-sm">Agregar</a>
             </div>
           </div>
         </div>
-      {% empty %}
-        <p class="text-muted text-center">No hay productos disponibles.</p>
       {% endfor %}
     </div>
-  </section>
-
+  </div>
+{% endif %}
+{% endfor %}
+  </div>
 </div>
 {% endblock %}
