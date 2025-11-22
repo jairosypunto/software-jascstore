@@ -6,8 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = 'django-insecure-x&c#ax^ao22vn5@i1kjwf!7t=_8k%90d9c9y_80j_wd@2(e@dp'
+
+# ⚠️ En producción (PythonAnywhere) cambia a False
 DEBUG = True
 
+# 🌐 Hosts permitidos (local y PythonAnywhere)
 ALLOWED_HOSTS = [
     'jairos.pythonanywhere.com',
     'jairosypunto.pythonanywhere.com',
@@ -15,13 +18,16 @@ ALLOWED_HOSTS = [
     'localhost',
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://unsalted-kendall-unblushing.ngrok-free.dev']
+# 🔐 Orígenes confiables para CSRF (ajusta según tu dominio real)
+CSRF_TRUSTED_ORIGINS = [
+    'https://jairos.pythonanywhere.com',
+    'https://jairosypunto.pythonanywhere.com',
+]
 
 # 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
     'usuario.apps.UsuarioConfig',
-
-  #  'jazzmin',
+    # 'jazzmin',  # opcional, si quieres usar Jazzmin para admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,7 +38,7 @@ INSTALLED_APPS = [
     'auths',
     'store',
     'home',
-    'django_extensions',
+    'django_extensions',  # útil para desarrollo
 ]
 
 # ⚙️ Middleware
@@ -54,6 +60,8 @@ WSGI_APPLICATION = 'JascEcommerce.wsgi.application'
 AUTH_USER_MODEL = 'auths.Auth'
 
 # 🗃️ Base de datos
+# ⚠️ En PythonAnywhere puedes usar SQLite, pero si el proyecto crece
+# conviene migrar a MySQL/PostgreSQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -84,7 +92,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'auths' / 'static',
     BASE_DIR / 'categorias' / 'static',
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # usado en producción (collectstatic)
 
 # 🖼️ Archivos multimedia
 MEDIA_URL = '/media/'
@@ -96,25 +104,24 @@ LOGIN_REDIRECT_URL = '/account/'
 LOGOUT_URL = 'logout'
 LOGOUT_REDIRECT_URL = '/home/'
 
-# 📧 Backend de correo para desarrollo
+# 📧 Backend de correo (solo desarrollo)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# 🎨 Configuración de Jazzmin
+# 🎨 Configuración de Jazzmin (opcional)
 JAZZMIN_SETTINGS = {
-    "site_title": "Library Admin",
-    "site_header": "Library",
-    "site_brand": "Library",
-    "welcome_sign": "Welcome to the Library Admin",
+    "site_title": "LatinShop Admin",
+    "site_header": "LatinShop",
+    "site_brand": "LatinShop",
+    "welcome_sign": "Bienvenido al panel de administración",
     "copyright": "Jasc Ecommerce Ltd 2025",
 }
 
-# 🧠 Plantillas
 # 🧠 Plantillas
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'templates',  # ✅ Carpeta global para base.html y templates compartidos
+            BASE_DIR / 'templates',  # ✅ Carpeta global para base.html
             BASE_DIR / 'usuario' / 'templates',
             BASE_DIR / 'store' / 'templates',
             BASE_DIR / 'home' / 'templates',
@@ -127,8 +134,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'categorias.context_processors.menu_links',  # ✅ Menú dinámico de categorías
-                'store.context_processors.total_items_carrito',  # ✅ Total de ítems en el carrito
+                'categorias.context_processors.menu_links',  # ✅ Menú dinámico
+                'store.context_processors.total_items_carrito',  # ✅ Carrito dinámico
             ],
         },
     },

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Factura{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center">Factura #{{ factura.id }}</h2>
+  <p>Fecha: {{ factura.fecha }}</p>
+  <p>Total: ${{ factura.total }}</p>
+
+  <table class="table table-bordered mt-3">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for detalle in factura.detalles.all %}
+      <tr>
+        <td>{{ detalle.producto.name }}</td>
+        <td>{{ detalle.cantidad }}</td>
+        <td>${{ detalle.subtotal }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{% url 'store:store' %}" class="btn btn-primary">Volver a la tienda</a>
+</div>
+{% endblock %}
