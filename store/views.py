@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
-from .models import Product, Factura, DetalleFactura
+from .models import Product, Factura, DetalleFactura  
 from categorias.models import Category
+
 
 from decimal import Decimal
 
@@ -102,7 +103,15 @@ def vaciar_carrito(request):
     request.session['carrito'] = {}
     return redirect('store:ver_carrito')
 
-# 💳 Confirmar pago y generar factura con validación de método
+from django.utils.safestring import mark_safe  # 👈 para permitir HTML en el mensaje
+
+from django.contrib import messages
+from django.utils.safestring import mark_safe
+
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.utils.safestring import mark_safe  # si ya no usas HTML, puedes quitarlo
+
 def confirmar_pago(request):
     if request.method == "POST":
         carrito = request.session.get('carrito', {})
@@ -116,10 +125,16 @@ def confirmar_pago(request):
             messages.error(request, "Debes seleccionar un método de pago válido.")
             return redirect('store:checkout')
 
-        # Guardar en sesión para usar en la siguiente vista
+        # Validación: si no está autenticado, activa bandera y redirige a login con next
+        if not request.user.is_authenticated:
+            request.session['mostrar_acceso_requerido'] = True
+            return redirect('/account/login/?next=/store/checkout/')  # ajusta la ruta si tu login está en /store/login/
+
+        # Persistir datos necesarios para continuar
         request.session['carrito'] = carrito
         request.session['metodo_pago'] = metodo_pago
 
+        # Continuar flujo
         if metodo_pago == "banco":
             return redirect('store:simular_pago_banco')
         else:
@@ -149,6 +164,7 @@ def checkout(request):
         'total': total,
     }
     return render(request, 'store/checkout.html', context)
+
 
 def generar_factura(request):
     carrito = request.session.get('carrito', {})
@@ -213,6 +229,14 @@ def simular_pago_banco(request):
         # Aquí podrías validar un campo de confirmación
         return redirect('store:generar_factura')
     return render(request, "store/simular_pago_banco.html")
+
+def login_view(request):
+    mostrar_acceso = request.session.pop('mostrar_acceso_requerido', False)
+    next_url = request.GET.get('next', '')
+    return render(request, 'account/login.html', {
+        'mostrar_acceso': mostrar_acceso,
+        'next': next_url
+    })
 
 # 📄 Páginas informativas
 def nosotros(request):

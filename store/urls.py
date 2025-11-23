@@ -13,6 +13,7 @@ urlpatterns = [
     path('confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),
     path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),
     path('generar-factura/', views.generar_factura, name='generar_factura'),
+     path('login/', views.login_view, name='login'),  # 👈 define el name
 
 
     path('nosotros/', views.nosotros, name='nosotros'),
