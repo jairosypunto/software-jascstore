@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Factura de compra</h2>
+  <hr>
+  <p><strong>Cliente:</strong> {{ order.user.username }}</p>
+  <p><strong>Fecha:</strong> {{ order.created_at }}</p>
+  <p><strong>Método de pago:</strong> {{ order.payment_method }}</p>
+  <p><strong>Total:</strong> ${{ order.total|floatformat:0 }}</p>
+
+  {% if order.payment_method == 'transferencia' %}
+    <div class="alert alert-info">
+      <h4>Datos para transferencia:</h4>
+      <p>Banco: Bancolombia</p>
+      <p>Cuenta: 123456789</p>
+      <p>Referencia: Pedido #{{ order.id }}</p>
+    </div>
+  {% else %}
+    <div class="alert alert-success">
+      <p>Tu pedido será pagado al momento de la entrega.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
