@@ -10,7 +10,10 @@ urlpatterns = [
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('vaciar/', views.vaciar_carrito, name='vaciar_carrito'),
     path('checkout/', views.checkout, name='checkout'),
-     path('confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),  # ✅ nueva ruta
+    path('confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),
+    path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),
+    path('generar-factura/', views.generar_factura, name='generar_factura'),
+
 
     path('nosotros/', views.nosotros, name='nosotros'),
     path('contacto/', views.contacto, name='contacto'),

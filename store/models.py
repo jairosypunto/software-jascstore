@@ -8,12 +8,12 @@ class Product(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
     cost = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='imgs/products/')
+    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)   # ← aquí está el campo
     stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    destacado = models.BooleanField(default=False)  # ✅ Para el home
-    nuevo = models.BooleanField(default=False)      # ✅ Para marcar como nuevo
+    destacado = models.BooleanField(default=False)
+    nuevo = models.BooleanField(default=False)
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
 
@@ -23,9 +23,13 @@ class Product(models.Model):
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) # Usuario que compra
-    fecha = models.DateTimeField(auto_now_add=True)  # Fecha de creación
-    total = models.DecimalField(max_digits=10, decimal_places=2) # Total de la factura
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    fecha = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+
+    metodo_pago = models.CharField(max_length=30, default="No especificado")
+    estado_pago = models.CharField(max_length=20, default="Pendiente")
+    transaccion_id = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
@@ -33,10 +37,10 @@ class Factura(models.Model):
 
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
-    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE) # Relación con factura
-    producto = models.ForeignKey(Product, on_delete=models.CASCADE) # Producto comprado
-    cantidad = models.PositiveIntegerField() # Cantidad
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2) # Subtotal
+    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)  # Relación con factura
+    producto = models.ForeignKey(Product, on_delete=models.CASCADE)  # Producto comprado
+    cantidad = models.PositiveIntegerField()  # Cantidad
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)  # Subtotal
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"

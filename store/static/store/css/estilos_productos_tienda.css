@@ -159,11 +159,7 @@ body {
   -moz-appearance: none !important;
 }
 
-#categoryFilter {
-  border: 3px dashed red !important;
-  position: relative;
-  z-index: 10;
-}
+
 
 /* 🛒 Tarjetas de producto */
 .products-grid {
@@ -594,9 +590,7 @@ body {
   }
 }
 
-/* ✅ Extras */
-.text-success { color: #28a745; }
-.text-danger { color: #dc3545; }
+
 
 .card-description {
   font-size: 0.9rem;
@@ -619,4 +613,29 @@ body {
   background: #fff;   /* fondo sólido para que no se mezcle */
   padding: 1rem;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* sombra ligera */
+}
+
+/* 🛍 Estilo para el banner de Nuestra Tienda */
+.shop-hero {
+  background: linear-gradient(to bottom, #003366, #ffffff);
+  color: white;
+  padding: 100px 20px;
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-bottom: 20px;
 }
