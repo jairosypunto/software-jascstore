@@ -83,6 +83,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'home' / 'static',
     BASE_DIR / 'auths' / 'static',
     BASE_DIR / 'categorias' / 'static',
+    BASE_DIR / 'static',  # ✅ nueva línea para tu favicon
+
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
