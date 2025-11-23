@@ -4,6 +4,8 @@ from django.db.models import Q
 from .models import Product, Factura, DetalleFactura
 from categorias.models import Category
 
+from decimal import Decimal
+
 # 🛒 Agregar producto al carrito (usando sesiones)
 def agregar_al_carrito(request, product_id):
     carrito = request.session.get('carrito', {})  # Recupera el carrito de la sesión
@@ -100,46 +102,31 @@ def vaciar_carrito(request):
     request.session['carrito'] = {}
     return redirect('store:ver_carrito')
 
-
-# 💳 Confirmar pago y generar factura
+# 💳 Confirmar pago y generar factura con validación de método
 def confirmar_pago(request):
     if request.method == "POST":
         carrito = request.session.get('carrito', {})
+        metodo_pago = request.POST.get('metodo_pago', 'No especificado')
+
         if not carrito:
             messages.error(request, "Tu carrito está vacío.")
             return redirect('store:checkout')
 
-        total = 0
-        # 🧾 Crear factura asociada al usuario
-        factura = Factura.objects.create(usuario=request.user, total=0)
+        if metodo_pago not in ["banco", "contraentrega"]:
+            messages.error(request, "Debes seleccionar un método de pago válido.")
+            return redirect('store:checkout')
 
-        # 📦 Crear detalles de factura con los productos del carrito
-        for pid, qty in carrito.items():
-            producto = Product.objects.get(id=int(pid))
-            subtotal = producto.cost * qty
-            DetalleFactura.objects.create(
-                factura=factura,
-                producto=producto,
-                cantidad=qty,
-                subtotal=subtotal
-            )
-            total += subtotal
+        # Guardar en sesión para usar en la siguiente vista
+        request.session['carrito'] = carrito
+        request.session['metodo_pago'] = metodo_pago
 
-        # Actualizar total de la factura
-        factura.total = total
-        factura.save()
+        if metodo_pago == "banco":
+            return redirect('store:simular_pago_banco')
+        else:
+            return redirect('store:generar_factura')
 
-        # 🧹 Vaciar carrito
-        request.session['carrito'] = {}
-
-        # ✅ Mostrar factura directamente
-        return render(request, "store/factura.html", {"factura": factura})
-
-    # Si alguien entra por GET, lo mandamos de nuevo al checkout
     return redirect('store:checkout')
 
-
-# 💳 Checkout visual con resumen
 def checkout(request):
     carrito = request.session.get('carrito', {})
     product_ids = [int(pid) for pid in carrito.keys()] if carrito else []
@@ -163,6 +150,69 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
+def generar_factura(request):
+    carrito = request.session.get('carrito', {})
+    metodo_pago = request.session.get('metodo_pago', 'No especificado')
+
+    if not carrito:
+        messages.error(request, "Tu carrito está vacío.")
+        return redirect('store:checkout')
+
+    total = Decimal("0.00")
+    items = []
+
+    factura = Factura.objects.create(
+        usuario=request.user,
+        total=Decimal("0.00"),
+        metodo_pago=metodo_pago
+    )
+
+    for pid, qty in carrito.items():
+        producto = Product.objects.get(id=int(pid))
+        subtotal = producto.cost * qty
+        detalle = DetalleFactura.objects.create(
+            factura=factura,
+            producto=producto,
+            cantidad=qty,
+            subtotal=subtotal
+        )
+        items.append(detalle)
+        total += subtotal
+
+    iva = total * Decimal("0.19")
+    descuento = Decimal("0.00")
+    total_final = total + iva - descuento
+
+    factura.total = total_final
+
+    if metodo_pago == "contraentrega":
+        estado_pago = "Pendiente"
+    elif metodo_pago == "banco":
+        estado_pago = "Pagado"
+    else:
+        estado_pago = "No definido"
+
+    factura.estado_pago = estado_pago
+    factura.save()
+
+    request.session['carrito'] = {}
+
+    contexto = {
+        "factura": factura,
+        "items": items,
+        "subtotal": total,
+        "iva": iva,
+        "descuento": descuento,
+        "total_final": total_final,
+        "estado_pago": estado_pago,
+    }
+    return render(request, "store/factura.html", contexto)
+
+def simular_pago_banco(request):
+    if request.method == "POST":
+        # Aquí podrías validar un campo de confirmación
+        return redirect('store:generar_factura')
+    return render(request, "store/simular_pago_banco.html")
 
 # 📄 Páginas informativas
 def nosotros(request):

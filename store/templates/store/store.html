@@ -4,134 +4,9 @@
 {% block title %}Nuestra Tienda - LatinShop{% endblock %}
 
 {% block extra_css %}
-<<<<<<< HEAD
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-{% endblock %}
-
-{% block content %}
-<!-- 🎨 Encabezado visual -->
-<div class="bg-gradient text-white text-center py-4" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
-  <h2 class="fw-bold">Nuestra Tienda</h2>
-  <p class="lead">Descubre productos increíbles con los mejores precios</p>
-</div>
-
-<div class="container mt-4">
-  <!-- 🎯 Filtros -->
-  <form method="get" action="{% url 'store:store' %}" class="row row-cols-1 row-cols-md-5 g-3 mb-4 align-items-center">
-    <div class="col">
-      <input type="text" name="q" class="form-control" placeholder="Buscar productos..." value="{{ request.GET.q }}">
-    </div>
-    <div class="col">
-      <select name="category" class="form-select">
-        <option value="all">Todas las categorías</option>
-        {% for category in categorias %}
-          <option value="{{ category.slug }}"
-            {% if categoria_actual and categoria_actual.slug == category.slug %}selected{% endif %}>
-            {{ category.name }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col">
-      <select name="order" class="form-select">
-        <option value="">Ordenar por...</option>
-        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre</option>
-        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio ascendente</option>
-        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
-        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más reciente</option>
-      </select>
-    </div>
-    <div class="col">
-      <button type="submit" class="btn btn-primary w-100">Aplicar filtros</button>
-    </div>
-  </form>
-
-  <!-- 📦 Contador -->
-  <p class="text-muted text-center">Mostrando {{ productos|length }} productos</p>
-
-  <!-- 🛍️ Tarjetas -->
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-  {% for producto in productos %}
-    <!-- Tarjeta de producto -->
-    <div class="col">
-      <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
-        {% if producto.image %}
-          <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
-        {% else %}
-          <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
-        {% endif %}
-
-        {% if producto.nuevo %}
-          <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
-        {% endif %}
-        {% if producto.destacado %}
-          <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">⭐ DESTACADO</span>
-        {% endif %}
-
-        <div class="card-body text-center">
-          <h5 class="card-title fw-bold">{{ producto.name }}</h5>
-          <p class="card-text">
-            <strong>Categoría:</strong> {{ producto.category.nombre_categoria }}<br>
-            {% if producto.description %}
-              <strong>Material:</strong> {{ producto.description|truncatewords:10 }}<br>
-            {% endif %}
-            <strong>Precio:</strong> ${{ producto.cost|floatformat:0 }}<br>
-            <strong>Estado:</strong>
-            {% if producto.is_available %}
-              <span class="text-success fw-bold">Disponible</span>
-            {% else %}
-              <span class="text-danger fw-bold">No disponible</span>
-            {% endif %}
-          </p>
-
-          {% if producto.is_available and producto.stock > 0 %}
-            <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">Agregar</a>
-          {% else %}
-            <button class="btn btn-secondary w-100" disabled>No disponible</button>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  {% empty %}
-    {% if sugerencias %}
-      <!-- Bloque de sugerencias -->
-      <div class="mt-4">
-        <h5 class="text-center text-primary">🔎 Sugerencias similares</h5>
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-          {% for producto in sugerencias %}
-            <div class="col">
-              <div class="card h-100 shadow-sm">
-                {% if producto.image %}
-                  <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
-                {% else %}
-                  <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
-                {% endif %}
-                <div class="card-body text-center">
-                  <h5 class="card-title">{{ producto.name }}</h5>
-                  <p class="card-text fw-bold">${{ producto.cost|floatformat:0 }}</p>
-                  <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-outline-primary btn-sm">Agregar</a>
-                </div>
-              </div>
-            </div>
-          {% empty %}
-            {% if request.GET.q %}
-              <p class="text-danger text-center fw-bold">
-                No se encontraron productos que coincidan con “{{ request.GET.q }}”.
-              </p>
-            {% else %}
-              <p class="text-muted text-center">No hay productos disponibles.</p>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-    {% else %}
-      <p class="text-muted text-center">No hay productos disponibles.</p>
-    {% endif %}
-  {% endfor %}
-</div>
-  <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
-  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -168,10 +43,10 @@
 
           <select name="order" class="filter-select" id="sortFilter">
             <option value="">Ordenar por</option>
-            <option value="precio_asc" {% if request.GET.order == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
-            <option value="precio_desc" {% if request.GET.order == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-            <option value="nombre" {% if request.GET.order == 'nombre' %}selected{% endif %}>Nombre: A-Z</option>
-            <option value="reciente" {% if request.GET.order == 'reciente' %}selected{% endif %}>Más recientes</option>
+            <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
+            <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
+            <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+            <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
           </select>
         </div>
       </div>
