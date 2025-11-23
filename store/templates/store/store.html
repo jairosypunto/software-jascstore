@@ -1,98 +1,177 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Tienda - LatinShop{% endblock %}
+{% block title %}Nuestra Tienda - LatinShop{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block content %}
-<!-- 🧩 Contenedor centrado -->
-<div class="contenedor-tienda">
+<section class="shop-section">
+  <div class="shop-container">
 
-  <!-- 🎯 Filtros en línea horizontal -->
-  <div class="barra-filtros-store">
-    <form method="get" action="{% url 'store:store' %}" class="formulario-filtros-store d-flex justify-content-center align-items-center flex-wrap gap-3">
-      
-      <input type="text" name="q" class="form-control filtro-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+    {# 🏷️ Banner de bienvenida #}
+    <div class="shop-hero">
+      <div class="hero-content">
+        <h1 class="hero-title">Nuestra Tienda</h1>
+        <p class="hero-subtitle">Descubre productos increíbles con los mejores precios</p>
+      </div>
+    </div>
 
-      <select name="category" class="form-select filtro-select">
-        <option value="all">Todas las categorías</option>
-        {% for category in categorias %}
-          <option value="{{ category.slug }}"
-            {% if categoria_actual and categoria_actual.slug == category.slug %}selected{% endif %}>
-            {{ category.name }}
-          </option>
-        {% endfor %}
-      </select>
+    {# 🔍 Filtros: búsqueda, ordenamiento y categorías #}
+    <form method="get" id="filterForm">
+      <div class="shop-controls">
 
-      <select name="order" class="form-select filtro-select">
-        <option value="">Ordenar por...</option>
-        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre</option>
-        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio ascendente</option>
-        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
-        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más reciente</option>
-      </select>
+        {# 🔍 Campo de búsqueda #}
+        <div class="search-box">
+          <input type="text" name="q" class="search-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+        </div>
 
-      <button type="submit" class="btn btn-primary">Aplicar filtros store</button>
+        {# 🗂️ Filtros de categoría y ordenamiento #}
+        <div class="filter-group">
+          <select name="category" class="filter-select" id="categoryFilter">
+            <option value="all">Todas las categorías</option>
+            {% for categoria in categorias %}
+              <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
+                {{ categoria.name }}
+              </option>
+            {% endfor %}
+          </select>
+
+          <select name="order" class="filter-select" id="sortFilter">
+            <option value="">Ordenar por</option>
+            <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
+            <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
+            <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+            <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
+          </select>
+        </div>
+      </div>
     </form>
-  </div>
 
-  <!-- 🛍️ Productos disponibles -->
-  <section class="productos-tienda">
-    <h2 class="mb-4 text-center text-primary">Productos disponibles</h2>
-    <div class="row justify-content-center">
-      {% for producto in productos %}
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm position-relative {% if not producto.is_available %}border-danger{% endif %}">
-            
-            {% if producto.image %}
-              <img src="{{ producto.image.url }}" class="card-img-top img-fluid" alt="{{ producto.name }}">
-            {% else %}
-              <img src="{% static 'store/img/default.jpg' %}" class="card-img-top img-fluid" alt="Sin imagen">
+    {# 📦 Contador de productos #}
+    <div class="products-count">
+      <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
+    </div>
+
+    {# 🛍️ Grid de productos #}
+    <div class="products-grid">
+      {% for product in productos %}
+      <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+
+        {# 🖼️ Imagen del producto #}
+        <div class="product-image-wrapper">
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+
+          {# 🏷️ Badges de estado #}
+          <div class="product-badges">
+            {% if not product.is_available %}
+              <span class="badge badge-unavailable">Agotado</span>
+            {% elif product.stock < 5 %}
+              <span class="badge badge-low-stock">¡Últimas unidades!</span>
             {% endif %}
-
-            {% if producto.nuevo %}
-              <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
+            {% if product.date_register|timesince < "7 days" %}
+              <span class="badge badge-new">Nuevo</span>
             {% endif %}
+          </div>
 
-            <div class="card-body text-center">
-             <h5 class="card-title">{{ producto.name }}</h5>
+          {# 👁️ Vista rápida (puedes enlazar a detalle) #}
+          <a href="#" class="quick-view">
+            <span>Vista rápida</span>
+          </a>
+        </div>
 
-              <p class="card-description text-muted">
-                {% if producto.description %}
-                  {{ producto.description|truncatewords:15 }}
+        {# 📋 Información del producto #}
+        <div class="product-content">
+          <span class="product-category">{{ product.category.name }}</span>
+          <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
+          <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+
+          <div class="product-footer">
+            <div class="price-section">
+              <span class="price">${{ product.cost|floatformat:0 }}</span>
+              <span class="stock-info">
+                {% if product.stock > 10 %}
+                  <span class="stock-dot stock-available"></span> En stock
+                {% elif product.stock > 0 %}
+                  <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
                 {% else %}
-                  <em>Descripción no disponible</em>
+                  <span class="stock-dot stock-out"></span> Agotado
                 {% endif %}
-              </p>
-
-              <p class="card-text fw-bold">Precio: ${{ producto.cost|floatformat:0 }}</p>
-              <!-- Estado de disponibilidad -->
-              <p class="mb-2">
-                Estado: 
-                {% if producto.is_available %}
-                  <span class="text-success fw-bold">Disponible</span>
-                {% else %}
-                  <span class="text-danger fw-bold">No disponible</span>
-                {% endif %}
-              </p>
-
-              <!-- Botón de compra -->
-              {% if producto.is_available and producto.stock > 0 %}
-                <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-success w-100">🛒 Comprar</a>
-              {% else %}
-                <button class="btn btn-secondary w-100" disabled>Producto no disponible</button>
-              {% endif %}
+              </span>
             </div>
+
+            {# 🛒 Botón de agregar al carrito con action #}
+            {% if product.is_available and product.stock > 0 %}
+            <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
+              {% csrf_token %}
+              <button type="submit" class="btn-add-cart">
+                <span>Agregar</span>
+              </button>
+            </form>
+            {% else %}
+            <button class="btn-add-cart btn-disabled" disabled>
+              <span>No disponible</span>
+            </button>
+            {% endif %}
           </div>
         </div>
+      </article>
       {% empty %}
-        <p class="text-muted text-center">No hay productos disponibles.</p>
+        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
+          {% if request.GET.q %}
+            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
+            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
+          {% else %}
+            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
+            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+          {% endif %}
+        </div>
       {% endfor %}
     </div>
-  </section>
 
 </div>
+    {# 🔄 Paginación #}
+    {% if productos.has_other_pages %}
+    <div class="pagination">
+      {% if productos.has_previous %}
+        <a href="?page={{ productos.previous_page_number }}" class="pagination-btn">Anterior</a>
+      {% endif %}
+      <div class="pagination-numbers">
+        {% for num in productos.paginator.page_range %}
+          {% if productos.number == num %}
+            <span class="pagination-number active">{{ num }}</span>
+          {% else %}
+            <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if productos.has_next %}
+        <a href="?page={{ productos.next_page_number }}" class="pagination-btn">Siguiente</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{# ✅ Script para envío automático de filtros #}
+<script>
+  document.getElementById('sortFilter').addEventListener('change', function () {
+    document.getElementById('filterForm').submit();
+  });
+
+  document.getElementById('categoryFilter').addEventListener('change', function () {
+    document.getElementById('filterForm').submit();
+  });
+
+  document.querySelector('.search-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      document.getElementById('filterForm').submit();
+    }
+  });
+</script>
 {% endblock %}

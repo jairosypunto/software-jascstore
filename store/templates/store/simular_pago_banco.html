@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h3 class="mb-4">💳 Simulación de pago bancario</h3>
+  <p>Estás a punto de realizar el pago por banco. Haz clic en el botón para confirmar el pago.</p>
+
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Confirmar pago bancario</button>
+  </form>
+</div>
+{% endblock %}
