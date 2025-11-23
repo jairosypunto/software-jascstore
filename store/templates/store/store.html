@@ -22,7 +22,7 @@
         {% for category in categorias %}
           <option value="{{ category.slug }}"
             {% if categoria_actual and categoria_actual.slug == category.slug %}selected{% endif %}>
-            {{ category.nombre_categoria }}
+            {{ category.name }}
           </option>
         {% endfor %}
       </select>
