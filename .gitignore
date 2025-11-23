@@ -11,6 +11,7 @@ db.sqlite3
 
 # Archivos estáticos recolectados
 staticfiles/
+static/
 
 # Archivos de configuración local
 *.env
