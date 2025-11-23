@@ -11,6 +11,7 @@ db.sqlite3
 
 # Archivos estáticos recolectados
 staticfiles/
+static/
 
 # Archivos de configuración local
 *.env
@@ -40,7 +41,3 @@ Thumbs.db
 
 # Netlify (por si lo usas en el futuro)
 .netlify/
-
-db.sqlite3
-__pycache__/
-*.pycdb.sqlite3
