@@ -110,40 +110,26 @@
         <i class="bi bi-eye"></i> <span>Vista rápida</span>
       </a>
     </div>
-
-<<<<<<< HEAD
 </div>
-    
-=======
     <div class="product-content">
       <span class="product-category">{{ product.category.name }}</span>
       <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
       <p class="product-description">{{ product.description|truncatewords:12 }}</p>
 
       <div class="product-footer">
-        <div class="price-section">
-          {% if product.discount > 0 %}
-            <p class="text-danger fw-bold mb-1">
-              Precio con descuento: ${{ product.final_price|floatformat:0 }}
-            </p>
-            <p class="text-muted text-decoration-line-through mb-1">
-              Precio original: ${{ product.cost|floatformat:0 }}
-            </p>
-            <span class="badge bg-success">-{{ product.discount }}%</span>
-          {% else %}
-            <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
-          {% endif %}
-
-          <span class="stock-info">
-            {% if product.stock > 10 %}
-              <span class="stock-dot stock-available"></span> En stock
-            {% elif product.stock > 0 %}
-              <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
-            {% else %}
-              <span class="stock-dot stock-out"></span> Agotado
-            {% endif %}
-          </span>
-        </div>
+<div class="price-section">
+  {% if product.discount > 0 %}
+    <p class="text-danger fw-bold mb-1">
+      Precio con descuento: ${{ product.final_price|floatformat:0 }}
+    </p>
+    <p class="text-muted text-decoration-line-through mb-1">
+      Precio original: ${{ product.cost|floatformat:0 }}
+    </p>
+    <span class="badge bg-success">-{{ product.discount }}%</span>
+  {% else %}
+    <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+  {% endif %}
+</div>
 
         {% if product.is_available and product.stock > 0 %}
         <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
@@ -170,8 +156,6 @@
     </div>
   {% endfor %}
 </div>
-
->>>>>>> e6fbd78 (� Conexión entre Product y Category usando ForeignKey cruzado desde app 'categorias'. Modelo listo para migrar y mostrar categoría en tienda.)
     <!-- 🔄 Paginación -->
     {% if productos.has_other_pages %}
     <div class="pagination">

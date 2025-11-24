@@ -1,40 +1,153 @@
-from django.contrib import messages
-from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Q
-from .models import Product, Factura, DetalleFactura  
-from categorias.models import Category
-
-from django.utils.safestring import mark_safe  # 👈 para permitir HTML en el mensaje
-
-from .models import Product
-
 from decimal import Decimal
 
-# 🛒 Agregar producto al carrito (usando sesiones)
-def agregar_al_carrito(request, product_id):
-    carrito = request.session.get('carrito', {})  # Recupera el carrito de la sesión
-    product_id_str = str(product_id)
+from django.contrib import messages
+from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
 
+from .models import Product, Factura, DetalleFactura
+from categorias.models import Category
+from django.contrib.auth.decorators import login_required
+
+
+
+# =========================
+# Utilidades internas
+# =========================
+
+def _precio_final(producto: Product) -> Decimal:
+    """
+    Devuelve el precio final del producto aplicando descuento.
+    Usa el método del modelo si existe; si no, lo calcula aquí.
+    """
+    try:
+        # Preferimos el método del modelo, más claro y reusable
+        return producto.final_price()
+    except AttributeError:
+        # Fallback: cálculo directo por si el método no existe
+        discount = getattr(producto, 'discount', 0) or 0
+        cost = Decimal(producto.cost)
+        if discount > 0:
+            return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
+        return cost
+
+
+def _items_carrito(request):
+    """
+    Construye la lista de items del carrito desde la sesión con precio final y subtotales.
+    Retorna: (items, subtotal_sin_desc, subtotal_con_desc)
+    """
+    carrito = request.session.get('carrito', {})  # dict { product_id_str: cantidad }
+    product_ids = [int(pid) for pid in carrito.keys()] if carrito else []
+    productos = Product.objects.filter(id__in=product_ids)
+
+    items = []
+    subtotal_sin_desc = Decimal('0')
+    subtotal_con_desc = Decimal('0')
+
+    for producto in productos:
+        cantidad = int(carrito.get(str(producto.id), 0))
+        if cantidad <= 0:
+            continue
+
+        precio_original = Decimal(producto.cost)
+        precio_final = _precio_final(producto)
+
+        subtotal_original = precio_original * cantidad
+        subtotal_final = precio_final * cantidad
+
+        items.append({
+            'producto': producto,
+            'cantidad': cantidad,
+            'precio_original': precio_original,
+            'precio_final': precio_final,
+            'subtotal_original': subtotal_original,
+            'subtotal_final': subtotal_final,
+        })
+
+        subtotal_sin_desc += subtotal_original
+        subtotal_con_desc += subtotal_final
+
+    return items, subtotal_sin_desc, subtotal_con_desc
+
+
+# =========================
+# Carrito (sesiones)
+# =========================
+
+def agregar_al_carrito(request, product_id):
+    """
+    Agrega un producto al carrito en sesión.
+    - Valida disponibilidad y stock.
+    - Incrementa cantidad si el producto ya estaba.
+    """
+    carrito = request.session.get('carrito', {})
     producto = get_object_or_404(Product, id=product_id)
+
     if not producto.is_available or producto.stock == 0:
+        messages.warning(request, "Este producto no está disponible o está agotado.")
         return redirect('store:ver_carrito')
 
-    # Incrementa cantidad si ya existe, o agrega nuevo
-    carrito[product_id_str] = carrito.get(product_id_str, 0) + 1
+    pid = str(product_id)
+    carrito[pid] = carrito.get(pid, 0) + 1
+
     request.session['carrito'] = carrito
+    messages.success(request, f"Se agregó {producto.name} al carrito.")
     return redirect('store:ver_carrito')
 
 
-# 🛍️ Vista principal de la tienda con filtros
+def vaciar_carrito(request):
+    """Limpia el carrito de la sesión."""
+    request.session['carrito'] = {}
+    messages.info(request, "Tu carrito fue vaciado.")
+    return redirect('store:ver_carrito')
+
+
+def ver_carrito(request):
+    """
+    Muestra el carrito con precios y subtotales.
+    Aplica descuentos en la UI del carrito.
+    """
+    items, subtotal_sin_desc, subtotal_con_desc = _items_carrito(request)
+    descuento_total = subtotal_sin_desc - subtotal_con_desc
+    iva = subtotal_con_desc * Decimal('0.19')
+    total = subtotal_con_desc + iva
+
+    context = {
+        'items': items,
+        'subtotal': subtotal_con_desc,
+        'descuento': descuento_total,
+        'iva': iva,
+        'total': total,
+    }
+    return render(request, 'store/carrito.html', context)
+
+
+# =========================
+# Tienda y catálogo
+# =========================
+
 def store(request):
+    """
+    Listado de productos:
+    - Productos destacados (con imagen válida)
+    - Filtros: categoría, búsqueda
+    - Ordenamiento: nombre, precio, precio desc, reciente
+    """
+    # Destacados para carrusel (evita nulos y vacíos en image)
+    productos_destacados = Product.objects.filter(
+        destacado=True,
+        is_available=True
+    ).exclude(image__isnull=True).exclude(image='')[:10]
+
+    # Base de consulta principal
     productos = Product.objects.filter(is_available=True)
-    categoria = None
+    categoria_actual = None
 
     # Filtro por categoría
     category_slug = request.GET.get('category')
     if category_slug and category_slug != 'all':
-        categoria = get_object_or_404(Category, slug=category_slug)
-        productos = productos.filter(category=categoria)
+        categoria_actual = get_object_or_404(Category, slug=category_slug)
+        productos = productos.filter(category=categoria_actual)
 
     # Filtro por búsqueda
     search_query = request.GET.get('q')
@@ -58,40 +171,16 @@ def store(request):
     categorias = Category.objects.all()
 
     context = {
+        'productos_destacados': productos_destacados,
         'productos': productos,
         'categorias': categorias,
-        'categoria_actual': categoria,
+        'categoria_actual': categoria_actual,
     }
     return render(request, 'store/store.html', context)
 
 
-# 🧺 Ver contenido del carrito
-def ver_carrito(request):
-    carrito = request.session.get('carrito', {})
-    product_ids = [int(pid) for pid in carrito.keys()] if carrito else []
-    productos = Product.objects.filter(id__in=product_ids)
-
-    items = []
-    total = 0
-    for producto in productos:
-        qty = int(carrito.get(str(producto.id), 0))
-        subtotal = producto.cost * qty
-        items.append({
-            'producto': producto,
-            'cantidad': qty,
-            'subtotal': subtotal,
-        })
-        total += subtotal
-
-    context = {
-        'items': items,
-        'total': total,
-    }
-    return render(request, 'store/carrito.html', context)
-
-
-# 🗂️ Productos por categoría
 def productos_por_categoria(request, category_slug):
+    """Listado de productos filtrado por una categoría específica."""
     categoria = get_object_or_404(Category, slug=category_slug)
     productos = Product.objects.filter(category=categoria, is_available=True)
     context = {
@@ -101,57 +190,45 @@ def productos_por_categoria(request, category_slug):
     return render(request, 'store/productos_por_categoria.html', context)
 
 
-# 🧹 Vaciar carrito
-def vaciar_carrito(request):
-    request.session['carrito'] = {}
-    return redirect('store:ver_carrito')
+# =========================
+# Checkout y pago
+# =========================
 
-def store(request):
-    # 🏪 Productos destacados para el carrusel
-   
-    productos_destacados = Product.objects.filter(destacado=True,is_available=True).filter(~Q(image=''), ~Q(image__isnull=True))[:10]
-    
-
-    # 📦 Productos disponibles con filtros
-    productos = Product.objects.filter(is_available=True)
-    categoria = None
-
-    # Filtro por categoría
-    category_slug = request.GET.get('category')
-    if category_slug and category_slug != 'all':
-        categoria = get_object_or_404(Category, slug=category_slug)
-        productos = productos.filter(category=categoria)
-
-    # Filtro por búsqueda
-    search_query = request.GET.get('q')
-    if search_query:
-        productos = productos.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
-
-    # Ordenamiento
-    order = request.GET.get('order')
-    if order == 'name':
-        productos = productos.order_by('name')
-    elif order == 'price':
-        productos = productos.order_by('cost')
-    elif order == 'price_desc':
-        productos = productos.order_by('-cost')
-    elif order == 'recent':
-        productos = productos.order_by('-date_register')
-
-    categorias = Category.objects.all()
+def checkout(request):
+    """
+    Resumen previo a confirmación de pago:
+    - Muestra precios unitarios, subtotales con descuento.
+    - Calcula subtotal, descuento, IVA y total.
+    """
+    items, subtotal_sin_desc, subtotal_con_desc = _items_carrito(request)
+    descuento_total = subtotal_sin_desc - subtotal_con_desc
+    iva = subtotal_con_desc * Decimal('0.19')
+    total = subtotal_con_desc + iva
 
     context = {
-        'productos_destacados': productos_destacados,  # 👈 ahora sí se envían
-        'productos': productos,
-        'categorias': categorias,
-        'categoria_actual': categoria,
+        'items': [
+            # Simplifica estructura para el template actual
+            {
+                'producto': i['producto'],
+                'cantidad': i['cantidad'],
+                # El template usa item.subtotal; le pasamos el subtotal con descuento
+                'subtotal': i['subtotal_final'],
+            }
+            for i in items
+        ],
+        'subtotal': subtotal_con_desc,
+        'descuento': descuento_total,
+        'iva': iva,
+        'total': total,
     }
-    return render(request, 'store/store.html', context)
+    return render(request, 'store/checkout.html', context)
+
 
 def confirmar_pago(request):
+    """
+    Valida método de pago y autenticación.
+    Redirige al flujo adecuado (banco o generar factura).
+    """
     if request.method == "POST":
         carrito = request.session.get('carrito', {})
         metodo_pago = request.POST.get('metodo_pago', 'No especificado')
@@ -164,16 +241,16 @@ def confirmar_pago(request):
             messages.error(request, "Debes seleccionar un método de pago válido.")
             return redirect('store:checkout')
 
-        # Validación: si no está autenticado, activa bandera y redirige a login con next
+        # Si no está autenticado, guarda bandera y redirige a login con next
         if not request.user.is_authenticated:
             request.session['mostrar_acceso_requerido'] = True
-            return redirect('/account/login/?next=/store/checkout/')  # ajusta la ruta si tu login está en /store/login/
+            return redirect('/account/login/?next=/store/checkout/')
 
-        # Persistir datos necesarios para continuar
+        # Persistimos datos necesarios
         request.session['carrito'] = carrito
         request.session['metodo_pago'] = metodo_pago
 
-        # Continuar flujo
+        # Continuación del flujo
         if metodo_pago == "banco":
             return redirect('store:simular_pago_banco')
         else:
@@ -181,30 +258,8 @@ def confirmar_pago(request):
 
     return redirect('store:checkout')
 
-def checkout(request):
-    carrito = request.session.get('carrito', {})
-    product_ids = [int(pid) for pid in carrito.keys()] if carrito else []
-    productos = Product.objects.filter(id__in=product_ids)
 
-    items = []
-    total = 0
-    for producto in productos:
-        qty = int(carrito.get(str(producto.id), 0))
-        subtotal = producto.cost * qty
-        items.append({
-            'producto': producto,
-            'cantidad': qty,
-            'subtotal': subtotal,
-        })
-        total += subtotal
-
-    context = {
-        'items': items,
-        'total': total,
-    }
-    return render(request, 'store/checkout.html', context)
-
-
+@login_required
 def generar_factura(request):
     carrito = request.session.get('carrito', {})
     metodo_pago = request.session.get('metodo_pago', 'No especificado')
@@ -213,32 +268,41 @@ def generar_factura(request):
         messages.error(request, "Tu carrito está vacío.")
         return redirect('store:checkout')
 
-    total = Decimal("0.00")
-    items = []
-
+    # Creamos la factura con total temporal
     factura = Factura.objects.create(
-        usuario=request.user,
-        total=Decimal("0.00"),
+        usuario=request.user,  # ahora siempre será un usuario válido
+        total=Decimal('0.00'),
         metodo_pago=metodo_pago
     )
 
-    for pid, qty in carrito.items():
-        producto = Product.objects.get(id=int(pid))
-        subtotal = producto.cost * qty
+    items_detalle = []
+    subtotal_con_desc = Decimal('0')
+    subtotal_sin_desc = Decimal('0')
+
+    for pid_str, cantidad in carrito.items():
+        producto = get_object_or_404(Product, id=int(pid_str))
+        cantidad = int(cantidad)
+
+        precio_original = Decimal(producto.cost)
+        precio_final = _precio_final(producto)
+
+        subtotal_original = precio_original * cantidad
+        subtotal_final = precio_final * cantidad
+
         detalle = DetalleFactura.objects.create(
             factura=factura,
             producto=producto,
-            cantidad=qty,
-            subtotal=subtotal
+            cantidad=cantidad,
+            subtotal=subtotal_final
         )
-        items.append(detalle)
-        total += subtotal
+        items_detalle.append(detalle)
 
-    iva = total * Decimal("0.19")
-    descuento = Decimal("0.00")
-    total_final = total + iva - descuento
+        subtotal_sin_desc += subtotal_original
+        subtotal_con_desc += subtotal_final
 
-    factura.total = total_final
+    descuento_total = subtotal_sin_desc - subtotal_con_desc
+    iva = subtotal_con_desc * Decimal('0.19')
+    total_final = subtotal_con_desc + iva
 
     if metodo_pago == "contraentrega":
         estado_pago = "Pendiente"
@@ -247,6 +311,7 @@ def generar_factura(request):
     else:
         estado_pago = "No definido"
 
+    factura.total = total_final
     factura.estado_pago = estado_pago
     factura.save()
 
@@ -254,22 +319,34 @@ def generar_factura(request):
 
     contexto = {
         "factura": factura,
-        "items": items,
-        "subtotal": total,
+        "items": items_detalle,
+        "subtotal": subtotal_con_desc,
         "iva": iva,
-        "descuento": descuento,
+        "descuento": descuento_total,
         "total_final": total_final,
         "estado_pago": estado_pago,
     }
     return render(request, "store/factura.html", contexto)
 
+
 def simular_pago_banco(request):
+    """
+    Pantalla de simulación de pago por banco.
+    En un flujo real, aquí se validaría el callback de la pasarela de pagos.
+    """
     if request.method == "POST":
-        # Aquí podrías validar un campo de confirmación
         return redirect('store:generar_factura')
     return render(request, "store/simular_pago_banco.html")
 
+
+# =========================
+# Login y páginas informativas
+# =========================
+
 def login_view(request):
+    """
+    Vista de login con soporte para mostrar mensaje de acceso requerido y next.
+    """
     mostrar_acceso = request.session.pop('mostrar_acceso_requerido', False)
     next_url = request.GET.get('next', '')
     return render(request, 'account/login.html', {
@@ -277,9 +354,10 @@ def login_view(request):
         'next': next_url
     })
 
-# 📄 Páginas informativas
+
 def nosotros(request):
     return render(request, 'store/nosotros.html')
+
 
 def contacto(request):
     return render(request, 'store/contacto.html')
