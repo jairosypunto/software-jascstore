@@ -37,7 +37,17 @@
           <tr>
             <td>{{ item.producto.name }}</td>
             <td>{{ item.cantidad }}</td>
-            <td>${{ item.producto.cost|floatformat:0 }}</td>
+            <td>
+              {% if item.producto.discount > 0 %}
+                ${{ item.producto.final_price|floatformat:0 }}
+                <small class="text-muted d-block">
+                  <span class="text-decoration-line-through">${{ item.producto.cost|floatformat:0 }}</span>
+                  (-{{ item.producto.discount }}%)
+                </small>
+              {% else %}
+                ${{ item.producto.cost|floatformat:0 }}
+              {% endif %}
+            </td>
             <td>${{ item.subtotal|floatformat:0 }}</td>
           </tr>
           {% endfor %}

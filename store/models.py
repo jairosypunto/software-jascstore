@@ -1,6 +1,7 @@
 from django.db import models
-from django.conf import settings   # Para vincular la factura al usuario autenticado
+from django.conf import settings  # Para vincular la factura al usuario autenticado
 from categorias.models import Category
+from decimal import Decimal  # ✅ Para cálculos financieros precisos
 
 # 🛍️ Modelo de Producto
 class Product(models.Model):
@@ -8,10 +9,11 @@ class Product(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
     cost = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)   # ← aquí está el campo
+    discount = models.PositiveIntegerField(default=0)  # Porcentaje de descuento
+    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)
     stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey('categorias.Category', on_delete=models.CASCADE)
     destacado = models.BooleanField(default=False)
     nuevo = models.BooleanField(default=False)
     date_register = models.DateTimeField(auto_now_add=True)
@@ -20,6 +22,12 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def final_price(self):
+        """✅ Calcula el precio con descuento aplicado usando Decimal"""
+        if self.discount > 0:
+            descuento = Decimal(self.discount) / Decimal('100')
+            return self.cost * (Decimal('1') - descuento)
+        return self.cost
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
@@ -34,13 +42,12 @@ class Factura(models.Model):
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
 
-
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
-    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)  # Relación con factura
-    producto = models.ForeignKey(Product, on_delete=models.CASCADE)  # Producto comprado
-    cantidad = models.PositiveIntegerField()  # Cantidad
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)  # Subtotal
+    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)
+    producto = models.ForeignKey(Product, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"

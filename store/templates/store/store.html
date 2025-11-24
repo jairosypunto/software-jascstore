@@ -4,33 +4,67 @@
 {% block title %}Nuestra Tienda - LatinShop{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'store/css/store.css' %}">
-<link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
+  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <style>
+    /* 🎯 Ajuste visual del carrusel */
+    .swiper {
+      width: 100%;
+      max-width: 1200px;
+      margin: 2em auto;
+      padding: 1em 0;
+    }
+
+    .swiper-slide {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .swiper-slide img {
+      max-width: 200px;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .swiper-slide img:hover {
+      transform: scale(1.05);
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
 <section class="shop-section">
   <div class="shop-container">
 
-    {# 🏷️ Banner de bienvenida #}
-    <div class="shop-hero">
-      <div class="hero-content">
-        <h1 class="hero-title">Nuestra Tienda</h1>
-        <p class="hero-subtitle">Descubre productos increíbles con los mejores precios</p>
+    <!-- 🏪 Carrusel interactivo con Swiper -->
+    <h2 class="text-center mt-4 mb-3">Productos destacados</h2>
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        {% for producto in productos_destacados %}
+          <div class="swiper-slide">
+            <img src="{{ producto.image.url }}" alt="{{ producto.name }}">
+          </div>
+        {% endfor %}
       </div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
     </div>
 
-    {# 🔍 Filtros: búsqueda, ordenamiento y categorías #}
+    <!-- 🔍 Filtros -->
     <form method="get" id="filterForm">
       <div class="shop-controls">
-
-        {# 🔍 Campo de búsqueda #}
         <div class="search-box">
           <input type="text" name="q" class="search-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
         </div>
-
-        {# 🗂️ Filtros de categoría y ordenamiento #}
         <div class="filter-group">
           <select name="category" class="filter-select" id="categoryFilter">
             <option value="all">Todas las categorías</option>
@@ -40,7 +74,6 @@
               </option>
             {% endfor %}
           </select>
-
           <select name="order" class="filter-select" id="sortFilter">
             <option value="">Ordenar por</option>
             <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
@@ -52,89 +85,78 @@
       </div>
     </form>
 
-    {# 📦 Contador de productos #}
+    <!-- 📦 Contador -->
     <div class="products-count">
       <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
     </div>
 
-    {# 🛍️ Grid de productos #}
-    <div class="products-grid">
-      {% for product in productos %}
-      <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
-
-        {# 🖼️ Imagen del producto #}
-        <div class="product-image-wrapper">
-          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-
-          {# 🏷️ Badges de estado #}
-          <div class="product-badges">
-            {% if not product.is_available %}
-              <span class="badge badge-unavailable">Agotado</span>
-            {% elif product.stock < 5 %}
-              <span class="badge badge-low-stock">¡Últimas unidades!</span>
-            {% endif %}
-            {% if product.date_register|timesince < "7 days" %}
-              <span class="badge badge-new">Nuevo</span>
-            {% endif %}
-          </div>
-
-          {# 👁️ Vista rápida (puedes enlazar a detalle) #}
-          <a href="#" class="quick-view">
-            <span>Vista rápida</span>
-          </a>
-        </div>
-
-        {# 📋 Información del producto #}
-        <div class="product-content">
-          <span class="product-category">{{ product.category.name }}</span>
-          <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
-          <p class="product-description">{{ product.description|truncatewords:12 }}</p>
-
-          <div class="product-footer">
-            <div class="price-section">
-              <span class="price">${{ product.cost|floatformat:0 }}</span>
-              <span class="stock-info">
-                {% if product.stock > 10 %}
-                  <span class="stock-dot stock-available"></span> En stock
-                {% elif product.stock > 0 %}
-                  <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
-                {% else %}
-                  <span class="stock-dot stock-out"></span> Agotado
-                {% endif %}
-              </span>
-            </div>
-
-            {# 🛒 Botón de agregar al carrito con action #}
-            {% if product.is_available and product.stock > 0 %}
-            <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
-              {% csrf_token %}
-              <button type="submit" class="btn-add-cart">
-                <span>Agregar</span>
-              </button>
-            </form>
-            {% else %}
-            <button class="btn-add-cart btn-disabled" disabled>
-              <span>No disponible</span>
-            </button>
-            {% endif %}
-          </div>
-        </div>
-      </article>
-      {% empty %}
-        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
-          {% if request.GET.q %}
-            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
-            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
-          {% else %}
-            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
-            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
-          {% endif %}
-        </div>
-      {% endfor %}
+    <!-- 🛍️ Grid de productos -->
+<div class="products-grid">
+  {% for product in productos %}
+  <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+    <div class="product-image-wrapper">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+      <div class="product-badges">
+        {% if not product.is_available %}
+          <span class="badge badge-unavailable">Agotado</span>
+        {% elif product.stock < 5 %}
+          <span class="badge badge-low-stock">¡Últimas unidades!</span>
+        {% endif %}
+        {% if product.date_register|timesince < "7 days" %}
+          <span class="badge badge-new">Nuevo</span>
+        {% endif %}
+      </div>
+      <a href="#" class="quick-view" title="Vista rápida">
+        <i class="bi bi-eye"></i> <span>Vista rápida</span>
+      </a>
     </div>
-
 </div>
-    {# 🔄 Paginación #}
+    <div class="product-content">
+      <span class="product-category">{{ product.category.name }}</span>
+      <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
+      <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+
+      <div class="product-footer">
+<div class="price-section">
+  {% if product.discount > 0 %}
+    <p class="text-danger fw-bold mb-1">
+      Precio con descuento: ${{ product.final_price|floatformat:0 }}
+    </p>
+    <p class="text-muted text-decoration-line-through mb-1">
+      Precio original: ${{ product.cost|floatformat:0 }}
+    </p>
+    <span class="badge bg-success">-{{ product.discount }}%</span>
+  {% else %}
+    <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+  {% endif %}
+</div>
+
+        {% if product.is_available and product.stock > 0 %}
+        <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
+          {% csrf_token %}
+          <button type="submit" class="btn-add-cart">
+            <i class="bi bi-cart-plus"></i> <span>Agregar</span>
+          </button>
+        </form>
+        {% else %}
+        <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
+        {% endif %}
+      </div>
+    </div>
+  </article>
+  {% empty %}
+    <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
+      {% if request.GET.q %}
+        <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
+        <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
+      {% else %}
+        <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
+        <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+    <!-- 🔄 Paginación -->
     {% if productos.has_other_pages %}
     <div class="pagination">
       {% if productos.has_previous %}
@@ -159,19 +181,16 @@
 </section>
 {% endblock %}
 
-{# ✅ Script para envío automático de filtros #}
-<script>
-  document.getElementById('sortFilter').addEventListener('change', function () {
-    document.getElementById('filterForm').submit();
-  });
+    <!-- ✅ Script para envío automático de filtros -->
+  <script>
 
-  document.getElementById('categoryFilter').addEventListener('change', function () {
-    document.getElementById('filterForm').submit();
-  });
-
-  document.querySelector('.search-input').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
+    document.getElementById('categoryFilter').addEventListener('change', function () {
       document.getElementById('filterForm').submit();
-    }
-  });
-</script>
+    });
+
+    document.querySelector('.search-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        document.getElementById('filterForm').submit();
+      }
+    });
+ </script>

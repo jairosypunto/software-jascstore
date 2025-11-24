@@ -4,3 +4,4 @@ def calcular_total(carrito):
         if isinstance(item, dict) and 'precio' in item and 'cantidad' in item:
             total += item['precio'] * item['cantidad']
     return total
+
