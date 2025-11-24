@@ -31,13 +31,15 @@ body {
   color: var(--dark);
 }
 
-/* 🏷️ Hero */
+/* 🧭 Navbar fijo mejorado 🎯 Bloque 2: Hero y encabezado visua*/
 .shop-hero {
-  background: var(--gradient-primary);
-  padding: 80px 20px;
-  text-align: center;
   position: relative;
-  overflow: hidden;
+  background: linear-gradient(to bottom, #003366 0%, #e6f0ff 100%);
+  color: #fff;
+  text-align: center;
+  padding: clamp(2em, 5vw, 4em) 1em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 100%;
 }
 
 .shop-hero::before {
@@ -51,139 +53,77 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.2; }
 }
 
 .hero-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: var(--white);
-  margin-bottom: 15px;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  animation: fadeInDown 0.8s ease;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
 }
 
 .hero-subtitle {
-  font-size: 1.3rem;
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 300;
-  animation: fadeInUp 0.8s ease 0.2s backwards;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 400;
+  margin-bottom: 20px;
 }
 
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 🔍 Filtros y búsqueda */
+/* 🔍 Bloque 3: Filtros y búsqued */
 .shop-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1em;
   background: var(--white);
   padding: 30px 20px;
   box-shadow: var(--shadow-md);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: center;
-  justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
-.search-box {
-  flex: 1;
-  min-width: 280px;
-  max-width: 500px;
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  color: var(--gray);
-  pointer-events: none;
-}
-
-.search-input {
+.search-box .search-input {
+  padding: 0.6em 1em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   width: 100%;
-  padding: 14px 20px 14px 45px;
-  border: 2px solid var(--light-gray);
-  border-radius: 50px;
-  font-size: 1rem;
-  background: var(--light-gray);
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: var(--white);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-/* 🗂️ Select de categorías */
-.filter-group {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
+  max-width: 300px;
 }
 
 .filter-select,
-.filter-select option,
 #categoryFilter,
 #categoryFilter option {
+  padding: 0.5em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   background-color: #fff !important;
   color: #1f2937 !important;
   font-size: 1rem !important;
   font-weight: 600 !important;
-  border: 2px solid #6366f1 !important;
-  padding: 10px 20px !important;
-  border-radius: 50px !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
 }
 
+/* 🛒 Bloque 4: Tarjetas de product */
 
-
-/* 🛒 Tarjetas de producto */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 30px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2em;
+  margin-top: 2em;
+  padding: 0 1em;
 }
 
 .product-card {
-  background: var(--white);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
   display: flex;
   flex-direction: column;
-  position: relative;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: slideIn 0.5s ease backwards;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .product-card:hover {
@@ -192,69 +132,30 @@ body {
 }
 
 .product-image-wrapper {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-  background: var(--light-gray);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1em;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  height: 260px;
 }
 
 .product-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
+  max-width: 180px;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto;
+  transition: transform 0.3s ease;
 }
 
 .product-card:hover .product-img {
   transform: scale(1.1);
 }
 
-/* 🏷️ Badges */
-.product-badges {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 2;
-}
+/* 🧾 Bloque 5: Contenido del product */
 
-.badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: var(--shadow-md);
-  animation: bounceIn 0.6s ease;
-}
-
-@keyframes bounceIn {
-  0% { opacity: 0; transform: scale(0.3); }
-  50% { transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-.badge-new {
-  background: var(--gradient-primary);
-  color: var(--white);
-}
-
-.badge-low-stock {
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-  color: var(--white);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.badge-unavailable {
-  background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
-  color: var(--white);
-}
-
-/* 📦 Contenido del producto */
 .product-content {
   padding: 25px;
   display: flex;
@@ -279,15 +180,18 @@ body {
   color: var(--primary);
 }
 
-.product-description {
+.product-description,
+.card-description {
   font-size: 0.95rem;
   color: var(--gray);
   line-height: 1.6;
   margin-bottom: 20px;
   flex-grow: 1;
+  min-height: 3em;
 }
 
-/* 📦 Footer del producto */
+/* 💰 Bloque 6: Footer del producto y precio */
+
 .product-footer {
   display: flex;
   flex-direction: column;
@@ -311,6 +215,8 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* 📦 Bloque 7: Stock y disponibilida */
 
 .stock-info {
   display: flex;
@@ -339,38 +245,42 @@ body {
   animation: blink 1.5s ease-in-out infinite;
 }
 
+.stock-out {
+  background: var(--gray);
+}
+
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
 
-.stock-out {
-  background: var(--gray);
-}
+/* 🛒 Bloque 8: Botón agregar al carrit */
 
-/* 🛒 Botón agregar al carrito */
 .add-to-cart-form {
   width: 100%;
 }
 
 .btn-add-cart {
-  width: 100%;
-  padding: 14px 24px;
-  background: var(--gradient-primary);
-  color: var(--white);
-  border: none;
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-  position: relative;
-  overflow: hidden;
+  gap: 8px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.6em 1.2em;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-add-cart:hover {
+  background-color: #0056b3;
+  transform: scale(1.03);
+}
+
+.btn-add-cart i {
+  font-size: 1.2em;
 }
 
 .btn-add-cart::before {
@@ -388,18 +298,9 @@ body {
   left: 100%;
 }
 
-.btn-add-cart:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-}
 
 .btn-add-cart:active {
   transform: translateY(0);
-}
-
-.cart-icon {
-  width: 20px;
-  height: 20px;
 }
 
 .btn-disabled {
@@ -413,7 +314,8 @@ body {
   box-shadow: none;
 }
 
-/* 🚫 Sin productos */
+/* 🛍️ Bloque 9: Página de tienda y productos */
+
 .no-products {
   grid-column: 1 / -1;
   text-align: center;
@@ -443,13 +345,15 @@ body {
   margin: 0;
 }
 
-/* 🔢 Paginación */
+/* 🔢 Bloque 10: Paginación */
+
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 15px;
   padding: 50px 20px;
+  flex-wrap: wrap;
 }
 
 .pagination-btn {
@@ -501,7 +405,9 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* 📱 Responsive */
+
+/* 📱 Bloque 11: Responsive completo */
+
 @media (max-width: 768px) {
   .shop-controls {
     flex-direction: column;
@@ -528,7 +434,6 @@ body {
   }
 
   .pagination {
-    flex-wrap: wrap;
     padding: 40px 15px;
   }
 
@@ -542,7 +447,7 @@ body {
 
 @media (max-width: 480px) {
   .shop-hero {
-    padding: 60px 20px;
+    padding: 1.5em 1em;
   }
 
   .hero-title {
@@ -590,52 +495,173 @@ body {
   }
 }
 
+/* 🎨 CSS para el banner “Nuestra Tienda" */
 
-
-.card-description {
-  font-size: 0.9rem;
-  min-height: 3em;
-  margin-bottom: 0.5em;
-}
-
-#categoryFilter,
-#categoryFilter option {
-  background-color: #fff !important;
-  color: #1f2937 !important; /* texto oscuro */
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-} 
-
+/* 🏪 Banner de tienda estilo Éxito */
 .shop-hero {
-  position: sticky;   /* se queda pegado */
-  top: 0;             /* en la parte superior */
-  z-index: 1000;      /* por encima del contenido */
-  background: #fff;   /* fondo sólido para que no se mezcle */
-  padding: 1rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* sombra ligera */
-}
-
-/* 🛍 Estilo para el banner de Nuestra Tienda */
-.shop-hero {
-  background: linear-gradient(to bottom, #003366, #ffffff);
-  color: white;
-  padding: 100px 20px;
+  position: relative;
+  background: linear-gradient(to right, #4f46e5, #6366f1);
+  color: #fff;
   text-align: center;
+  padding: clamp(2em, 5vw, 3em) 1em;
+  border-radius: 12px;
+  margin: 2em auto;
+  max-width: 1200px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.shop-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  animation: pulse 8s ease-in-out infinite;
+  z-index: 0;
 }
 
 .hero-content {
-  max-width: 800px;
-  margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 700;
+  margin-bottom: 0.5em;
+  animation: fadeInDown 0.8s ease;
 }
 
 .hero-subtitle {
-  font-size: 1.2rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 400;
-  margin-bottom: 20px;
+  opacity: 0.95;
+  animation: fadeInUp 0.8s ease 0.2s backwards;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.2; }
+}
+
+/* 🎠 Carrusel horizontal estilo Éxito */
+.shop-hero-carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 1200px;
+  margin: 2em auto;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(to right, #4f46e5, #6366f1);
+}
+
+.carousel-track {
+  display: flex;
+  animation: scrollBanner 25s linear infinite;
+}
+
+.carousel-item {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 300px;
+  margin: 1em;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes scrollBanner {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.swiper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 2em auto;
+  padding: 1em 0;
+  overflow: hidden; /* 👈 evita que se desborde */
+}
+
+.swiper-slide {
+  flex-shrink: 0;
+  width: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-slide img {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.swiper-slide img:hover {
+  transform: scale(1.05);
+}
+
+.quick-view:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+.quick-view i {
+  font-size: 1em;
+}
+
+.product-image-wrapper {
+  position: relative; /* clave */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1em;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  height: 260px;
+}
+
+.quick-view {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;          /* oculto por defecto */
+  pointer-events: none; /* no clickeable cuando está oculto */
+}
+
+.product-image-wrapper:hover .quick-view {
+  opacity: 1;          /* aparece al pasar el mouse */
+  pointer-events: auto;
 }

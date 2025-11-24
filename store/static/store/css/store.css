@@ -80,10 +80,11 @@
 
 /* 🛍 Estilo para el banner de Nuestra Tienda */
 .shop-hero {
-  background: linear-gradient(to bottom, #003366, #ffffff);
-  color: white;
-  padding: 100px 20px;
+  background: var(--gradient-primary);
+  padding: 30px 20px; /* antes 80px */
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .hero-content {
@@ -92,15 +93,12 @@
 }
 
 .hero-title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
 }
-
 .hero-subtitle {
-  font-size: 1.2rem;
-  font-weight: 400;
-  margin-bottom: 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1rem, 3vw, 1.5rem);
 }
 
 @media (max-width: 768px) {

@@ -44,3 +44,6 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"
+    
+    from django.db import models
+

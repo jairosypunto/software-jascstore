@@ -4,6 +4,9 @@ from django.db.models import Q
 from .models import Product, Factura, DetalleFactura  
 from categorias.models import Category
 
+from django.utils.safestring import mark_safe  # 👈 para permitir HTML en el mensaje
+
+from .models import Product
 
 from decimal import Decimal
 
@@ -103,14 +106,50 @@ def vaciar_carrito(request):
     request.session['carrito'] = {}
     return redirect('store:ver_carrito')
 
-from django.utils.safestring import mark_safe  # 👈 para permitir HTML en el mensaje
+def store(request):
+    # 🏪 Productos destacados para el carrusel
+   
+    productos_destacados = Product.objects.filter(destacado=True,is_available=True).filter(~Q(image=''), ~Q(image__isnull=True))[:10]
+    
 
-from django.contrib import messages
-from django.utils.safestring import mark_safe
+    # 📦 Productos disponibles con filtros
+    productos = Product.objects.filter(is_available=True)
+    categoria = None
 
-from django.contrib import messages
-from django.shortcuts import redirect
-from django.utils.safestring import mark_safe  # si ya no usas HTML, puedes quitarlo
+    # Filtro por categoría
+    category_slug = request.GET.get('category')
+    if category_slug and category_slug != 'all':
+        categoria = get_object_or_404(Category, slug=category_slug)
+        productos = productos.filter(category=categoria)
+
+    # Filtro por búsqueda
+    search_query = request.GET.get('q')
+    if search_query:
+        productos = productos.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    # Ordenamiento
+    order = request.GET.get('order')
+    if order == 'name':
+        productos = productos.order_by('name')
+    elif order == 'price':
+        productos = productos.order_by('cost')
+    elif order == 'price_desc':
+        productos = productos.order_by('-cost')
+    elif order == 'recent':
+        productos = productos.order_by('-date_register')
+
+    categorias = Category.objects.all()
+
+    context = {
+        'productos_destacados': productos_destacados,  # 👈 ahora sí se envían
+        'productos': productos,
+        'categorias': categorias,
+        'categoria_actual': categoria,
+    }
+    return render(request, 'store/store.html', context)
 
 def confirmar_pago(request):
     if request.method == "POST":
