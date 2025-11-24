@@ -3,15 +3,18 @@ from django.conf import settings   # Para vincular la factura al usuario autenti
 from categorias.models import Category
 
 # 🛍️ Modelo de Producto
+from django.db import models
+
 class Product(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
     cost = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)   # ← aquí está el campo
+    discount = models.PositiveIntegerField(default=0)  # porcentaje de descuento
+    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)
     stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey('categorias.Category', on_delete=models.CASCADE)
     destacado = models.BooleanField(default=False)
     nuevo = models.BooleanField(default=False)
     date_register = models.DateTimeField(auto_now_add=True)
@@ -19,6 +22,12 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def final_price(self):
+        """Calcula el precio con descuento aplicado"""
+        if self.discount > 0:
+            return self.cost * (1 - self.discount / 100)
+        return self.cost
 
 
 # 🧾 Modelo de Factura

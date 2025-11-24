@@ -91,70 +91,87 @@
     </div>
 
     <!-- 🛍️ Grid de productos -->
-    <div class="products-grid">
-      {% for product in productos %}
-      <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
-        <div class="product-image-wrapper">
-          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-          <div class="product-badges">
-            {% if not product.is_available %}
-              <span class="badge badge-unavailable">Agotado</span>
-            {% elif product.stock < 5 %}
-              <span class="badge badge-low-stock">¡Últimas unidades!</span>
-            {% endif %}
-            {% if product.date_register|timesince < "7 days" %}
-              <span class="badge badge-new">Nuevo</span>
-            {% endif %}
-          </div>
-          <a href="#" class="quick-view" title="Vista rápida">
-            <i class="bi bi-eye"></i> <span>Vista rápida</span>
-          </a>
-        </div>
-        <div class="product-content">
-          <span class="product-category">{{ product.category.name }}</span>
-          <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
-          <p class="product-description">{{ product.description|truncatewords:12 }}</p>
-          <div class="product-footer">
-            <div class="price-section">
-              <span class="price">${{ product.cost|floatformat:0 }}</span>
-              <span class="stock-info">
-                {% if product.stock > 10 %}
-                  <span class="stock-dot stock-available"></span> En stock
-                {% elif product.stock > 0 %}
-                  <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
-                {% else %}
-                  <span class="stock-dot stock-out"></span> Agotado
-                {% endif %}
-              </span>
-            </div>
-            {% if product.is_available and product.stock > 0 %}
-            <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
-              {% csrf_token %}
-              <button type="submit" class="btn-add-cart">
-                <i class="bi bi-cart-plus"></i> <span>Agregar</span>
-              </button>
-            </form>
-            {% else %}
-            <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
-            {% endif %}
-          </div>
-        </div>
-      </article>
-      {% empty %}
-        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
-          {% if request.GET.q %}
-            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
-            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
-          {% else %}
-            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
-            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
-          {% endif %}
-        </div>
-      {% endfor %}
+<div class="products-grid">
+  {% for product in productos %}
+  <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+    <div class="product-image-wrapper">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+      <div class="product-badges">
+        {% if not product.is_available %}
+          <span class="badge badge-unavailable">Agotado</span>
+        {% elif product.stock < 5 %}
+          <span class="badge badge-low-stock">¡Últimas unidades!</span>
+        {% endif %}
+        {% if product.date_register|timesince < "7 days" %}
+          <span class="badge badge-new">Nuevo</span>
+        {% endif %}
+      </div>
+      <a href="#" class="quick-view" title="Vista rápida">
+        <i class="bi bi-eye"></i> <span>Vista rápida</span>
+      </a>
     </div>
 
+<<<<<<< HEAD
 </div>
     
+=======
+    <div class="product-content">
+      <span class="product-category">{{ product.category.name }}</span>
+      <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
+      <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+
+      <div class="product-footer">
+        <div class="price-section">
+          {% if product.discount > 0 %}
+            <p class="text-danger fw-bold mb-1">
+              Precio con descuento: ${{ product.final_price|floatformat:0 }}
+            </p>
+            <p class="text-muted text-decoration-line-through mb-1">
+              Precio original: ${{ product.cost|floatformat:0 }}
+            </p>
+            <span class="badge bg-success">-{{ product.discount }}%</span>
+          {% else %}
+            <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+          {% endif %}
+
+          <span class="stock-info">
+            {% if product.stock > 10 %}
+              <span class="stock-dot stock-available"></span> En stock
+            {% elif product.stock > 0 %}
+              <span class="stock-dot stock-low"></span> {{ product.stock }} disponibles
+            {% else %}
+              <span class="stock-dot stock-out"></span> Agotado
+            {% endif %}
+          </span>
+        </div>
+
+        {% if product.is_available and product.stock > 0 %}
+        <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
+          {% csrf_token %}
+          <button type="submit" class="btn-add-cart">
+            <i class="bi bi-cart-plus"></i> <span>Agregar</span>
+          </button>
+        </form>
+        {% else %}
+        <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
+        {% endif %}
+      </div>
+    </div>
+  </article>
+  {% empty %}
+    <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
+      {% if request.GET.q %}
+        <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
+        <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
+      {% else %}
+        <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
+        <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+>>>>>>> e6fbd78 (� Conexión entre Product y Category usando ForeignKey cruzado desde app 'categorias'. Modelo listo para migrar y mostrar categoría en tienda.)
     <!-- 🔄 Paginación -->
     {% if productos.has_other_pages %}
     <div class="pagination">
@@ -179,8 +196,6 @@
   </div>
 </section>
 {% endblock %}
-
-
 
     <!-- ✅ Script para envío automático de filtros -->
   <script>
