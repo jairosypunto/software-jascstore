@@ -8,7 +8,7 @@ from .models import Product, Factura, DetalleFactura
 from categorias.models import Category
 from django.contrib.auth.decorators import login_required
 
-
+from .models import Banner, Product
 
 # =========================
 # Utilidades internas
@@ -132,8 +132,12 @@ def store(request):
     - Productos destacados (con imagen válida)
     - Filtros: categoría, búsqueda
     - Ordenamiento: nombre, precio, precio desc, reciente
+    - Banner dinámico desde admin
     """
-    # Destacados para carrusel (evita nulos y vacíos en image)
+    # Banner dinámico
+    banner = Banner.objects.first()
+
+    # Destacados para carrusel
     productos_destacados = Product.objects.filter(
         destacado=True,
         is_available=True
@@ -171,13 +175,13 @@ def store(request):
     categorias = Category.objects.all()
 
     context = {
+        'banner': banner,
         'productos_destacados': productos_destacados,
         'productos': productos,
         'categorias': categorias,
         'categoria_actual': categoria_actual,
     }
     return render(request, 'store/store.html', context)
-
 
 def productos_por_categoria(request, category_slug):
     """Listado de productos filtrado por una categoría específica."""
@@ -417,6 +421,7 @@ def login_view(request):
         'next': next_url
     })
 
+# modelo para el banner
 
 def nosotros(request):
     return render(request, 'store/nosotros.html')

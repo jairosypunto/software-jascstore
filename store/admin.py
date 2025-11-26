@@ -39,3 +39,9 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
         'subtotal'           # Subtotal con descuento aplicado
     )
     list_select_related = ('factura', 'producto')  # ✅ Optimiza consultas relacionadas
+
+from .models import Banner
+
+@admin.register(Banner)
+class BannerAdmin(admin.ModelAdmin):
+    list_display = ("title", "subtitle", "image")
