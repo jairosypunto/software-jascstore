@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
   <style>
-    /* 🎯 Ajuste visual del carrusel */
     .swiper {
       width: 100%;
       max-width: 1200px;
@@ -42,11 +41,20 @@
 {% endblock %}
 
 {% block content %}
+<section class="shop-hero" style="background: linear-gradient(to bottom, rgba(0,51,102,0.8), rgba(255,255,255,0.9)), url('{{ banner.image.url }}') center/cover no-repeat;">
+  <div class="hero-content">
+    <h1 class="hero-title">{{ banner.title }}</h1>
+    <p class="hero-subtitle">{{ banner.subtitle }}</p>
+    <a href="#productos" class="btn btn-primary btn-lg mt-3">
+      <i class="bi bi-bag"></i> Ver productos
+    </a>
+  </div>
+</section>
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- 🏪 Carrusel interactivo con Swiper -->
-    <h2 class="text-center mt-4 mb-3">Productos destacados</h2>
+    <!-- 🏪 Carrusel interactivo -->
+    <!-- <h2 class="text-center mt-4 mb-3">Productos destacados</h2>  -->
     <div class="swiper mySwiper">
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
@@ -60,137 +68,220 @@
     </div>
 
     <!-- 🔍 Filtros -->
-    <form method="get" id="filterForm">
-      <div class="shop-controls">
-        <div class="search-box">
-          <input type="text" name="q" class="search-input" placeholder="Buscar productos..." value="{{ request.GET.q }}">
-        </div>
-        <div class="filter-group">
-          <select name="category" class="filter-select" id="categoryFilter">
-            <option value="all">Todas las categorías</option>
-            {% for categoria in categorias %}
-              <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
-                {{ categoria.name }}
-              </option>
-            {% endfor %}
-          </select>
-          <select name="order" class="filter-select" id="sortFilter">
-            <option value="">Ordenar por</option>
-            <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
-            <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
-            <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-            <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
-          </select>
-        </div>
-      </div>
-    </form>
+<form method="get" id="filterForm">
+  <div class="shop-controls">
+      <!-- 🔍 Buscador con botón dinámico -->
+      <div class="search-box">
+      <input
+        type="text"
+        name="q"
+        class="search-input"
+        placeholder="Buscar productos..."
+        oninput="this.value.trim() ? this.parentElement.classList.add('active') : this.parentElement.classList.remove('active')"
+      >
 
+        <!-- type="button" para evitar submit del form -->
+        <button type="button" class="search-btn" id="searchButton">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+
+    <div class="filter-group">
+      <!-- Al cambiar categoría, envía el formulario automáticamente -->
+      <select name="category" class="filter-select" id="categoryFilter" onchange="this.form.submit()">
+        <option value="all">Todas las categorías</option>
+        {% for categoria in categorias %}
+          <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
+            {{ categoria.name }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <!-- Al cambiar orden, envía el formulario automáticamente -->
+      <select name="order" class="filter-select" id="sortFilter" onchange="this.form.submit()">
+        <option value="">Ordenar por</option>
+        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
+        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
+        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
+      </select>
+    </div>
+  </div>
+</form>
     <!-- 📦 Contador -->
     <div class="products-count">
       <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
     </div>
 
     <!-- 🛍️ Grid de productos -->
-<div class="products-grid">
-  {% for product in productos %}
-  <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
-    <div class="product-image-wrapper">
-      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-      <div class="product-badges">
-        {% if not product.is_available %}
-          <span class="badge badge-unavailable">Agotado</span>
-        {% elif product.stock < 5 %}
-          <span class="badge badge-low-stock">¡Últimas unidades!</span>
-        {% endif %}
-        {% if product.date_register|timesince < "7 days" %}
-          <span class="badge badge-new">Nuevo</span>
-        {% endif %}
-      </div>
-      <a href="#" class="quick-view" title="Vista rápida">
-        <i class="bi bi-eye"></i> <span>Vista rápida</span>
-      </a>
-    </div>
-</div>
-    <div class="product-content">
-      <span class="product-category">{{ product.category.name }}</span>
-      <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
-      <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+    <div class="products-grid" id="productos">
+      {% for product in productos %}
+        <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+          <div class="product-image-wrapper">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+            <div class="product-badges">
+              {% if not product.is_available %}
+                <span class="badge badge-unavailable">Agotado</span>
+              {% elif product.stock < 5 %}
+                <span class="badge badge-low-stock">¡Últimas unidades!</span>
+              {% endif %}
+              {% if product.date_register|timesince < "7 days" %}
+                <span class="badge badge-new">Nuevo</span>
+              {% endif %}
+            </div>
+            <a href="#" class="quick-view" title="Vista rápida">
+              <i class="bi bi-eye"></i> <span>Vista rápida</span>
+            </a>
+          </div>
 
-      <div class="product-footer">
-<div class="price-section">
-  {% if product.discount > 0 %}
-    <p class="text-danger fw-bold mb-1">
-      Precio con descuento: ${{ product.final_price|floatformat:0 }}
-    </p>
-    <p class="text-muted text-decoration-line-through mb-1">
-      Precio original: ${{ product.cost|floatformat:0 }}
-    </p>
-    <span class="badge bg-success">-{{ product.discount }}%</span>
-  {% else %}
-    <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
-  {% endif %}
-</div>
+          <div class="product-content">
+            <span class="product-category">{{ product.category.name }}</span>
+            <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
+            <p class="product-description">{{ product.description|truncatewords:12 }}</p>
 
-        {% if product.is_available and product.stock > 0 %}
-        <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
-          {% csrf_token %}
-          <button type="submit" class="btn-add-cart">
-            <i class="bi bi-cart-plus"></i> <span>Agregar</span>
-          </button>
-        </form>
-        {% else %}
-        <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
-        {% endif %}
-      </div>
+            <div class="product-footer">
+              <div class="price-section">
+                {% if product.discount > 0 %}
+                  <p class="text-danger fw-bold mb-1">
+                    Precio con descuento: ${{ product.final_price|floatformat:0 }}
+                  </p>
+                  <p class="text-muted text-decoration-line-through mb-1">
+                    Precio original: ${{ product.cost|floatformat:0 }}
+                  </p>
+                  <span class="badge bg-success">-{{ product.discount }}%</span>
+                {% else %}
+                  <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+                {% endif %}
+              </div>
+
+              {% if product.is_available and product.stock > 0 %}
+                <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-add-cart">
+                    <i class="bi bi-cart-plus"></i> <span>Agregar</span>
+                  </button>
+                </form>
+              {% else %}
+                <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
+          {% if request.GET.q %}
+            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
+            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
+          {% else %}
+            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
+            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+          {% endif %}
+        </div>
+      {% endfor %}
     </div>
-  </article>
-  {% empty %}
-    <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
-      {% if request.GET.q %}
-        <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
-        <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
-      {% else %}
-        <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
-        <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
-      {% endif %}
-    </div>
-  {% endfor %}
-</div>
+
     <!-- 🔄 Paginación -->
     {% if productos.has_other_pages %}
-    <div class="pagination">
-      {% if productos.has_previous %}
-        <a href="?page={{ productos.previous_page_number }}" class="pagination-btn">Anterior</a>
-      {% endif %}
-      <div class="pagination-numbers">
-        {% for num in productos.paginator.page_range %}
-          {% if productos.number == num %}
-            <span class="pagination-number active">{{ num }}</span>
-          {% else %}
-            <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
-          {% endif %}
-        {% endfor %}
+      <div class="pagination">
+        {% if productos.has_previous %}
+          <a href="?page={{ productos.previous_page_number }}" class="pagination-btn">Anterior</a>
+        {% endif %}
+        <div class="pagination-numbers">
+          {% for num in productos.paginator.page_range %}
+            {% if productos.number == num %}
+              <span class="pagination-number active">{{ num }}</span>
+            {% else %}
+              <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% if productos.has_next %}
+          <a href="?page={{ productos.next_page_number }}" class="pagination-btn">Siguiente</a>
+        {% endif %}
       </div>
-      {% if productos.has_next %}
-        <a href="?page={{ productos.next_page_number }}" class="pagination-btn">Siguiente</a>
-      {% endif %}
-    </div>
     {% endif %}
 
   </div>
 </section>
 {% endblock %}
 
-    <!-- ✅ Script para envío automático de filtros -->
-  <script>
+<!-- ✅ Script para filtros -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("filterForm");
+  const category = document.getElementById("categoryFilter");
+  const order = document.getElementById("sortFilter");
+  const searchInput = document.querySelector(".search-input");
+  const searchBox = document.querySelector(".search-box");
+  const searchButton = document.getElementById("searchButton");
 
-    document.getElementById('categoryFilter').addEventListener('change', function () {
-      document.getElementById('filterForm').submit();
-    });
+  // Construye la URL con los parámetros actuales
+  function buildUrlWithCurrentParams(includeQueryFromInput = true) {
+    const params = new URLSearchParams(window.location.search);
+    if (category) params.set("category", category.value);
+    if (order) params.set("order", order.value);
 
-    document.querySelector('.search-input').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        document.getElementById('filterForm').submit();
+    // Control explícito de q para evitar arrastres
+    if (includeQueryFromInput && searchInput) {
+      const q = searchInput.value.trim();
+      if (q) params.set("q", q); else params.delete("q");
+    } else {
+      params.delete("q");
+    }
+
+    const qs = params.toString();
+    return window.location.pathname + (qs ? "?" + qs : "");
+  }
+
+  // Filtros: al cambiar, redirige con la URL actualizada
+  if (category) category.onchange = () => window.location.href = buildUrlWithCurrentParams(true);
+  if (order) order.onchange = () => window.location.href = buildUrlWithCurrentParams(true);
+
+  // Estado visual del botón de búsqueda
+  if (searchInput && searchBox) {
+    searchInput.addEventListener("input", function () {
+      if (searchInput.value.trim() !== "") {
+        searchBox.classList.add("active");
+      } else {
+        searchBox.classList.remove("active");
       }
     });
- </script>
+
+    // Buscar con Enter
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        // Navega con q para obtener resultados
+        window.location.href = buildUrlWithCurrentParams(true);
+      }
+    });
+  }
+
+  // Buscar con clic en la lupa
+  if (searchButton) {
+    searchButton.addEventListener("click", function (e) {
+      e.preventDefault();
+      // Navega con q para obtener resultados
+      window.location.href = buildUrlWithCurrentParams(true);
+    });
+  }
+
+  // Limpieza post-búsqueda: si la página cargó con ?q=..., limpiamos el input y quitamos q de la URL
+  (function cleanupAfterSearch() {
+    if (!searchInput || !searchBox) return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("q")) {
+      // Limpia el campo y oculta la lupa
+      searchInput.value = "";
+      searchBox.classList.remove("active");
+
+      // Elimina q de la URL sin recargar (mantiene resultados ya renderizados)
+      params.delete("q");
+      const cleanQs = params.toString();
+      const cleanUrl = window.location.pathname + (cleanQs ? "?" + cleanQs : "");
+      history.replaceState(null, "", cleanUrl);
+    }
+  })();
+});
+</script>

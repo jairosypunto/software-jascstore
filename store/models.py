@@ -51,3 +51,13 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"
+    
+# store/models.py
+
+class Banner(models.Model):
+    title = models.CharField(max_length=200, default="Bienvenido a LatinShop")
+    subtitle = models.CharField(max_length=300, blank=True, null=True)
+    image = models.ImageField(upload_to="banners/")
+
+    def __str__(self):
+        return self.title
