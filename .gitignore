@@ -9,7 +9,8 @@ __pycache__/
 # Base de datos local (no subir nunca a producción)
 db.sqlite3
 
-# Ignorar solo la carpeta global de collectstatic
+# Ignorar solo la carpeta global de collectstatic (no los estáticos de apps)
+#/staticfiles/ y /static/ en raíz
 /staticfiles/
 /static/
 
@@ -42,3 +43,6 @@ Thumbs.db
 
 # Netlify (si lo usas en el futuro)
 .netlify/
+
+# Carpeta de media (subidas de usuarios y productos, no versionar)
+media/

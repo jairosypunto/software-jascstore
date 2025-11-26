@@ -71,20 +71,18 @@
 <form method="get" id="filterForm">
   <div class="shop-controls">
       <!-- 🔍 Buscador con botón dinámico -->
-      <div class="search-box">
+    <div class="search-box" id="searchBox">
       <input
         type="text"
         name="q"
         class="search-input"
+        id="searchInput"
         placeholder="Buscar productos..."
-        oninput="this.value.trim() ? this.parentElement.classList.add('active') : this.parentElement.classList.remove('active')"
       >
-
-        <!-- type="button" para evitar submit del form -->
-        <button type="button" class="search-btn" id="searchButton">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
+      <button type="button" class="search-btn" id="searchButton">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
 
     <div class="filter-group">
       <!-- Al cambiar categoría, envía el formulario automáticamente -->
@@ -206,82 +204,53 @@
 {% endblock %}
 
 <!-- ✅ Script para filtros -->
+{% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("filterForm");
-  const category = document.getElementById("categoryFilter");
-  const order = document.getElementById("sortFilter");
-  const searchInput = document.querySelector(".search-input");
-  const searchBox = document.querySelector(".search-box");
+  const searchInput = document.getElementById("searchInput");
+  const searchBox = document.getElementById("searchBox");
   const searchButton = document.getElementById("searchButton");
 
-  // Construye la URL con los parámetros actuales
-  function buildUrlWithCurrentParams(includeQueryFromInput = true) {
-    const params = new URLSearchParams(window.location.search);
-    if (category) params.set("category", category.value);
-    if (order) params.set("order", order.value);
+  if (!searchInput || !searchBox || !searchButton) {
+    console.warn("Buscador: elementos no encontrados. Verifica IDs y orden de carga.");
+    return;
+  }
 
-    // Control explícito de q para evitar arrastres
-    if (includeQueryFromInput && searchInput) {
-      const q = searchInput.value.trim();
-      if (q) params.set("q", q); else params.delete("q");
+  function buildUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const q = searchInput.value.trim();
+    if (q) { params.set("q", q); } else { params.delete("q"); }
+    return window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+  }
+
+  function toggleSearchIcon() {
+    if (searchInput.value.trim() !== "") {
+      searchBox.classList.add("active");
     } else {
-      params.delete("q");
-    }
-
-    const qs = params.toString();
-    return window.location.pathname + (qs ? "?" + qs : "");
-  }
-
-  // Filtros: al cambiar, redirige con la URL actualizada
-  if (category) category.onchange = () => window.location.href = buildUrlWithCurrentParams(true);
-  if (order) order.onchange = () => window.location.href = buildUrlWithCurrentParams(true);
-
-  // Estado visual del botón de búsqueda
-  if (searchInput && searchBox) {
-    searchInput.addEventListener("input", function () {
-      if (searchInput.value.trim() !== "") {
-        searchBox.classList.add("active");
-      } else {
-        searchBox.classList.remove("active");
-      }
-    });
-
-    // Buscar con Enter
-    searchInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        // Navega con q para obtener resultados
-        window.location.href = buildUrlWithCurrentParams(true);
-      }
-    });
-  }
-
-  // Buscar con clic en la lupa
-  if (searchButton) {
-    searchButton.addEventListener("click", function (e) {
-      e.preventDefault();
-      // Navega con q para obtener resultados
-      window.location.href = buildUrlWithCurrentParams(true);
-    });
-  }
-
-  // Limpieza post-búsqueda: si la página cargó con ?q=..., limpiamos el input y quitamos q de la URL
-  (function cleanupAfterSearch() {
-    if (!searchInput || !searchBox) return;
-
-    const params = new URLSearchParams(window.location.search);
-    if (params.has("q")) {
-      // Limpia el campo y oculta la lupa
-      searchInput.value = "";
       searchBox.classList.remove("active");
-
-      // Elimina q de la URL sin recargar (mantiene resultados ya renderizados)
-      params.delete("q");
-      const cleanQs = params.toString();
-      const cleanUrl = window.location.pathname + (cleanQs ? "?" + cleanQs : "");
-      history.replaceState(null, "", cleanUrl);
     }
-  })();
+  }
+
+  searchInput.addEventListener("input", toggleSearchIcon);
+  searchInput.addEventListener("change", toggleSearchIcon);
+  searchInput.addEventListener("keyup", toggleSearchIcon);
+
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      window.location.href = buildUrl();
+    }
+  });
+
+  searchButton.addEventListener("click", () => {
+    const q = searchInput.value.trim();
+    if (q !== "") {
+      window.location.href = buildUrl();
+    }
+  });
+
+  // Sincroniza estado inicial
+  toggleSearchIcon();
 });
 </script>
+{% endblock %}

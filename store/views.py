@@ -262,7 +262,6 @@ def confirmar_pago(request):
 
     return redirect('store:checkout')
 
-
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
     carrito = request.session.get('carrito', {})
@@ -328,73 +327,6 @@ def generar_factura(request):
         "estado_pago": estado_pago,
     }
     return render(request, "store/factura.html", contexto)
-    carrito = request.session.get('carrito', {})
-    metodo_pago = request.session.get('metodo_pago', 'No especificado')
-
-    if not carrito:
-        messages.error(request, "Tu carrito está vacío.")
-        return redirect('store:checkout')
-
-    # Creamos la factura con total temporal
-    factura = Factura.objects.create(
-        usuario=request.user,  # ahora siempre será un usuario válido
-        total=Decimal('0.00'),
-        metodo_pago=metodo_pago
-    )
-
-    items_detalle = []
-    subtotal_con_desc = Decimal('0')
-    subtotal_sin_desc = Decimal('0')
-
-    for pid_str, cantidad in carrito.items():
-        producto = get_object_or_404(Product, id=int(pid_str))
-        cantidad = int(cantidad)
-
-        precio_original = Decimal(producto.cost)
-        precio_final = _precio_final(producto)
-
-        subtotal_original = precio_original * cantidad
-        subtotal_final = precio_final * cantidad
-
-        detalle = DetalleFactura.objects.create(
-            factura=factura,
-            producto=producto,
-            cantidad=cantidad,
-            subtotal=subtotal_final
-        )
-        items_detalle.append(detalle)
-
-        subtotal_sin_desc += subtotal_original
-        subtotal_con_desc += subtotal_final
-
-    descuento_total = subtotal_sin_desc - subtotal_con_desc
-    iva = subtotal_con_desc * Decimal('0.19')
-    total_final = subtotal_con_desc + iva
-
-    if metodo_pago == "contraentrega":
-        estado_pago = "Pendiente"
-    elif metodo_pago == "banco":
-        estado_pago = "Pagado"
-    else:
-        estado_pago = "No definido"
-
-    factura.total = total_final
-    factura.estado_pago = estado_pago
-    factura.save()
-
-    request.session['carrito'] = {}
-
-    contexto = {
-        "factura": factura,
-        "items": items_detalle,
-        "subtotal": subtotal_con_desc,
-        "iva": iva,
-        "descuento": descuento_total,
-        "total_final": total_final,
-        "estado_pago": estado_pago,
-    }
-    return render(request, "store/factura.html", contexto)
-
 
 def simular_pago_banco(request):
     """

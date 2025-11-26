@@ -182,44 +182,42 @@
 }
 
 .search-box {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5em;
 }
 
 .search-input {
   flex: 1;
-  padding: 0.5em;
+  padding: 0.5em 2.5em 0.5em 0.5em; /* espacio a la derecha para la lupa */
   border-radius: 4px;
   border: 1px solid #ccc;
 }
 
+/* Botón de la lupa oculto por defecto */
 .search-btn {
+  position: absolute;
+  right: 0.5em;
+  top: 50%;
+  transform: translateY(-50%);
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 0.5em 0.8em;
+  padding: 0.4em;
   border-radius: 4px;
   cursor: pointer;
-}
 
-.search-btn:hover {
-  background-color: #0056b3;
-}
-
-/* 🔧 Oculta el botón de búsqueda hasta que el usuario escriba */
-.search-btn {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-/* ✅ Cuando el usuario escribe, se activa la clase .active */
+/* Cuando hay texto, aparece la lupa y se activa */
 .search-box.active .search-btn {
   opacity: 1;
   pointer-events: auto;
 }
 
-html {
-  scroll-behavior: smooth;
+.search-btn:hover {
+  background-color: #0056b3;
 }
