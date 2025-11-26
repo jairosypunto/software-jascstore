@@ -54,7 +54,7 @@
   <div class="shop-container">
 
     <!-- 🏪 Carrusel interactivo -->
-    <h2 class="text-center mt-4 mb-3">Productos destacados</h2>
+    <!-- <h2 class="text-center mt-4 mb-3">Productos destacados</h2>  -->
     <div class="swiper mySwiper">
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
@@ -114,7 +114,7 @@
     </div>
 
     <!-- 🛍️ Grid de productos -->
-    <div class="products-grid">
+    <div class="products-grid" id="productos">
       {% for product in productos %}
         <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
           <div class="product-image-wrapper">

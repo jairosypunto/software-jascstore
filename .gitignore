@@ -9,9 +9,9 @@ __pycache__/
 # Base de datos local (no subir nunca a producción)
 db.sqlite3
 
-# Archivos estáticos recolectados (Django collectstatic)
-staticfiles/
-static/
+# Ignorar solo la carpeta global de collectstatic
+/staticfiles/
+/static/
 
 # Archivos de configuración y secretos
 *.env
