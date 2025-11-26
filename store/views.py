@@ -133,7 +133,8 @@ def store(request):
     - Filtros: categoría, búsqueda
     - Ordenamiento: nombre, precio, precio desc, reciente
     """
-    # Destacados para carrusel (evita nulos y vacíos en image)
+
+    # Productos destacados para carrusel
     productos_destacados = Product.objects.filter(
         destacado=True,
         is_available=True
@@ -149,8 +150,8 @@ def store(request):
         categoria_actual = get_object_or_404(Category, slug=category_slug)
         productos = productos.filter(category=categoria_actual)
 
-    # Filtro por búsqueda
-    search_query = request.GET.get('q')
+    # Filtro por búsqueda (validación extra para evitar errores con espacios o símbolos)
+    search_query = request.GET.get('q', '').strip()
     if search_query:
         productos = productos.filter(
             Q(name__icontains=search_query) |
@@ -168,6 +169,7 @@ def store(request):
     elif order == 'recent':
         productos = productos.order_by('-date_register')
 
+    # Lista de categorías para el menú
     categorias = Category.objects.all()
 
     context = {
@@ -175,9 +177,10 @@ def store(request):
         'productos': productos,
         'categorias': categorias,
         'categoria_actual': categoria_actual,
+        'search_query': search_query,  # útil para mantener el texto en el input
+        'order': order,  # útil para mantener el orden seleccionado
     }
     return render(request, 'store/store.html', context)
-
 
 def productos_por_categoria(request, category_slug):
     """Listado de productos filtrado por una categoría específica."""
