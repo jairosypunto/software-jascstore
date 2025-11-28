@@ -1,9 +1,14 @@
+/* =========================
+   🏬 TIENDA / LAYOUT GENERAL
+   ========================= */
+/* Contenedor principal de la tienda */
 .contenedor-tienda {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
 
+/* Barra superior de filtros */
 .barra-filtros-store {
   background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
   padding: 1.5rem;
@@ -26,30 +31,23 @@
   font-weight: bold;
 }
 
-.productos-tienda h2 {
-  font-size: 1.8rem;
-  font-weight: bold;
-}
-
-/* ✅ Navbar fijo */
+/* =========================
+   🧭 NAVBAR FIJO
+   ========================= */
 .navbar-fijo {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   width: 100%;
   z-index: 1050;
   background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   padding: 1rem 2rem;
 }
 
-/* ✅ Espacio para que el contenido no se esconda debajo del navbar */
 .contenido-principal {
-  padding-top: 90px;
+  padding-top: 90px; /* espacio para navbar fijo */
 }
 
-/* ✅ Mejora visual de enlaces */
 .navbar-nav .nav-link {
   font-weight: 500;
   font-size: 1rem;
@@ -60,49 +58,65 @@
   color: #00ffff;
 }
 
-/* ✅ Botón de logout estilizado */
 .navbar-fijo .btn-outline-danger {
   font-size: 0.9rem;
   padding: 0.3rem 0.6rem;
 }
 
-.badge {
-  font-size: 0.75rem;
-  padding: 0.3em 0.6em;
+/* =========================
+   🔍 BUSCADOR
+   ========================= */
+.search-box {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
 }
 
-.card-img-top {
-  max-height: 200px;
-  object-fit: contain;
-  background-color: #f8f9fa;
-  padding: 10px;
+.search-input {
+  width: 100%;
+  padding: 0.5em 2.5em 0.5em 0.75em; /* espacio para la lupa */
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
 }
 
-/* 🛍 Estilo para el banner de Nuestra Tienda */
-.shop-hero {
-  background: linear-gradient(to bottom, #003366, #ffffff);
-  color: white;
-  padding: 100px 20px;
-  text-align: center;
+/* Lupa oculta por defecto */
+.search-icon {
+  position: absolute;
+  right: 0.75em;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;              /* 🔑 oculta */
+  pointer-events: none;    /* 🔑 no clickeable */
+  transition: opacity 0.3s ease;
 }
 
-.hero-content {
-  max-width: 800px;
-  margin: 0 auto;
+.search-box.active .search-icon {
+  opacity: 1;              /* 🔑 aparece */
+  pointer-events: auto;    /* 🔑 clickeable */
 }
 
-.hero-title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+.search-icon:hover {
+  color: #0056b3;
 }
 
-.hero-subtitle {
-  font-size: 1.2rem;
-  font-weight: 400;
-  margin-bottom: 20px;
+.search-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 
+/* =========================
+   📱 RESPONSIVE GLOBAL
+   ========================= */
 @media (max-width: 768px) {
   .formulario-filtros {
     flex-direction: column;
@@ -114,110 +128,4 @@
   .formulario-filtros .btn {
     width: 100%;
   }
-}
-
-/* 🛒 Cuadrícula de productos */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 columnas fijas */
-  gap: 30px;
-  padding: 20px 0;
-}
-
-/* 🧩 Tarjeta individual */
-.product-card {
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s ease;
-}
-
-.product-card:hover {
-  transform: scale(1.02);
-}
-
-/* 🖼️ Imagen del producto */
-.product-image-wrapper {
-  height: 220px;
-  overflow: hidden;
-}
-
-.product-image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 📦 Contenido del producto */
-.product-content {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
-.product-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.product-description {
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 12px;
-  flex-grow: 1;
-}
-
-/* 📦 Footer del producto */
-.product-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #eee;
-  padding-top: 10px;
-}
-
-.search-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-input {
-  flex: 1;
-  padding: 0.5em 2.5em 0.5em 0.5em; /* espacio a la derecha para la lupa */
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-/* Botón de la lupa oculto por defecto */
-.search-btn {
-  position: absolute;
-  right: 0.5em;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.4em;
-  border-radius: 4px;
-  cursor: pointer;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-/* Cuando hay texto, aparece la lupa y se activa */
-.search-box.active .search-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.search-btn:hover {
-  background-color: #0056b3;
 }

@@ -4,57 +4,94 @@
 {% block title %}Nuestra Tienda - LatinShop{% endblock %}
 
 {% block extra_css %}
-  <!-- Swiper CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="{% static 'store/css/banner.css' %}">
   <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
   <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+{% endblock %}
 
-  <style>
-    .swiper {
-      width: 100%;
-      max-width: 1200px;
-      margin: 2em auto;
-      padding: 1em 0;
-    }
-
-    .swiper-slide {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .swiper-slide img {
-      max-width: 200px;
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
-    }
-
-    .swiper-slide img:hover {
-      transform: scale(1.05);
-    }
-  </style>
+{% block banner_full %}
+<div class="full-bleed">
+  <div class="bannerSwiper swiper">
+    <div class="swiper-wrapper">
+      {% if banners and banners.count %}
+        {% for banner in banners %}
+          <div class="swiper-slide">
+            <div class="banner-bg" style="background-image: url('{{ banner.image.url }}');"></div>
+            <div class="banner-caption">
+              <h2>{{ banner.title }}</h2>
+              <p>{{ banner.subtitle }}</p>
+              <a href="#productos" class="btn btn-primary btn-lg mt-3">
+                <i class="bi bi-bag"></i> Ver productos
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="swiper-slide">
+          <img src="{% static 'store/img/fallback-banner.jpg' %}" alt="LatinShop">
+          <div class="banner-caption">
+            <h2>Bienvenido a LatinShop</h2>
+            <p>Especialistas en nuevos productos</p>
+            <a href="#productos" class="btn btn-primary btn-lg mt-3">
+              <i class="bi bi-bag"></i> Ver productos
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-pagination"></div>
+  </div>
+</div>
 {% endblock %}
 
 {% block content %}
-<section class="shop-hero" style="background: linear-gradient(to bottom, rgba(0,51,102,0.8), rgba(255,255,255,0.9)), url('{{ banner.image.url }}') center/cover no-repeat;">
-  <div class="hero-content">
-    <h1 class="hero-title">{{ banner.title }}</h1>
-    <p class="hero-subtitle">{{ banner.subtitle }}</p>
-    <a href="#productos" class="btn btn-primary btn-lg mt-3">
-      <i class="bi bi-bag"></i> Ver productos
-    </a>
-  </div>
-</section>
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- 🏪 Carrusel interactivo -->
-    <!-- <h2 class="text-center mt-4 mb-3">Productos destacados</h2>  -->
+    <!-- 🔍 Buscador -->
+  <form method="get" id="filterForm" class="search-form">
+  <div class="shop-controls">
+
+    <!-- 🔍 Buscador -->
+    <div class="search-box" id="searchBox">
+      <input type="text" name="q" class="search-input" id="searchInput" placeholder="Buscar productos...">
+      <button type="submit" class="search-icon" id="searchIcon" aria-label="Buscar">
+        <!-- SVG directo de Bootstrap Icons -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+             class="bi bi-search" viewBox="0 0 16 16">
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 
+          1.415-1.414l-3.85-3.85zm-5.242.656a5.5 5.5 0 1 1 
+          0-11 5.5 5.5 0 0 1 0 11z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 📂 Filtros -->
+    <div class="filter-group">
+      <select name="category" class="filter-select" id="categoryFilter" onchange="this.form.submit()">
+        <option value="all">Todas las categorías</option>
+        {% for categoria in categorias %}
+          <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
+            {{ categoria.name }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="order" class="filter-select" id="sortFilter" onchange="this.form.submit()">
+        <option value="">Ordenar por</option>
+        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
+        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
+        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
+      </select>
+    </div>
+
+  </div>
+</form>
+
+    <!-- 🏪 Destacados -->
     <div class="swiper mySwiper">
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
@@ -67,51 +104,12 @@
       <div class="swiper-button-next"></div>
     </div>
 
-    <!-- 🔍 Filtros -->
-<form method="get" id="filterForm">
-  <div class="shop-controls">
-      <!-- 🔍 Buscador con botón dinámico -->
-    <div class="search-box" id="searchBox">
-      <input
-        type="text"
-        name="q"
-        class="search-input"
-        id="searchInput"
-        placeholder="Buscar productos..."
-      >
-      <button type="button" class="search-btn" id="searchButton">
-        <i class="bi bi-search"></i>
-      </button>
-    </div>
-
-    <div class="filter-group">
-      <!-- Al cambiar categoría, envía el formulario automáticamente -->
-      <select name="category" class="filter-select" id="categoryFilter" onchange="this.form.submit()">
-        <option value="all">Todas las categorías</option>
-        {% for categoria in categorias %}
-          <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
-            {{ categoria.name }}
-          </option>
-        {% endfor %}
-      </select>
-
-      <!-- Al cambiar orden, envía el formulario automáticamente -->
-      <select name="order" class="filter-select" id="sortFilter" onchange="this.form.submit()">
-        <option value="">Ordenar por</option>
-        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
-        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
-        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
-      </select>
-    </div>
-  </div>
-</form>
     <!-- 📦 Contador -->
     <div class="products-count">
       <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
     </div>
 
-    <!-- 🛍️ Grid de productos -->
+    <!-- 🛍️ Grid -->
     <div class="products-grid" id="productos">
       {% for product in productos %}
         <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
@@ -140,12 +138,8 @@
             <div class="product-footer">
               <div class="price-section">
                 {% if product.discount > 0 %}
-                  <p class="text-danger fw-bold mb-1">
-                    Precio con descuento: ${{ product.final_price|floatformat:0 }}
-                  </p>
-                  <p class="text-muted text-decoration-line-through mb-1">
-                    Precio original: ${{ product.cost|floatformat:0 }}
-                  </p>
+                  <p class="text-danger fw-bold mb-1">Precio con descuento: ${{ product.final_price|floatformat:0 }}</p>
+                  <p class="text-muted text-decoration-line-through mb-1">Precio original: ${{ product.cost|floatformat:0 }}</p>
                   <span class="badge bg-success">-{{ product.discount }}%</span>
                 {% else %}
                   <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
@@ -178,7 +172,6 @@
       {% endfor %}
     </div>
 
-    <!-- 🔄 Paginación -->
     {% if productos.has_other_pages %}
       <div class="pagination">
         {% if productos.has_previous %}
@@ -198,59 +191,74 @@
         {% endif %}
       </div>
     {% endif %}
-
   </div>
 </section>
 {% endblock %}
 
-<!-- ✅ Script para filtros -->
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  // Banner principal
+  new Swiper(".bannerSwiper", {
+    loop: true,
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false
+    },
+    pagination: {
+      el: ".bannerSwiper .swiper-pagination",
+      clickable: true
+    },
+    navigation: {
+      nextEl: ".bannerSwiper .swiper-button-next",
+      prevEl: ".bannerSwiper .swiper-button-prev"
+    },
+    effect: "fade",
+    fadeEffect: { crossFade: true },
+    speed: 800
+  });
+
+  // Carrusel de productos destacados
+  new Swiper(".mySwiper", {
+    slidesPerView: 4,
+    spaceBetween: 20,
+    loop: true,
+    autoplay: {
+      delay: 3000,
+      disableOnInteraction: false
+    },
+    navigation: {
+      nextEl: ".mySwiper .swiper-button-next",
+      prevEl: ".mySwiper .swiper-button-prev"
+    },
+    breakpoints: {
+      1024: { slidesPerView: 4 },
+      768: { slidesPerView: 2 },
+      480: { slidesPerView: 1 }
+    }
+  });
+
+  // Lupa como ícono dentro del input
   const searchInput = document.getElementById("searchInput");
   const searchBox = document.getElementById("searchBox");
-  const searchButton = document.getElementById("searchButton");
+  const searchIcon = document.getElementById("searchIcon");
+  const filterForm = document.getElementById("filterForm");
 
-  if (!searchInput || !searchBox || !searchButton) {
-    console.warn("Buscador: elementos no encontrados. Verifica IDs y orden de carga.");
-    return;
+  if (searchInput && searchBox && searchIcon && filterForm) {
+    const toggleSearchState = () => {
+      const hasText = searchInput.value.trim().length > 0;
+      searchBox.classList.toggle("active", hasText);
+    };
+
+    toggleSearchState(); // inicial
+    searchInput.addEventListener("input", toggleSearchState);
+
+    searchIcon.addEventListener("click", () => {
+      if (searchInput.value.trim()) {
+        filterForm.submit();
+      }
+    });
   }
-
-  function buildUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const q = searchInput.value.trim();
-    if (q) { params.set("q", q); } else { params.delete("q"); }
-    return window.location.pathname + (params.toString() ? "?" + params.toString() : "");
-  }
-
-  function toggleSearchIcon() {
-    if (searchInput.value.trim() !== "") {
-      searchBox.classList.add("active");
-    } else {
-      searchBox.classList.remove("active");
-    }
-  }
-
-  searchInput.addEventListener("input", toggleSearchIcon);
-  searchInput.addEventListener("change", toggleSearchIcon);
-  searchInput.addEventListener("keyup", toggleSearchIcon);
-
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      window.location.href = buildUrl();
-    }
-  });
-
-  searchButton.addEventListener("click", () => {
-    const q = searchInput.value.trim();
-    if (q !== "") {
-      window.location.href = buildUrl();
-    }
-  });
-
-  // Sincroniza estado inicial
-  toggleSearchIcon();
 });
 </script>
 {% endblock %}

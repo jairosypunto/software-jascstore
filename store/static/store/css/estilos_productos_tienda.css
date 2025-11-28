@@ -1,4 +1,6 @@
-/* 🌈 Variables globales */
+/* =========================
+   🌈 VARIABLES GLOBALES
+   ========================= */
 :root {
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -18,96 +20,9 @@
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* 🔧 Reset y base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--light-gray);
-  color: var(--dark);
-}
-
-/* 🧭 Navbar fijo mejorado 🎯 Bloque 2: Hero y encabezado visua*/
-.shop-hero {
-  position: relative;
-  background: linear-gradient(to bottom, #003366 0%, #e6f0ff 100%);
-  color: #fff;
-  text-align: center;
-  padding: clamp(2em, 5vw, 4em) 1em;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  width: 100%;
-}
-
-.shop-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  animation: pulse 8s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.2; }
-}
-
-.hero-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(2.5rem, 6vw, 3.5rem);
-}
-
-.hero-subtitle {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(1rem, 3vw, 1.5rem);
-  font-weight: 400;
-  margin-bottom: 20px;
-}
-
-
-/* 🔍 Bloque 3: Filtros y búsqued */
-.shop-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1em;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1em;
-  background: var(--white);
-  padding: 30px 20px;
-  box-shadow: var(--shadow-md);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.search-box .search-input {
-  padding: 0.6em 1em;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  width: 100%;
-  max-width: 300px;
-}
-
-.filter-select,
-#categoryFilter,
-#categoryFilter option {
-  padding: 0.5em;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: #fff !important;
-  color: #1f2937 !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-}
-
-/* 🛒 Bloque 4: Tarjetas de product */
-
+/* =========================
+   🛒 TARJETAS DE PRODUCTO
+   ========================= */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -131,31 +46,31 @@ body {
   box-shadow: var(--shadow-xl);
 }
 
-.product-image-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1em;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  height: 260px;
-}
-
+/* Imagen del producto */
 .product-img {
   width: 100%;
-  max-width: 180px;
-  height: auto;
-  object-fit: contain;
+  max-width: 220px;
+  aspect-ratio: 1 / 1;        /* proporción cuadrada uniforme */
+  object-fit: contain;        /* evita deformaciones */
+  background-color: #fff;     /* fondo limpio */
+  padding: 8px;               /* aire visual */
+  border-radius: 8px;         /* esquinas suaves */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   margin: 0 auto;
   transition: transform 0.3s ease;
+}
+
+.product-img:hover {
+  transform: scale(1.05);
 }
 
 .product-card:hover .product-img {
   transform: scale(1.1);
 }
 
-/* 🧾 Bloque 5: Contenido del product */
-
+/* =========================
+   🧾 CONTENIDO DEL PRODUCTO
+   ========================= */
 .product-content {
   padding: 25px;
   display: flex;
@@ -190,8 +105,9 @@ body {
   min-height: 3em;
 }
 
-/* 💰 Bloque 6: Footer del producto y precio */
-
+/* =========================
+   💰 FOOTER DEL PRODUCTO Y PRECIO
+   ========================= */
 .product-footer {
   display: flex;
   flex-direction: column;
@@ -216,8 +132,9 @@ body {
   background-clip: text;
 }
 
-/* 📦 Bloque 7: Stock y disponibilida */
-
+/* =========================
+   📦 STOCK Y DISPONIBILIDAD
+   ========================= */
 .stock-info {
   display: flex;
   align-items: center;
@@ -254,8 +171,9 @@ body {
   50% { opacity: 0.3; }
 }
 
-/* 🛒 Bloque 8: Botón agregar al carrit */
-
+/* =========================
+   🛒 BOTÓN AGREGAR AL CARRITO
+   ========================= */
 .add-to-cart-form {
   width: 100%;
 }
@@ -272,6 +190,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  position: relative;
 }
 
 .btn-add-cart:hover {
@@ -298,7 +217,6 @@ body {
   left: 100%;
 }
 
-
 .btn-add-cart:active {
   transform: translateY(0);
 }
@@ -314,8 +232,46 @@ body {
   box-shadow: none;
 }
 
-/* 🛍️ Bloque 9: Página de tienda y productos */
+/* =========================
+   🔍 QUICK VIEW EN IMAGEN
+   ========================= */
+.product-image-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1em;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  height: 260px;
+}
 
+.quick-view {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;          /* oculto por defecto */
+  pointer-events: none; /* no clickeable cuando está oculto */
+}
+
+.product-image-wrapper:hover .quick-view {
+  opacity: 1;          /* aparece al pasar el mouse */
+  pointer-events: auto;
+}
+
+/* =========================
+   🛍️ PÁGINA DE TIENDA / SIN PRODUCTOS
+   ========================= */
 .no-products {
   grid-column: 1 / -1;
   text-align: center;
@@ -345,8 +301,9 @@ body {
   margin: 0;
 }
 
-/* 🔢 Bloque 10: Paginación */
-
+/* =========================
+   🔢 PAGINACIÓN
+   ========================= */
 .pagination {
   display: flex;
   justify-content: center;
@@ -405,24 +362,10 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-
-/* 📱 Bloque 11: Responsive completo */
-
+/* =========================
+   📱 RESPONSIVE COMPLETO
+   ========================= */
 @media (max-width: 768px) {
-  .shop-controls {
-    flex-direction: column;
-    padding: 20px;
-  }
-
-  .filter-group {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .filter-select {
-    width: 100%;
-  }
-
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
@@ -446,18 +389,6 @@ body {
 }
 
 @media (max-width: 480px) {
-  .shop-hero {
-    padding: 1.5em 1em;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-
   .products-grid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -494,175 +425,3 @@ body {
     font-size: 0.9rem;
   }
 }
-
-/* 🎨 CSS para el banner “Nuestra Tienda" */
-
-/* 🏪 Banner de tienda estilo Éxito */
-.shop-hero {
-  position: relative;
-  background: linear-gradient(to right, #4f46e5, #6366f1);
-  color: #fff;
-  text-align: center;
-  padding: clamp(2em, 5vw, 3em) 1em;
-  border-radius: 12px;
-  margin: 2em auto;
-  max-width: 1200px;
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.shop-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  animation: pulse 8s ease-in-out infinite;
-  z-index: 0;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-}
-
-.hero-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(2rem, 5vw, 2.8rem);
-  font-weight: 700;
-  margin-bottom: 0.5em;
-  animation: fadeInDown 0.8s ease;
-}
-
-.hero-subtitle {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(1rem, 2.5vw, 1.3rem);
-  font-weight: 400;
-  opacity: 0.95;
-  animation: fadeInUp 0.8s ease 0.2s backwards;
-}
-
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.2; }
-}
-
-/* 🎠 Carrusel horizontal estilo Éxito */
-.shop-hero-carousel {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  max-width: 1200px;
-  margin: 2em auto;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  background: linear-gradient(to right, #4f46e5, #6366f1);
-}
-
-.carousel-track {
-  display: flex;
-  animation: scrollBanner 25s linear infinite;
-}
-
-.carousel-item {
-  flex: 0 0 auto;
-  width: 100%;
-  max-width: 300px;
-  margin: 1em;
-}
-
-.carousel-item img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: var(--shadow-sm);
-}
-
-@keyframes scrollBanner {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
-}
-
-.swiper {
-  width: 100%;
-  max-width: 1200px;
-  margin: 2em auto;
-  padding: 1em 0;
-  overflow: hidden; /* 👈 evita que se desborde */
-}
-
-.swiper-slide {
-  flex-shrink: 0;
-  width: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.swiper-slide img {
-  max-width: 200px;
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.swiper-slide img:hover {
-  transform: scale(1.05);
-}
-
-.quick-view:hover {
-  background-color: rgba(0,0,0,0.8);
-}
-
-.quick-view i {
-  font-size: 1em;
-}
-
-.product-image-wrapper {
-  position: relative; /* clave */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1em;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  height: 260px;
-}
-
-.quick-view {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0,0,0,0.6);
-  color: #fff;
-  padding: 0.4em 0.8em;
-  border-radius: 4px;
-  font-size: 0.9em;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  transition: opacity 0.3s ease;
-  opacity: 0;          /* oculto por defecto */
-  pointer-events: none; /* no clickeable cuando está oculto */
-}
-
-.product-image-wrapper:hover .quick-view {
-  opacity: 1;          /* aparece al pasar el mouse */
-  pointer-events: auto;
-}
-
