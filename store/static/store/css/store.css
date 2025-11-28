@@ -115,6 +115,39 @@
 }
 
 /* =========================
+   🎛️ Fila de controles (buscador + filtros + orden)
+   ========================= */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex: 1;
+  min-width: 220px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 1em;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.filter-select {
+  padding: 0.6em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  min-width: 180px;
+}
+
+/* =========================
    📱 RESPONSIVE GLOBAL
    ========================= */
 @media (max-width: 768px) {
@@ -127,5 +160,20 @@
   .formulario-filtros .form-select,
   .formulario-filtros .btn {
     width: 100%;
+  }
+}
+
+.shop-controls {
+  margin-top: 2em;
+  margin-bottom: 2em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #eee;
+}
+
+@media (min-width: 1400px) {
+  .contenedor-tienda {
+    max-width: 1400px;
   }
 }

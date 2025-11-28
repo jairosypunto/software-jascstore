@@ -51,41 +51,42 @@
   <div class="shop-container">
 
     <!-- 🔍 Buscador -->
-  <form method="get" id="filterForm" class="search-form">
+<form method="get" id="filterForm" class="search-form">
   <div class="shop-controls">
 
-    <!-- 🔍 Buscador -->
-    <div class="search-box" id="searchBox">
-      <input type="text" name="q" class="search-input" id="searchInput" placeholder="Buscar productos...">
-      <button type="submit" class="search-icon" id="searchIcon" aria-label="Buscar">
-        <!-- SVG directo de Bootstrap Icons -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-             class="bi bi-search" viewBox="0 0 16 16">
-          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 
-          1.415-1.414l-3.85-3.85zm-5.242.656a5.5 5.5 0 1 1 
-          0-11 5.5 5.5 0 0 1 0 11z"/>
-        </svg>
-      </button>
-    </div>
+    <div class="controls-row">
+      <!-- 🔍 Buscador -->
+      <div class="search-box" id="searchBox">
+        <input type="text" name="q" class="search-input" id="searchInput" placeholder="Buscar productos...">
+        <button type="submit" class="search-icon" id="searchIcon" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+               class="bi bi-search" viewBox="0 0 16 16">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 
+            1.415-1.414l-3.85-3.85zm-5.242.656a5.5 5.5 0 1 1 
+            0-11 5.5 5.5 0 0 1 0 11z"/>
+          </svg>
+        </button>
+      </div>
 
-    <!-- 📂 Filtros -->
-    <div class="filter-group">
-      <select name="category" class="filter-select" id="categoryFilter" onchange="this.form.submit()">
-        <option value="all">Todas las categorías</option>
-        {% for categoria in categorias %}
-          <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
-            {{ categoria.name }}
-          </option>
-        {% endfor %}
-      </select>
+      <!-- 📂 Filtros -->
+      <div class="filter-group">
+        <select name="category" class="filter-select" id="categoryFilter" onchange="this.form.submit()">
+          <option value="all">Todas las categorías</option>
+          {% for categoria in categorias %}
+            <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
+              {{ categoria.name }}
+            </option>
+          {% endfor %}
+        </select>
 
-      <select name="order" class="filter-select" id="sortFilter" onchange="this.form.submit()">
-        <option value="">Ordenar por</option>
-        <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
-        <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
-        <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-        <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
-      </select>
+        <select name="order" class="filter-select" id="sortFilter" onchange="this.form.submit()">
+          <option value="">Ordenar por</option>
+          <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
+          <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
+          <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+          <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
+        </select>
+      </div>
     </div>
 
   </div>

@@ -25,10 +25,10 @@
    ========================= */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2em;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5em;
   margin-top: 2em;
-  padding: 0 1em;
+  padding: 0;
 }
 
 .product-card {
@@ -366,25 +366,43 @@
    📱 RESPONSIVE COMPLETO
    ========================= */
 @media (max-width: 768px) {
+  /* 🧱 Grid adaptado para pantallas medianas */
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 0;
   }
 
+  /* 📦 Imagen más compacta */
   .product-image-wrapper {
-    height: 260px;
+    height: 220px;
   }
 
+  .product-img {
+    max-width: 180px;
+    padding: 6px;
+  }
+
+  /* 🔢 Paginación ajustada */
   .pagination {
-    padding: 40px 15px;
+    padding: 30px 10px;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .pagination-numbers {
     order: -1;
     width: 100%;
     justify-content: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+  }
+
+  /* 🎛️ Controles de tienda alineados */
+  .shop-controls {
+    padding: 1em;
+    margin: 1em 0;
+    box-shadow: none;
+    border-radius: 0;
   }
 }
 
@@ -423,5 +441,11 @@
     width: 40px;
     height: 40px;
     font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
