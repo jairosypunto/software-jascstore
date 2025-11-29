@@ -25,7 +25,7 @@ def _precio_final(producto: Product) -> Decimal:
     except AttributeError:
         # Fallback: cálculo directo por si el método no existe
         discount = getattr(producto, 'discount', 0) or 0
-        cost = Decimal(producto.cost)
+        cost = Decimal(str(producto.cost))          # ✅ convertir a string
         if discount > 0:
             return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
         return cost
@@ -49,7 +49,7 @@ def _items_carrito(request):
         if cantidad <= 0:
             continue
 
-        precio_original = Decimal(producto.cost)
+        precio_original = Decimal(str(producto.cost))
         precio_final = _precio_final(producto)
 
         subtotal_original = precio_original * cantidad
@@ -278,7 +278,7 @@ def generar_factura(request):
         producto = get_object_or_404(Product, id=int(pid_str))
         cantidad = int(cantidad)
 
-        precio_original = Decimal(producto.cost)
+        precio_original = Decimal(str(producto.cost))
         precio_final = _precio_final(producto)
 
         subtotal_original = precio_original * cantidad
