@@ -1,0 +1,29 @@
+{% load humanize %}
+<h2>Mis facturas</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Fecha</th>
+      <th>Estado</th>
+      <th>Total</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for factura in facturas %}
+    <tr>
+      <td>#{{ factura.id }}</td>
+      <td>{{ factura.fecha }}</td>
+      <td>{{ factura.estado_pago }}</td>
+      <td>${{ factura.total|intcomma }}</td>
+      <td><a href="{% url 'ver_factura' factura.id %}">Ver factura</a></td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="5">No tienes facturas registradas.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

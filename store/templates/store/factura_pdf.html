@@ -12,6 +12,12 @@
 </head>
 <body>
   <h2>Factura #{{ factura.id }}</h2>
+  
+  <!-- ✅ Botón de impresión fuera del área impresa -->
+<div style="margin-bottom: 20px;">
+  <button onclick="window.print()">🖨️ Imprimir o guardar PDF</button>
+</div>
+
 
   <p>Cliente: {{ factura.usuario.username }}</p>
   <p>Email: {{ factura.usuario.email }}</p>
