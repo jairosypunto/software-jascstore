@@ -433,6 +433,13 @@ def enviar_factura_por_correo(factura, usuario):
     email.content_subtype = "html"
     email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
     email.send()
+
+from django.shortcuts import get_object_or_404, render
+
+def vista_rapida(request, id):
+    producto = get_object_or_404(Product, id=id)
+    return render(request, 'store/vista_rapida.html', {'producto': producto})
+
 # 🌐 Vista informativa de "Nosotros"
 def nosotros(request):
     return render(request, 'store/nosotros.html')

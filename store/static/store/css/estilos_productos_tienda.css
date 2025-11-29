@@ -31,18 +31,6 @@
   padding: 0;
 }
 
-.product-card {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1em;
-  height: 100%;
-}
 
 .product-card:hover {
   transform: translateY(-10px);
@@ -52,15 +40,14 @@
 /* Imagen del producto */
 .product-img {
   width: 100%;
-  max-width: 180px;
+  height: 100%;
+  max-width: none;
   aspect-ratio: 1 / 1;
-  object-fit: contain;
-  background-color: #fff;
-  padding: 6px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  margin: 0 auto;
-  transition: transform 0.3s ease;
+  object-fit: cover;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .product-img:hover {
@@ -98,7 +85,6 @@
   color: var(--primary);
 }
 
-.product-description,
 .card-description {
   font-size: 0.9rem;
   color: var(--gray);
@@ -107,6 +93,48 @@
   flex-grow: 1;
   min-height: 2.5em;
   text-align: center;
+}
+
+.product-card {
+  border: 1px solid #ddd;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.product-nombre {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.product-descripcion {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.product-precio {
+  font-size: 15px;
+  font-weight: bold;
+  color: #008000;
+  margin-bottom: 6px;
+}
+
+.btn-agregar {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn-agregar:hover {
+  background-color: #0056b3;
 }
 
 /* =========================
@@ -364,6 +392,38 @@
   background: var(--gradient-primary);
   color: var(--white);
   box-shadow: var(--shadow-md);
+}
+/* =========================
+   📱 Modal
+   ========================= */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 6px;
+  width: 80%;
+  max-width: 500px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.close {
+  float: right;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 /* =========================

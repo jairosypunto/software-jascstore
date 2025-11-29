@@ -111,67 +111,77 @@
     </div>
 
     <!-- 🛍️ Grid -->
-    <div class="products-grid" id="productos">
-      {% for product in productos %}
-        <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
-          <div class="product-image-wrapper">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-            <div class="product-badges">
-              {% if not product.is_available %}
-                <span class="badge badge-unavailable">Agotado</span>
-              {% elif product.stock < 5 %}
-                <span class="badge badge-low-stock">¡Últimas unidades!</span>
-              {% endif %}
-              {% if product.date_register|timesince < "7 days" %}
-                <span class="badge badge-new">Nuevo</span>
-              {% endif %}
-            </div>
-            <a href="#" class="quick-view" title="Vista rápida">
-              <i class="bi bi-eye"></i> <span>Vista rápida</span>
-            </a>
-          </div>
-
-          <div class="product-content">
-            <span class="product-category">{{ product.category.name }}</span>
-            <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
-            <p class="product-description">{{ product.description|truncatewords:12 }}</p>
-
-            <div class="product-footer">
-              <div class="price-section">
-                {% if product.discount > 0 %}
-                  <p class="text-danger fw-bold mb-1">Precio con descuento: ${{ product.final_price|floatformat:0 }}</p>
-                  <p class="text-muted text-decoration-line-through mb-1">Precio original: ${{ product.cost|floatformat:0 }}</p>
-                  <span class="badge bg-success">-{{ product.discount }}%</span>
-                {% else %}
-                  <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
-                {% endif %}
-              </div>
-
-              {% if product.is_available and product.stock > 0 %}
-                <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
-                  {% csrf_token %}
-                  <button type="submit" class="btn-add-cart">
-                    <i class="bi bi-cart-plus"></i> <span>Agregar</span>
-                  </button>
-                </form>
-              {% else %}
-                <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
-              {% endif %}
-            </div>
-          </div>
-        </article>
-      {% empty %}
-        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
-          {% if request.GET.q %}
-            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
-            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
-          {% else %}
-            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
-            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+<div class="products-grid" id="productos">
+  {% for product in productos %}
+    <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
+      <div class="product-image-wrapper">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+        <div class="product-badges">
+          {% if not product.is_available %}
+            <span class="badge badge-unavailable">Agotado</span>
+          {% elif product.stock < 5 %}
+            <span class="badge badge-low-stock">¡Últimas unidades!</span>
+          {% endif %}
+          {% if product.date_register|timesince < "7 days" %}
+            <span class="badge badge-new">Nuevo</span>
           {% endif %}
         </div>
-      {% endfor %}
+
+        <!-- Vista rápida -->
+        <a href="#" class="quick-view" data-id="{{ product.id }}" title="Vista rápida">
+          <i class="bi bi-eye"></i> <span>Vista rápida</span>
+        </a>
+      </div>
+
+      <div class="product-content">
+        <span class="product-category">{{ product.category.name }}</span>
+        <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
+        <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+
+        <div class="product-footer">
+          <div class="price-section">
+            {% if product.discount > 0 %}
+              <p class="text-danger fw-bold mb-1">Precio con descuento: ${{ product.final_price|floatformat:0 }}</p>
+              <p class="text-muted text-decoration-line-through mb-1">Precio original: ${{ product.cost|floatformat:0 }}</p>
+              <span class="badge bg-success">-{{ product.discount }}%</span>
+            {% else %}
+              <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+            {% endif %}
+          </div>
+
+          {% if product.is_available and product.stock > 0 %}
+            <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}" class="add-to-cart-form">
+              {% csrf_token %}
+              <button type="submit" class="btn-add-cart">
+                <i class="bi bi-cart-plus"></i> <span>Agregar</span>
+              </button>
+            </form>
+          {% else %}
+            <button class="btn-add-cart btn-disabled" disabled><span>No disponible</span></button>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
+      {% if request.GET.q %}
+        <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
+        <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
+      {% else %}
+        <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
+        <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
+      {% endif %}
     </div>
+  {% endfor %}
+</div>
+
+<!-- Modal único para Vista Rápida -->
+<div id="vistaRapidaModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div id="contenidoProducto"></div>
+  </div>
+</div>
 
     {% if productos.has_other_pages %}
       <div class="pagination">
@@ -260,6 +270,37 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // Vista rápida de producto
+  document.querySelectorAll('.quick-view').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const id = this.dataset.id;
+      if (!id) return; // evita errores si el id no está definido
+
+      fetch(`/store/vista-rapida/${id}/`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('contenidoProducto').innerHTML = html;
+          document.getElementById('vistaRapidaModal').style.display = 'block';
+        });
+    });
+  });
+
+  // Cierre del modal
+  const modal = document.getElementById('vistaRapidaModal');
+  const closeBtn = modal.querySelector('.close');
+
+  closeBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+  });
+
+  // Cierre al hacer clic fuera del contenido
+  window.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
 });
 </script>
 {% endblock %}
