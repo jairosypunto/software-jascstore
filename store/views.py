@@ -383,11 +383,11 @@ def enviar_factura_por_correo(factura, usuario):
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
     estilos = getSampleStyleSheet()
-
     # Encabezado
     elementos.append(Paragraph(f"<b>Factura #{factura.id} - LatinShop</b>", estilos['Title']))
     elementos.append(Spacer(1, 12))
-    Paragraph(f"Cliente: {usuario.email}", estilos['Normal'])
+    elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
+    elementos.append(Paragraph(f"Email: {usuario.email}", estilos['Normal']))
     elementos.append(Paragraph(f"Fecha: {factura.fecha}", estilos['Normal']))
     elementos.append(Paragraph(f"Método de pago: {factura.metodo_pago}", estilos['Normal']))
     elementos.append(Paragraph(f"Estado del pago: {factura.estado_pago}", estilos['Normal']))

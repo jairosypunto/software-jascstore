@@ -12,11 +12,13 @@
 </head>
 <body>
   <h2>Factura #{{ factura.id }}</h2>
-  <p>Cliente: {{ factura.usuario.email }}</p>
+
+  <p>Cliente: {{ factura.usuario.username }}</p>
+  <p>Email: {{ factura.usuario.email }}</p>
   <p>Fecha: {{ factura.fecha }}</p>
   <p>Método de pago: {{ factura.metodo_pago }}</p>
   <p>Estado del pago: {{ factura.estado_pago }}</p>
-
+<p>DEBUG: {{ factura.usuario.username }}</p>
   <h3>Detalles del pedido:</h3>
   <table>
     <thead>
