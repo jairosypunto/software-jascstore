@@ -26,7 +26,7 @@ class Product(models.Model):
     def final_price(self):
         """✅ Calcula el precio con descuento aplicado usando Decimal"""
         if self.discount > 0:
-            descuento = Decimal(self.discount) / Decimal('100')
+            descuento = Decimal(str(self.discount)) / Decimal('100')
             return self.cost * (Decimal('1') - descuento)
         return self.cost
 # 🧾 Modelo de Factura
