@@ -5,19 +5,20 @@ from decimal import Decimal  # ✅ Para cálculos financieros precisos
 
 # 🛍️ Modelo de Producto
 class Product(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField()
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    name = models.CharField(max_length=50, unique=True)  # Nombre único del producto
+    slug = models.SlugField(max_length=100, unique=True)  # Slug para URL amigable
+    description = models.TextField()  # Descripción del producto
+    cost = models.DecimalField(max_digits=10, decimal_places=2)  # Precio base
     discount = models.PositiveIntegerField(default=0)  # Porcentaje de descuento
-    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)
-    stock = models.PositiveIntegerField()
-    is_available = models.BooleanField(default=True)
-    category = models.ForeignKey('categorias.Category', on_delete=models.CASCADE)
-    destacado = models.BooleanField(default=False)
-    nuevo = models.BooleanField(default=False)
-    date_register = models.DateTimeField(auto_now_add=True)
-    date_update = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)  # Imagen opcional
+    stock = models.PositiveIntegerField()  # Cantidad disponible en inventario
+    is_available = models.BooleanField(default=True)  # Disponibilidad del producto
+    category = models.ForeignKey('categorias.Category', on_delete=models.CASCADE)  # Relación con categoría
+    destacado = models.BooleanField(default=False)  # Producto destacado
+    nuevo = models.BooleanField(default=False)  # Producto nuevo
+    is_tax_exempt = models.BooleanField(default=False)  # ✅ Nuevo campo: exento de IVA
+    date_register = models.DateTimeField(auto_now_add=True)  # Fecha de creación
+    date_update = models.DateTimeField(auto_now=True)  # Fecha de última actualización
 
     def __str__(self):
         return self.name
@@ -28,7 +29,6 @@ class Product(models.Model):
             descuento = Decimal(self.discount) / Decimal('100')
             return self.cost * (Decimal('1') - descuento)
         return self.cost
-
 # 🧾 Modelo de Factura
 class Factura(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

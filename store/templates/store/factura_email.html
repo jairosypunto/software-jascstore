@@ -1,0 +1,34 @@
+{% load humanize %}
+<h2>Factura #{{ factura.id }}</h2>
+<p>Hola {{ factura.usuario.email }}, gracias por tu compra.</p>
+<p><strong>Total pagado:</strong> ${{ total_final|intcomma }}</p>
+<p><strong>Fecha de compra:</strong> {{ factura.fecha }}</p>
+<p><strong>Estado del pago:</strong> {{ factura.estado_pago }}</p>
+<p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
+
+<h3>🧾 Detalles del pedido:</h3>
+<table style="width:100%; border-collapse: collapse;" border="1" cellpadding="6" cellspacing="0">
+  <thead>
+    <tr style="background-color:#f2f2f2;">
+      <th style="text-align:left; padding:8px;">Producto</th>
+      <th style="text-align:center; padding:8px;">Cantidad</th>
+      <th style="text-align:right; padding:8px;">Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in factura.detalles.all %}
+    <tr>
+      <td style="padding:8px;">{{ item.producto.name }}</td>
+      <td style="text-align:center; padding:8px;">{{ item.cantidad }}</td>
+      <td style="text-align:right; padding:8px;">${{ item.subtotal|intcomma }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p><strong>Subtotal:</strong> ${{ subtotal|intcomma }}</p>
+<p><strong>IVA (19%):</strong> ${{ iva|intcomma }}</p>
+<p><strong>Descuento aplicado:</strong> ${{ descuento|intcomma }}</p>
+<p style="font-size:16px; font-weight:bold; color:#000;">
+  <strong>Total final:</strong> ${{ total_final|intcomma }}
+</p>
