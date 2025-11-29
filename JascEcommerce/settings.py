@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'categorias',
     'auths',
     'store',
@@ -225,4 +226,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # 🔄 VERSIONADO DE STATIC
 # ================================
 STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'jairosypunto@gmail.com'         # ← tu correo real
+EMAIL_HOST_PASSWORD = 'exgy ltnm yitb nfcq'           # ← tu contraseña o clave de aplicación
 

@@ -125,7 +125,6 @@ def ver_carrito(request):
 # =========================
 # Tienda y catálogo
 # =========================
-
 def store(request):
     """
     Listado de productos:
@@ -140,16 +139,15 @@ def store(request):
     banner = Banner.objects.first()
 
     # Destacados para carrusel
+    banners = Banner.objects.all()
     productos_destacados = Product.objects.filter(
         destacado=True,
         is_available=True
     ).exclude(image__isnull=True).exclude(image='')[:10]
 
-    # Base de consulta principal
     productos = Product.objects.filter(is_available=True)
     categoria_actual = None
 
-    # Filtro por categoría
     category_slug = request.GET.get('category')
     if category_slug and category_slug != 'all':
         categoria_actual = get_object_or_404(Category, slug=category_slug)
@@ -157,13 +155,13 @@ def store(request):
 
     # Filtro por búsqueda (validación extra para evitar errores con espacios o símbolos)
     search_query = request.GET.get('q', '').strip()
+    search_query = request.GET.get('q')
     if search_query:
         productos = productos.filter(
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query)
         )
 
-    # Ordenamiento
     order = request.GET.get('order')
     if order == 'name':
         productos = productos.order_by('name')
@@ -178,7 +176,7 @@ def store(request):
     categorias = Category.objects.all()
 
     context = {
-        'banner': banner,
+        'banners': banners,
         'productos_destacados': productos_destacados,
         'productos': productos,
         'categorias': categorias,
@@ -268,25 +266,32 @@ def confirmar_pago(request):
     return redirect('store:checkout')
 
 
+# ✅ Vista protegida: solo usuarios autenticados pueden generar facturas
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
+    # 🛒 Obtener carrito y método de pago desde la sesión
     carrito = request.session.get('carrito', {})
     metodo_pago = request.session.get('metodo_pago', 'No especificado')
 
+    # 🚫 Validar si el carrito está vacío
     if not carrito:
         messages.error(request, "Tu carrito está vacío.")
         return redirect('store:checkout')
 
+    # 🧾 Crear factura inicial con total en cero
     factura = Factura.objects.create(
         usuario=request.user,
         total=Decimal('0.00'),
         metodo_pago=metodo_pago
     )
 
+    # 🔢 Inicializar acumuladores
     items_detalle = []
     subtotal_con_desc = Decimal('0')
     subtotal_sin_desc = Decimal('0')
+    iva_total = Decimal('0')
 
+    # 🔄 Recorrer productos del carrito
     for pid_str, cantidad in carrito.items():
         producto = get_object_or_404(Product, id=int(pid_str))
         cantidad = int(cantidad)
@@ -297,6 +302,7 @@ def generar_factura(request):
         subtotal_original = precio_original * cantidad
         subtotal_final = precio_final * cantidad
 
+        # 🧾 Crear detalle de factura
         detalle = DetalleFactura.objects.create(
             factura=factura,
             producto=producto,
@@ -305,100 +311,82 @@ def generar_factura(request):
         )
         items_detalle.append(detalle)
 
+        # 📊 Acumular subtotales
         subtotal_sin_desc += subtotal_original
         subtotal_con_desc += subtotal_final
 
-    descuento_total = subtotal_sin_desc - subtotal_con_desc
-    iva = subtotal_con_desc * Decimal('0.19')
-    total_final = subtotal_con_desc + iva
+        # 🧮 Calcular IVA si aplica
+        if not producto.is_tax_exempt:
+            iva_total += subtotal_final * Decimal('0.19')
 
+    # 🎯 Calcular totales finales
+    descuento_total = subtotal_sin_desc - subtotal_con_desc
+    total_final = subtotal_con_desc + iva_total
+
+    # 💳 Determinar estado del pago
     estado_pago = {
         "contraentrega": "Pendiente",
         "banco": "Pagado"
     }.get(metodo_pago, "No definido")
 
+    # 💾 Guardar totales en la factura
     factura.total = total_final
     factura.estado_pago = estado_pago
     factura.save()
 
+    # 🧹 Limpiar carrito
     request.session['carrito'] = {}
 
+    # 📧 Enviar factura por correo con PDF adjunto
+    enviar_factura_por_correo(factura, request.user)
+
+    # 📦 Preparar contexto para mostrar factura
     contexto = {
         "factura": factura,
         "items": items_detalle,
         "subtotal": subtotal_con_desc,
-        "iva": iva,
+        "iva": iva_total,
         "descuento": descuento_total,
         "total_final": total_final,
         "estado_pago": estado_pago,
     }
+
+    # 🖥️ Renderizar plantilla HTML de factura
     return render(request, "store/factura.html", contexto)
-    carrito = request.session.get('carrito', {})
-    metodo_pago = request.session.get('metodo_pago', 'No especificado')
 
-    if not carrito:
-        messages.error(request, "Tu carrito está vacío.")
-        return redirect('store:checkout')
 
-    # Creamos la factura con total temporal
-    factura = Factura.objects.create(
-        usuario=request.user,  # ahora siempre será un usuario válido
-        total=Decimal('0.00'),
-        metodo_pago=metodo_pago
-    )
+# ✅ Vista protegida: solo el dueño puede ver su factura
+@login_required(login_url='/accounts/login/')
+def ver_factura(request, factura_id):
+    # 🔍 Buscar la factura del usuario actual
+    factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
 
-    items_detalle = []
-    subtotal_con_desc = Decimal('0')
-    subtotal_sin_desc = Decimal('0')
-
-    for pid_str, cantidad in carrito.items():
-        producto = get_object_or_404(Product, id=int(pid_str))
-        cantidad = int(cantidad)
-
-        precio_original = Decimal(producto.cost)
-        precio_final = _precio_final(producto)
-
-        subtotal_original = precio_original * cantidad
-        subtotal_final = precio_final * cantidad
-
-        detalle = DetalleFactura.objects.create(
-            factura=factura,
-            producto=producto,
-            cantidad=cantidad,
-            subtotal=subtotal_final
-        )
-        items_detalle.append(detalle)
-
-        subtotal_sin_desc += subtotal_original
-        subtotal_con_desc += subtotal_final
-
-    descuento_total = subtotal_sin_desc - subtotal_con_desc
-    iva = subtotal_con_desc * Decimal('0.19')
-    total_final = subtotal_con_desc + iva
-
-    if metodo_pago == "contraentrega":
-        estado_pago = "Pendiente"
-    elif metodo_pago == "banco":
-        estado_pago = "Pagado"
-    else:
-        estado_pago = "No definido"
-
-    factura.total = total_final
-    factura.estado_pago = estado_pago
-    factura.save()
-
-    request.session['carrito'] = {}
-
+    # 📦 Preparar contexto con los datos de la factura
     contexto = {
         "factura": factura,
-        "items": items_detalle,
-        "subtotal": subtotal_con_desc,
-        "iva": iva,
-        "descuento": descuento_total,
-        "total_final": total_final,
-        "estado_pago": estado_pago,
+        "items": factura.detallefactura_set.all(),
+        "subtotal": factura.total - factura.total * Decimal('0.19'),
+        "iva": factura.total * Decimal('0.19'),
+        "descuento": Decimal('0.00'),
+        "total_final": factura.total,
+        "estado_pago": factura.estado_pago,
     }
-    return render(request, "store/factura.html", contexto)
+
+    # 🖥️ Renderizar plantilla PDF/HTML
+    return render(request, "store/factura_pdf.html", contexto)
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Factura
+
+# ✅ Vista protegida: historial de facturas del usuario autenticado
+@login_required(login_url='/accounts/login/')
+def mis_facturas(request):
+    # 🔍 Filtrar facturas del usuario actual
+    facturas = Factura.objects.filter(usuario=request.user).order_by('-fecha')
+
+    # 📦 Renderizar plantilla con listado
+    return render(request, 'store/mis_facturas.html', {'facturas': facturas})
 
 
 def simular_pago_banco(request):
@@ -426,8 +414,110 @@ def login_view(request):
         'next': next_url
     })
 
-# modelo para el banner
+from io import BytesIO
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
+def formato_numero(valor):
+    return f"{valor:,.2f}".replace(",", ".").replace(".", ",", 1)
+
+def enviar_factura_por_correo(factura, usuario):
+    asunto = f"Factura #{factura.id} - LatinShop"
+
+    mensaje = render_to_string('store/factura_email.html', {
+        'factura': factura,
+        'subtotal': factura.total - factura.total * Decimal('0.19'),
+        'iva': factura.total * Decimal('0.19'),
+        'descuento': Decimal('0.00'),
+        'total_final': factura.total
+    })
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elementos = []
+    estilos = getSampleStyleSheet()
+    # Encabezado
+    elementos.append(Paragraph(f"<b>Factura #{factura.id} - LatinShop</b>", estilos['Title']))
+    elementos.append(Spacer(1, 12))
+    elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
+    elementos.append(Paragraph(f"Email: {usuario.email}", estilos['Normal']))
+    elementos.append(Paragraph(f"Fecha: {factura.fecha}", estilos['Normal']))
+    elementos.append(Paragraph(f"Método de pago: {factura.metodo_pago}", estilos['Normal']))
+    elementos.append(Paragraph(f"Estado del pago: {factura.estado_pago}", estilos['Normal']))
+    elementos.append(Spacer(1, 12))
+
+    # Tabla de productos
+    datos = [["Producto", "Cantidad", "Subtotal"]]
+    for item in factura.detalles.all():
+        datos.append([
+            item.producto.name,
+            str(item.cantidad),
+            f"${formato_numero(item.subtotal)}"
+        ])
+
+    tabla = Table(datos, colWidths=[250, 100, 100])
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f2f2f2")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+        ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 12))
+
+    # Totales
+    subtotal = factura.total - factura.total * Decimal('0.19')
+    iva = factura.total * Decimal('0.19')
+    descuento = Decimal('0.00')
+    total_final = factura.total
+
+    elementos.append(Paragraph(f"<b>Subtotal:</b> ${formato_numero(subtotal)}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>IVA (19%):</b> ${formato_numero(iva)}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Descuento:</b> ${formato_numero(descuento)}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Total pagado:</b> ${formato_numero(total_final)}", estilos['Normal']))
+
+    doc.build(elementos)
+    buffer.seek(0)
+
+    email = EmailMessage(asunto, mensaje, to=[usuario.email])
+    email.content_subtype = "html"
+    email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
+    email.send()
+
+from django.shortcuts import get_object_or_404, render
+
+def vista_rapida(request, id):
+    producto = get_object_or_404(Product, id=id)
+    return render(request, 'store/vista_rapida.html', {'producto': producto})
+
+
+@login_required(login_url='/accounts/login/')
+def ver_factura(request, factura_id):
+    # 🔍 Buscar la factura del usuario actual
+    factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
+
+    # 📦 Preparar contexto con los datos de la factura
+    contexto = {
+        "factura": factura,
+        "items": factura.detallefactura_set.all(),
+        "subtotal": factura.total - factura.total * Decimal('0.19'),
+        "iva": factura.total * Decimal('0.19'),
+        "descuento": Decimal('0.00'),
+        "total_final": factura.total,
+        "estado_pago": factura.estado_pago,
+    }
+
+    # 🖥️ Renderizar plantilla PDF/HTML
+    return render(request, "store/factura_pdf.html", contexto)
+
+# 🌐 Vista informativa de "Nosotros"
 def nosotros(request):
     return render(request, 'store/nosotros.html')
 
