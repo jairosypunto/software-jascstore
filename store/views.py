@@ -127,6 +127,19 @@ def ver_carrito(request):
 # Tienda y catálogo
 # =========================
 def store(request):
+    """
+    Listado de productos:
+    - Productos destacados (con imagen válida)
+    - Filtros: categoría, búsqueda
+    - Ordenamiento: nombre, precio, precio desc, reciente
+    - Banner dinámico desde admin
+    """
+
+    # Productos destacados para carrusel
+    # Banner dinámico
+    banner = Banner.objects.first()
+
+    # Destacados para carrusel
     banners = Banner.objects.all()
     productos_destacados = Product.objects.filter(
         destacado=True,
@@ -141,6 +154,8 @@ def store(request):
         categoria_actual = get_object_or_404(Category, slug=category_slug)
         productos = productos.filter(category=categoria_actual)
 
+    # Filtro por búsqueda (validación extra para evitar errores con espacios o símbolos)
+    search_query = request.GET.get('q', '').strip()
     search_query = request.GET.get('q')
     if search_query:
         productos = productos.filter(
@@ -158,6 +173,7 @@ def store(request):
     elif order == 'recent':
         productos = productos.order_by('-date_register')
 
+    # Lista de categorías para el menú
     categorias = Category.objects.all()
 
     context = {
@@ -166,6 +182,8 @@ def store(request):
         'productos': productos,
         'categorias': categorias,
         'categoria_actual': categoria_actual,
+        'search_query': search_query,  # útil para mantener el texto en el input
+        'order': order,  # útil para mantener el orden seleccionado
     }
     return render(request, 'store/store.html', context)
 
