@@ -11,6 +11,7 @@
   margin-right: -50vw !important;
 }
 
+
 /* =========================
    🏪 BANNER PRINCIPAL
    ========================= */
@@ -45,6 +46,7 @@
   display: block;
 }
 
+
 /* Fondo alternativo para slides con background */
 .banner-bg {
   position: absolute;
@@ -55,6 +57,7 @@
   background-position: center;
   z-index: 0;
 }
+
 
 /* Texto sobre el banner */
 .banner-caption {
@@ -73,6 +76,7 @@
   font-size: 1.2rem;
 }
 
+
 /* Controles visibles del Swiper */
 .bannerSwiper .swiper-button-prev,
 .bannerSwiper .swiper-button-next {
@@ -83,6 +87,7 @@
 .bannerSwiper .swiper-pagination-bullet {
   background: rgba(255,255,255,0.85);
 }
+
 
 /* =========================
    ⭐ PRODUCTOS DESTACADOS (mySwiper)
@@ -112,18 +117,42 @@
   transform: scale(1.05);
 }
 
+
 /* =========================
    📱 RESPONSIVE
    ========================= */
 @media (max-width: 768px) {
-  .bannerSwiper.swiper { height: 320px; }
-  .banner-caption h2 { font-size: 1.8rem; }
-  .banner-caption p { font-size: 1rem; }
+  .bannerSwiper.swiper {
+    height: 320px;
+    margin-left: 0 !important; /* ✅ Evita corte en celular vertical */
+  }
+
+  .bannerSwiper .swiper-slide {
+    width: 100vw !important;
+  }
+
+  .bannerSwiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .banner-caption h2 {
+    font-size: 1.8rem;
+  }
+
+  .banner-caption p {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .bannerSwiper.swiper { height: 280px; }
+  .bannerSwiper.swiper {
+    height: 280px;
+    margin-left: 0 !important; /* ✅ Refuerzo para pantallas muy estrechas */
+  }
 }
+
 
 /* =========================
    🛑 EXTRA

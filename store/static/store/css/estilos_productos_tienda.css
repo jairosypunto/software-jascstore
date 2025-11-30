@@ -434,6 +434,39 @@
   cursor: pointer;
 }
 
+/* 🔧 Alineación horizontal de filtros en pantallas grandes */
+.row.align-items-center {
+  display: flex;               /* Activa flexbox para alinear horizontalmente */
+  flex-wrap: wrap;             /* Permite que los elementos se ajusten si no caben */
+  align-items: center;         /* Centra verticalmente los elementos */
+  justify-content: space-between; /* Distribuye el espacio entre los elementos */
+}
+
+/* 📐 Ajuste visual de inputs y selects dentro de la fila */
+.row.align-items-center .form-select,
+.row.align-items-center .form-control {
+  height: 45px;                /* Altura uniforme para todos los campos */
+  font-size: 16px;             /* Tamaño de texto legible y profesional */
+}
+
+
+/* 🎯 Estilo alternativo para filtros agrupados en una sola fila */
+.fila-filtros {
+  display: flex;               /* Alineación horizontal con flexbox */
+  flex-wrap: wrap;             /* Permite que se acomoden en varias líneas si es necesario */
+  align-items: center;         /* Centrado vertical */
+  gap: 10px;                   /* Espacio entre elementos */
+  margin-bottom: 20px;         /* Separación inferior respecto a otros bloques */
+}
+
+/* 📐 Uniformidad visual en los campos dentro de .fila-filtros */
+.fila-filtros select,
+.fila-filtros input[type="text"],
+.fila-filtros button {
+  height: 45px;                /* Altura consistente para mejor alineación */
+  font-size: 16px;             /* Texto claro y profesional */
+}
+
 /* =========================
    📱 RESPONSIVE COMPLETO
    ========================= */
