@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="text-center">
+    <h3 class="mb-4">🧾 Resultado del pago</h3>
+
+    {% if estado == "APPROVED" %}
+      <div class="alert alert-success">
+        ✅ Tu pago ha sido aprobado correctamente.
+      </div>
+    {% elif estado == "DECLINED" %}
+      <div class="alert alert-danger">
+        ❌ El pago fue rechazado o cancelado. Puedes intentar nuevamente o elegir otro método.
+      </div>
+    {% else %}
+      <div class="alert alert-warning">
+        ⚠️ Estado del pago no reconocido: <strong>{{ estado }}</strong>
+      </div>
+    {% endif %}
+
+    {% if referencia %}
+      <p class="mt-3">Factura asociada: <strong>#{{ referencia }}</strong></p>
+    {% endif %}
+
+    {% if request.session.banco_seleccionado %}
+      <p>Banco elegido: <strong>{{ request.session.banco_seleccionado }}</strong></p>
+    {% endif %}
+
+    <div class="mt-4">
+      <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-primary me-2">
+        Ver mis facturas
+      </a>
+      <a href="{% url 'store:store' %}" class="btn btn-outline-secondary">
+        Volver a la tienda
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -13,11 +13,8 @@
           Estás a punto de realizar el pago por banco. Selecciona tu entidad y confirma para continuar.
         </p>
 
-        <!-- ✅ Formulario que envía banco y método de pago a generar_factura -->
-        <form method="POST" action="{% url 'store:generar_factura' %}">
+        <form method="POST">
           {% csrf_token %}
-          <input type="hidden" name="metodo_pago" value="banco">  <!-- ✅ método explícito -->
-
           <div class="mb-4">
             <label for="banco" class="form-label fw-bold">🏦 Selecciona tu banco:</label>
             <select name="banco" id="banco" class="form-select form-select-lg" required>
@@ -29,6 +26,24 @@
               <option value="BBVA">BBVA</option>
               <option value="Banco Popular">Banco Popular</option>
             </select>
+          </div>
+
+          <div class="mt-4">
+            <h5 class="fw-bold text-secondary">🧾 Resumen de factura</h5>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Total a pagar:</span>
+                <strong class="text-success">${{ amount|floatformat:0|intcomma }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Referencia de factura:</span>
+                <strong>#{{ reference }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Moneda:</span>
+                <strong>{{ currency }}</strong>
+              </li>
+            </ul>
           </div>
 
           <div class="text-center mt-4">

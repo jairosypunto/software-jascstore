@@ -9,6 +9,7 @@ from categorias.models import Category
 from django.contrib.auth.decorators import login_required
 
 from .models import Banner, Product
+from django.conf import settings
 
 # =========================
 # Utilidades internas
@@ -247,44 +248,38 @@ def confirmar_pago(request):
 
     return redirect('store:checkout')
 
-
 # ✅ Vista protegida: solo usuarios autenticados pueden generar facturas
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
-    # 🛒 Obtener carrito y método de pago desde la sesión
     carrito = request.session.get('carrito', {})
-    metodo_pago = request.session.get('metodo_pago', 'No especificado')
+    metodo_pago = request.POST.get("metodo_pago") or request.session.get("metodo_pago", "No especificado")
+    banco_seleccionado = request.POST.get("banco") or request.session.get("banco_seleccionado")
 
-    # 🚫 Validar si el carrito está vacío
     if not carrito:
         messages.error(request, "Tu carrito está vacío.")
         return redirect('store:checkout')
 
-    # 🧾 Crear factura inicial con total en cero
     factura = Factura.objects.create(
         usuario=request.user,
         total=Decimal('0.00'),
-        metodo_pago=metodo_pago
+        metodo_pago=metodo_pago,
+        banco=banco_seleccionado,  # ✅ se guarda el banco
     )
+    request.session["factura_id"] = factura.id
 
-    # 🔢 Inicializar acumuladores
     items_detalle = []
     subtotal_con_desc = Decimal('0')
     subtotal_sin_desc = Decimal('0')
     iva_total = Decimal('0')
 
-    # 🔄 Recorrer productos del carrito
     for pid_str, cantidad in carrito.items():
         producto = get_object_or_404(Product, id=int(pid_str))
         cantidad = int(cantidad)
-
         precio_original = Decimal(str(producto.cost))
         precio_final = _precio_final(producto)
-
         subtotal_original = precio_original * cantidad
         subtotal_final = precio_final * cantidad
 
-        # 🧾 Crear detalle de factura
         detalle = DetalleFactura.objects.create(
             factura=factura,
             producto=producto,
@@ -292,37 +287,27 @@ def generar_factura(request):
             subtotal=subtotal_final
         )
         items_detalle.append(detalle)
-
-        # 📊 Acumular subtotales
         subtotal_sin_desc += subtotal_original
         subtotal_con_desc += subtotal_final
-
-        # 🧮 Calcular IVA si aplica
         if not producto.is_tax_exempt:
             iva_total += subtotal_final * Decimal('0.19')
 
-    # 🎯 Calcular totales finales
     descuento_total = subtotal_sin_desc - subtotal_con_desc
     total_final = subtotal_con_desc + iva_total
 
-    # 💳 Determinar estado del pago
     estado_pago = {
         "contraentrega": "Pendiente",
+        "transferencia": "Pendiente",
         "banco": "Pagado"
     }.get(metodo_pago, "No definido")
 
-    # 💾 Guardar totales en la factura
     factura.total = total_final
     factura.estado_pago = estado_pago
     factura.save()
 
-    # 🧹 Limpiar carrito
     request.session['carrito'] = {}
+    enviar_factura_por_correo(factura, request.user)  # ✅ banco incluido en correo
 
-    # 📧 Enviar factura por correo con PDF adjunto
-    enviar_factura_por_correo(factura, request.user)
-
-    # 📦 Preparar contexto para mostrar factura
     contexto = {
         "factura": factura,
         "items": items_detalle,
@@ -332,10 +317,7 @@ def generar_factura(request):
         "total_final": total_final,
         "estado_pago": estado_pago,
     }
-
-    # 🖥️ Renderizar plantilla HTML de factura
     return render(request, "store/factura.html", contexto)
-
 
 # ✅ Vista protegida: solo el dueño puede ver su factura
 @login_required(login_url='/accounts/login/')
@@ -415,13 +397,15 @@ def enviar_factura_por_correo(factura, usuario):
         'subtotal': factura.total - factura.total * Decimal('0.19'),
         'iva': factura.total * Decimal('0.19'),
         'descuento': Decimal('0.00'),
-        'total_final': factura.total
+        'total_final': factura.total,
+        'banco': factura.banco  # ✅ se pasa al template del correo
     })
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
     estilos = getSampleStyleSheet()
+
     # Encabezado
     elementos.append(Paragraph(f"<b>Factura #{factura.id} - LatinShop</b>", estilos['Title']))
     elementos.append(Spacer(1, 12))
@@ -430,6 +414,8 @@ def enviar_factura_por_correo(factura, usuario):
     elementos.append(Paragraph(f"Fecha: {factura.fecha}", estilos['Normal']))
     elementos.append(Paragraph(f"Método de pago: {factura.metodo_pago}", estilos['Normal']))
     elementos.append(Paragraph(f"Estado del pago: {factura.estado_pago}", estilos['Normal']))
+    if factura.banco:
+        elementos.append(Paragraph(f"Banco utilizado: {factura.banco}", estilos['Normal']))  # ✅ banco en PDF
     elementos.append(Spacer(1, 12))
 
     # Tabla de productos
@@ -473,8 +459,6 @@ def enviar_factura_por_correo(factura, usuario):
     email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
     email.send()
 
-from django.shortcuts import get_object_or_404, render
-
 def vista_rapida(request, id):
     producto = get_object_or_404(Product, id=id)
     return render(request, 'store/vista_rapida.html', {'producto': producto})
@@ -498,6 +482,60 @@ def ver_factura(request, factura_id):
 
     # 🖥️ Renderizar plantilla PDF/HTML
     return render(request, "store/factura_pdf.html", contexto)
+
+
+# ✅ Vista 'pre-Wompi': prepara datos y muestra el formulario que luego redirigirá al checkout de Wompi
+def pago_banco_widget(request):
+    # 🧾 Obtener factura desde la sesión
+    factura_id = request.session.get("factura_id")
+    if not factura_id:
+        messages.error(request, "No hay factura en sesión.")
+        return redirect("store:ver_carrito")
+
+    factura = Factura.objects.filter(id=factura_id).first()
+    if not factura:
+        messages.error(request, "La factura no existe.")
+        return redirect("store:ver_carrito")
+
+    # 🏦 Capturar banco seleccionado si se envió por POST
+    if request.method == "POST":
+        banco = request.POST.get("banco")
+        request.session["banco_seleccionado"] = banco
+        print("🏦 Banco seleccionado:", banco)
+        return redirect("store:confirmacion_pago")
+
+    # 💳 Preparar contexto para el widget de pago
+    context = {
+        "public_key": getattr(settings, "WOMPI_PUBLIC_KEY", "pub_test_simulada"),
+        "amount": int(factura.total * 100),  # centavos
+        "currency": "COP",
+        "reference": str(factura.id),
+        "redirect_url": request.build_absolute_uri("/store/confirmacion-pago/"),
+    }
+
+    return render(request, "store/pago_banco_widget.html", context)
+
+
+def confirmacion_pago(request):
+    """
+    Confirmación provisional:
+    - Cuando conectes Wompi: usa ?id=<transaction_id> y consulta la transacción.
+    - Por ahora, acepta ?status=<APPROVED|DECLINED> & reference=<id_factura>.
+    """
+    estado = request.GET.get("status", "SIMULADO")
+    referencia = request.GET.get("reference")
+
+    factura = None
+    if referencia:
+        factura = Factura.objects.filter(id=referencia).first()
+
+    if factura:
+        factura.estado = "Pagada" if estado == "APPROVED" else "Fallida"
+        factura.save()
+
+    context = {"estado": estado, "referencia": referencia}
+    return render(request, "store/confirmacion_pago.html", context)
+
 
 # 🌐 Vista informativa de "Nosotros"
 def nosotros(request):

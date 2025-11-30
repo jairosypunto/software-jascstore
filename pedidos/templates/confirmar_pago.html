@@ -4,7 +4,7 @@
 <div class="container mt-4">
   <h2 class="text-center">Confirmar Pago</h2>
   <hr>
-  <form method="post">
+  <form method="post" action="{% url 'store:generar_factura' %}">
     {% csrf_token %}
     <div class="form-group">
       <label for="metodo_pago">Selecciona el método de pago:</label>
