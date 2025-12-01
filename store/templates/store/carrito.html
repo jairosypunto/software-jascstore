@@ -13,21 +13,61 @@
       {% for it in items %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <div>
+            <!-- Nombre del producto -->
             <strong>{{ it.producto.name }}</strong>
-            <div class="small text-muted">Precio unitario: ${{ it.producto.cost|floatformat:0 }}</div>
+            <!-- Precio unitario -->
+            <div class="small text-muted">
+              Precio unitario: ${{ it.producto.cost|floatformat:0 }}
+            </div>
           </div>
           <div class="text-end">
-            <div>Cantidad: <span class="badge bg-primary">{{ it.cantidad }}</span></div>
-            <div class="mt-2">Subtotal: <strong>${{ it.subtotal|floatformat:0 }}</strong></div>
+            <!-- Cantidad -->
+           <form method="POST" action="{% url 'store:actualizar_cantidad' it.producto.id %}" class="d-flex align-items-center gap-2">
+              {% csrf_token %}
+              <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm">–</button>
+              <input type="text" name="cantidad" value="{{ it.cantidad }}" class="form-control text-center" style="width: 60px;" readonly>
+              <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm">+</button>
+            </form>
+            <!-- Subtotal -->
+            <div class="mt-2">
+              Subtotal: <strong>${{ it.subtotal|floatformat:0 }}</strong>
+            </div>
           </div>
         </li>
       {% endfor %}
+
+      <!-- Subtotal con descuento aplicado -->
       <li class="list-group-item d-flex justify-content-between">
-        <strong>Total</strong>
-        <strong>${{ total|floatformat:0 }}</strong>
+        <strong>Subtotal</strong>
+        <strong>${{ subtotal|floatformat:0 }}</strong>
+      </li>
+
+      <!-- Descuento total -->
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Descuento</strong>
+        <strong>-${{ descuento|floatformat:0 }}</strong>
+      </li>
+
+      <!-- IVA -->
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>IVA (19%)</strong>
+        <strong>${{ iva|floatformat:0 }}</strong>
+      </li>
+
+      <!-- Total final -->
+      <li class="list-group-item d-flex justify-content-between bg-light fw-bold">
+        <span>Total a pagar</span>
+        <span>${{ total|floatformat:0 }}</span>
+      </li>
+
+      <!-- ✅ Nuevo bloque: total de productos -->
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Total de productos</strong>
+        <strong>{{ total_cantidad }} unidades</strong>
       </li>
     </ul>
 
+    <!-- Botones de acción -->
     <div class="d-flex gap-2">
       <a href="{% url 'store:store' %}" class="btn btn-secondary">Continuar comprando</a>
       <form method="post" action="{% url 'store:vaciar_carrito' %}">

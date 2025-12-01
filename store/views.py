@@ -18,15 +18,15 @@ from django.conf import settings
 def _precio_final(producto: Product) -> Decimal:
     """
     Devuelve el precio final del producto aplicando descuento.
-    Usa el método del modelo si existe; si no, lo calcula aquí.
+    Usa la propiedad del modelo si existe; si no, lo calcula aquí.
     """
     try:
-        # Preferimos el método del modelo, más claro y reusable
-        return producto.final_price()
+        # ✅ Usar la propiedad directamente, sin paréntesis
+        return producto.final_price
     except AttributeError:
-        # Fallback: cálculo directo por si el método no existe
+        # Fallback: cálculo directo por si la propiedad no existe
         discount = getattr(producto, 'discount', 0) or 0
-        cost = Decimal(str(producto.cost))          # ✅ convertir a string
+        cost = Decimal(str(producto.cost))  # ✅ convertir a string
         if discount > 0:
             return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
         return cost
@@ -75,24 +75,56 @@ def _items_carrito(request):
 # Carrito (sesiones)
 # =========================
 
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
 def agregar_al_carrito(request, product_id):
     """
     Agrega un producto al carrito en sesión.
+    - Lee 'cantidad' del formulario.
     - Valida disponibilidad y stock.
-    - Incrementa cantidad si el producto ya estaba.
+    - Incrementa cantidad si el producto ya estaba sin exceder stock.
     """
-    carrito = request.session.get('carrito', {})
+    if request.method != 'POST':
+        return redirect('store:ver_carrito')
+
     producto = get_object_or_404(Product, id=product_id)
 
-    if not producto.is_available or producto.stock == 0:
+    if not producto.is_available or producto.stock <= 0:
         messages.warning(request, "Este producto no está disponible o está agotado.")
         return redirect('store:ver_carrito')
 
-    pid = str(product_id)
-    carrito[pid] = carrito.get(pid, 0) + 1
+    # Lee cantidad enviada; si falta o es inválida, usa 1.
+    try:
+        cantidad = int(request.POST.get('cantidad', '1'))
+    except ValueError:
+        cantidad = 1
 
+    # Normaliza límites
+    if cantidad < 1:
+        cantidad = 1
+    if cantidad > producto.stock:
+        cantidad = producto.stock
+        messages.info(request, f"Se ajustó la cantidad al máximo disponible ({producto.stock}).")
+
+    carrito = request.session.get('carrito', {})
+    pid = str(product_id)
+
+    cantidad_actual = int(carrito.get(pid, 0))
+    nueva_cantidad = cantidad_actual + cantidad
+
+    # No exceder stock total
+    if nueva_cantidad > producto.stock:
+        nueva_cantidad = producto.stock
+        messages.info(
+            request,
+            f"Ya tenías {cantidad_actual}. Se ajustó a {producto.stock} por límite de stock."
+        )
+
+    carrito[pid] = nueva_cantidad
     request.session['carrito'] = carrito
-    messages.success(request, f"Se agregó {producto.name} al carrito.")
+
+    messages.success(request, f"Se agregó {cantidad} × {producto.name} al carrito.")
     return redirect('store:ver_carrito')
 
 
@@ -105,7 +137,7 @@ def vaciar_carrito(request):
 
 def ver_carrito(request):
     """
-    Muestra el carrito con precios y subtotales.
+    Muestra el carrito con precios, subtotales y total de unidades.
     Aplica descuentos en la UI del carrito.
     """
     items, subtotal_sin_desc, subtotal_con_desc = _items_carrito(request)
@@ -113,12 +145,16 @@ def ver_carrito(request):
     iva = subtotal_con_desc * Decimal('0.19')
     total = subtotal_con_desc + iva
 
+    # ✅ Nuevo: calcular total de unidades
+    total_cantidad = sum(it['cantidad'] for it in items)
+
     context = {
         'items': items,
         'subtotal': subtotal_con_desc,
         'descuento': descuento_total,
         'iva': iva,
         'total': total,
+        'total_cantidad': total_cantidad,  # 👈 agregado al contexto
     }
     return render(request, 'store/carrito.html', context)
 
@@ -253,17 +289,14 @@ def confirmar_pago(request):
         if not request.user.is_authenticated:
             request.session['mostrar_acceso_requerido'] = True
             return redirect('/account/login/?next=/store/checkout/')
-
         # Persistimos datos necesarios
         request.session['carrito'] = carrito
         request.session['metodo_pago'] = metodo_pago
-
         # Continuación del flujo
         if metodo_pago == "banco":
             return redirect('store:simular_pago_banco')
         else:
             return redirect('store:generar_factura')
-
     return redirect('store:checkout')
 
 # ✅ Vista protegida: solo usuarios autenticados pueden generar facturas
@@ -316,7 +349,7 @@ def generar_factura(request):
     estado_pago = {
         "contraentrega": "Pendiente",
         "transferencia": "Pendiente",
-        "banco": "Pagado"
+        "banco": "Pagado en prueba",
     }.get(metodo_pago, "No definido")
 
     factura.total = total_final
@@ -554,6 +587,39 @@ def confirmacion_pago(request):
     context = {"estado": estado, "referencia": referencia}
     return render(request, "store/confirmacion_pago.html", context)
 
+
+from django.shortcuts import render
+
+def detalle_producto(request, product_id):
+    producto = get_object_or_404(Product, id=product_id)
+    print("Usando plantilla: detalle_producto.html")  # 👈 Esto aparecerá en consola
+    return render(request, 'detalle_producto.html', {'producto': producto})
+
+
+def actualizar_cantidad(request, product_id):
+    """
+    Actualiza la cantidad de un producto en el carrito usando botones + y –.
+    """
+    if request.method != 'POST':
+        return redirect('store:ver_carrito')
+
+    producto = get_object_or_404(Product, id=product_id)
+    carrito = request.session.get('carrito', {})
+    pid = str(product_id)
+    cantidad_actual = int(carrito.get(pid, 0))
+
+    accion = request.POST.get('accion')
+    if accion == 'sumar':
+        nueva = min(cantidad_actual + 1, producto.stock)
+    elif accion == 'restar':
+        nueva = max(cantidad_actual - 1, 1)
+    else:
+        nueva = cantidad_actual
+
+    carrito[pid] = nueva
+    request.session['carrito'] = carrito
+    messages.success(request, f"Cantidad actualizada: {producto.name} → {nueva} und.")
+    return redirect('store:ver_carrito')
 
 # 🌐 Vista informativa de "Nosotros"
 def nosotros(request):
