@@ -41,7 +41,7 @@ def _items_carrito(request):
     for pid, cantidad in carrito.items():
         producto = Product.objects.get(id=pid)
 
-        precio_original = producto.cost()   # 👈 llamado como método
+        precio_original = producto.cost  # 👈 llamado como método
         precio_final = producto.final_price # propiedad
 
         subtotal_original = producto.cost * cantidad
