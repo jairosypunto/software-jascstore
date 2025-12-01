@@ -1,7 +1,8 @@
 {% load static %}
 <!-- ✅ Carga el CSS específico para la barra de navegación -->
 
-<link rel="stylesheet" href="{% static 'home/css/bootstrap.css' %}" />
+<link rel="stylesheet" href="{% static 'home/css/bootstrap.css' %}?v={{ STATIC_VERSION }}">
+
 
 <!-- ✅ Navbar visual principal -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-gradient navbar-fijo shadow">

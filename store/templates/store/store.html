@@ -5,9 +5,12 @@
 
 {% block extra_css %}
   <!-- 🎨 Estilos específicos de la tienda -->
-  <link rel="stylesheet" href="{% static 'store/css/banner.css' %}">
-  <link rel="stylesheet" href="{% static 'store/css/store.css' %}">
-  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}">
+  <link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
+
+  <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
+
+  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
+
 {% endblock %}
 
 {% block banner_full %}
