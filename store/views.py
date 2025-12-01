@@ -44,7 +44,7 @@ def _items_carrito(request):
         precio_original = producto.cost()   # 👈 llamado como método
         precio_final = producto.final_price # propiedad
 
-        subtotal_original = producto.cost() * cantidad
+        subtotal_original = producto.cost * cantidad
         subtotal_final = precio_final * cantidad
 
         items.append({
