@@ -1,12 +1,34 @@
 {% load humanize %}
 
-<div class="vista-rapida-contenido">
-  <img src="{{ producto.image.url }}" alt="{{ producto.name }}" style="width:100%; max-height:250px; object-fit:cover; border-radius:6px;">
-  <h3>{{ producto.name }}</h3>
-  <p>{{ producto.description }}</p>
-  <p><strong>Precio:</strong> ${{ producto.price|intcomma }}</p>
+<div class="vista-rapida-contenido text-center" style="padding: 1.5em;">
+  <!-- 🖼️ Imagen del producto -->
+  <img src="{{ producto.image.url }}" alt="{{ producto.name }}"
+       style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-bottom:1em;">
+
+  <!-- 📝 Nombre y descripción -->
+  <h3 style="font-size:1.4rem; font-weight:600; margin-bottom:0.5em;">{{ producto.name }}</h3>
+  <p style="font-size:1rem; color:#555; margin-bottom:1em;">{{ producto.description }}</p>
+
+  <!-- 💰 Precio y descuento -->
+  {% if producto.discount > 0 %}
+    <p style="font-size:1.1rem; color:#d32f2f; font-weight:bold; margin-bottom:0.3em;">
+      Precio con descuento: ${{ producto.final_price|intcomma }}
+    </p>
+    <p style="font-size:0.95rem; color:#888; text-decoration:line-through; margin-bottom:0.3em;">
+      Antes: ${{ producto.cost|intcomma }}
+    </p>
+    <span class="badge bg-success" style="margin-bottom:1em;">-{{ producto.discount }}%</span>
+  {% else %}
+    <p style="font-size:1.1rem; font-weight:bold; color:#333; margin-bottom:1em;">
+      Precio: ${{ producto.cost|intcomma }}
+    </p>
+  {% endif %}
+
+  <!-- 🛒 Botón agregar al carrito -->
   <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}">
     {% csrf_token %}
-    <button type="submit" class="btn-agregar">Agregar al carrito</button>
+    <button type="submit" class="btn-add-cart">
+      <i class="bi bi-cart-plus"></i> <span>Agregar al carrito</span>
+    </button>
   </form>
 </div>

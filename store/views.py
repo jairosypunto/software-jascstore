@@ -33,27 +33,18 @@ def _precio_final(producto: Product) -> Decimal:
 
 
 def _items_carrito(request):
-    """
-    Construye la lista de items del carrito desde la sesión con precio final y subtotales.
-    Retorna: (items, subtotal_sin_desc, subtotal_con_desc)
-    """
-    carrito = request.session.get('carrito', {})  # dict { product_id_str: cantidad }
-    product_ids = [int(pid) for pid in carrito.keys()] if carrito else []
-    productos = Product.objects.filter(id__in=product_ids)
-
+    carrito = request.session.get('carrito', {})
     items = []
     subtotal_sin_desc = Decimal('0')
     subtotal_con_desc = Decimal('0')
 
-    for producto in productos:
-        cantidad = int(carrito.get(str(producto.id), 0))
-        if cantidad <= 0:
-            continue
+    for pid, cantidad in carrito.items():
+        producto = Product.objects.get(id=pid)
 
-        precio_original = Decimal(str(producto.cost))
-        precio_final = _precio_final(producto)
+        precio_original = producto.cost()   # 👈 llamado como método
+        precio_final = producto.final_price # propiedad
 
-        subtotal_original = precio_original * cantidad
+        subtotal_original = producto.cost() * cantidad
         subtotal_final = precio_final * cantidad
 
         items.append({
@@ -69,7 +60,6 @@ def _items_carrito(request):
         subtotal_con_desc += subtotal_final
 
     return items, subtotal_sin_desc, subtotal_con_desc
-
 
 # =========================
 # Carrito (sesiones)

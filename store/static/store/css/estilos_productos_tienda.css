@@ -1,17 +1,18 @@
 /* =========================
    🌈 VARIABLES GLOBALES
+   Paleta de colores, sombras y gradientes reutilizables
    ========================= */
 :root {
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --secondary: #ec4899;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --dark: #1f2937;
-  --gray: #6b7280;
-  --light-gray: #f3f4f6;
-  --white: #ffffff;
+  --primary: #6366f1;          /* Azul principal */
+  --primary-dark: #4f46e5;     /* Azul más intenso */
+  --secondary: #ec4899;        /* Rosa secundario */
+  --success: #10b981;          /* Verde éxito */
+  --warning: #f59e0b;          /* Naranja advertencia */
+  --danger: #ef4444;           /* Rojo error */
+  --dark: #1f2937;             /* Gris oscuro para textos */
+  --gray: #6b7280;             /* Gris medio */
+  --light-gray: #f3f4f6;       /* Gris claro */
+  --white: #ffffff;            /* Blanco */
   --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
@@ -22,6 +23,7 @@
 
 /* =========================
    🛒 TARJETAS DE PRODUCTO
+   Grid responsivo y hover animado
    ========================= */
 .products-grid {
   display: grid;
@@ -31,27 +33,14 @@
   padding: 0;
 }
 
-
 .product-card:hover {
   transform: translateY(-10px);
   box-shadow: var(--shadow-xl);
 }
 
-/* Imagen del producto */
-.product-img {
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  padding: 0;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
 
 .product-img:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .product-card:hover .product-img {
@@ -60,25 +49,13 @@
 
 /* =========================
    🧾 CONTENIDO DEL PRODUCTO
+   Nombre, descripción y precio
    ========================= */
-.product-content {
-  padding: 8px;
-  max-height: 180px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
 
 .product-name {
   font-size: 15px;
   font-weight: 600;
   margin: 4px 0;
-}
-
-.price-section p,
-.price-section span {
-  font-size: 14px;
-  margin-bottom: 4px;
 }
 
 .product-name a {
@@ -91,76 +68,21 @@
   color: var(--primary);
 }
 
-.card-description {
-  font-size: 0.9rem;
-  color: var(--gray);
-  line-height: 1.4;
-  margin-bottom: 12px;
-  flex-grow: 1;
-  min-height: 2.5em;
-  text-align: center;
-}
-
-.product-card {
-  border: 1px solid #ddd;
-  padding: 12px;
-  margin-bottom: 16px;
-  border-radius: 6px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.product-nombre {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  color: #333;
-}
-
+/* Descripción corta */
 .product-description {
   font-size: 13px;
   line-height: 1.3;
-  max-height: 3.9em; /* 3 líneas aprox */
+  max-height: 3.9em;       /* ~3 líneas */
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--gray);
 }
 
-.product-precio {
-  font-size: 15px;
-  font-weight: bold;
-  color: #008000;
-  margin-bottom: 6px;
-}
-
-.btn-agregar {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
+/* Precio destacado */
+.price-section p,
+.price-section span {
   font-size: 14px;
-}
-.btn-agregar:hover {
-  background-color: #0056b3;
-}
-
-/* =========================
-   💰 FOOTER DEL PRODUCTO Y PRECIO
-   ========================= */
-.product-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 2px solid var(--light-gray);
-}
-
-.price-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin-bottom: 4px;
 }
 
 .price {
@@ -172,43 +94,33 @@
   background-clip: text;
 }
 
+
+
 /* =========================
-   📦 STOCK Y DISPONIBILIDAD
+   🔍 QUICK VIEW EN IMAGEN
    ========================= */
-.stock-info {
+
+.quick-view {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  font-size: 0.9em;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85rem;
-  color: var(--gray);
-  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;          /* oculto por defecto */
+  pointer-events: none; /* no clickeable cuando está oculto */
 }
 
-.stock-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.stock-available {
-  background: var(--success);
-  box-shadow: 0 0 8px var(--success);
-}
-
-.stock-low {
-  background: var(--warning);
-  box-shadow: 0 0 8px var(--warning);
-  animation: blink 1.5s ease-in-out infinite;
-}
-
-.stock-out {
-  background: var(--gray);
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+.product-image-wrapper:hover .quick-view {
+  opacity: 1;          /* aparece al pasar el mouse */
+  pointer-events: auto;
 }
 
 /* =========================
@@ -216,21 +128,6 @@
    ========================= */
 .add-to-cart-form {
   width: 100%;
-}
-
-.btn-add-cart {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.6em 1.2em;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  position: relative;
 }
 
 .btn-add-cart:hover {
@@ -261,88 +158,9 @@
   transform: translateY(0);
 }
 
-.btn-disabled {
-  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.btn-disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* =========================
-   🔍 QUICK VIEW EN IMAGEN
-   ========================= */
-.product-image-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1em;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  height: 260px;
-}
-
-.quick-view {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0,0,0,0.6);
-  color: #fff;
-  padding: 0.4em 0.8em;
-  border-radius: 4px;
-  font-size: 0.9em;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  transition: opacity 0.3s ease;
-  opacity: 0;          /* oculto por defecto */
-  pointer-events: none; /* no clickeable cuando está oculto */
-}
-
-.product-image-wrapper:hover .quick-view {
-  opacity: 1;          /* aparece al pasar el mouse */
-  pointer-events: auto;
-}
-
-/* =========================
-   🛍️ PÁGINA DE TIENDA / SIN PRODUCTOS
-   ========================= */
-.no-products {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 80px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.no-products-icon {
-  width: 80px;
-  height: 80px;
-  color: var(--gray);
-  opacity: 0.5;
-}
-
-.no-products h3 {
-  font-size: 1.8rem;
-  color: var(--dark);
-  margin: 0;
-}
-
-.no-products p {
-  font-size: 1.1rem;
-  color: var(--gray);
-  margin: 0;
-}
-
 /* =========================
    🔢 PAGINACIÓN
+   Estilos para botones y números de página
    ========================= */
 .pagination {
   display: flex;
@@ -350,9 +168,10 @@
   align-items: center;
   gap: 15px;
   padding: 50px 20px;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Permite que se acomoden en varias líneas */
 }
 
+/* Botones "Anterior" y "Siguiente" */
 .pagination-btn {
   display: flex;
   align-items: center;
@@ -375,6 +194,7 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Números de página */
 .pagination-number {
   width: 45px;
   height: 45px;
@@ -396,89 +216,350 @@
   transform: translateY(-2px);
 }
 
+/* Página activa */
 .pagination-number.active {
   background: var(--gradient-primary);
   color: var(--white);
   box-shadow: var(--shadow-md);
 }
+
 /* =========================
-   📱 Modal
+   👁️ VISTA RÁPIDA MEJORADA
+   ========================= */
+.product-image-wrapper {
+  position: relative;
+  display: block;
+  background-color: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-image-wrapper:hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3); /* 🔹 Capa oscura */
+  border-radius: 8px;
+  z-index: 1;
+}
+
+/* 🔍 Botón flotante con animación */
+.quick-view {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: #fff;
+  color: #007bff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4em 0.6em;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.product-image-wrapper:hover .quick-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 📊 Datos flotantes: precio, stock, rating */
+.quick-info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  opacity: 0;
+  z-index: 2;
+  transition: opacity 0.3s ease;
+}
+
+.product-image-wrapper:hover .quick-info {
+  opacity: 1;
+}
+
+/* =========================
+   🪟 MODAL DE VISTA RÁPIDA
    ========================= */
 
+/* Contenedor del modal (fondo oscuro) */
 .modal {
-  display: none;
   position: fixed;
-  z-index: 999;
+  z-index: 9999;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.5);
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2em;
+  box-sizing: border-box;
+  animation: fadeBackdrop 0.3s ease;
 }
 
+/* Animación suave para el fondo del modal */
+@keyframes fadeBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Contenido del modal centrado y con scroll interno */
 .modal-content {
+  position: relative;
   background-color: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  border-radius: 6px;
-  width: 80%;
+  margin: auto;
   max-width: 500px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2em;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  animation: fadeInModal 0.4s ease;
 }
 
+/* Animación de entrada del contenido */
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Botón de cierre (X) visible y accesible */
 .close {
-  float: right;
-  font-size: 22px;
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 2rem;
   font-weight: bold;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  padding: 0.2em 0.5em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   cursor: pointer;
+  z-index: 10;
+  transition: color 0.3s ease;
 }
 
-/* 🔧 Alineación horizontal de filtros en pantallas grandes */
+.close:hover {
+  color: #d32f2f;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 480px) {
+  .modal-content {
+    max-width: 90%;
+    padding: 1.2em;
+  }
+
+  .close {
+    font-size: 1.6rem;
+    top: 8px;
+    right: 12px;
+  }
+}
+
+/* =========================
+   🎛️ FILTROS Y CONTROLES
+   ========================= */
+
+/* Alineación horizontal de filtros en pantallas grandes */
 .row.align-items-center {
-  display: flex;               /* Activa flexbox para alinear horizontalmente */
-  flex-wrap: wrap;             /* Permite que los elementos se ajusten si no caben */
-  align-items: center;         /* Centra verticalmente los elementos */
-  justify-content: space-between; /* Distribuye el espacio entre los elementos */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* 📐 Ajuste visual de inputs y selects dentro de la fila */
+/* Inputs y selects uniformes */
 .row.align-items-center .form-select,
 .row.align-items-center .form-control {
-  height: 45px;                /* Altura uniforme para todos los campos */
-  font-size: 16px;             /* Tamaño de texto legible y profesional */
+  height: 45px;
+  font-size: 16px;
 }
 
-
-/* 🎯 Estilo alternativo para filtros agrupados en una sola fila */
+/* Fila alternativa para filtros agrupados */
 .fila-filtros {
-  display: flex;               /* Alineación horizontal con flexbox */
-  flex-wrap: wrap;             /* Permite que se acomoden en varias líneas si es necesario */
-  align-items: center;         /* Centrado vertical */
-  gap: 10px;                   /* Espacio entre elementos */
-  margin-bottom: 20px;         /* Separación inferior respecto a otros bloques */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-/* 📐 Uniformidad visual en los campos dentro de .fila-filtros */
 .fila-filtros select,
 .fila-filtros input[type="text"],
 .fila-filtros button {
-  height: 45px;                /* Altura consistente para mejor alineación */
-  font-size: 16px;             /* Texto claro y profesional */
+  height: 45px;
+  font-size: 16px;
+}
+
+/* =========================
+   🛍️ TARJETA DE PRODUCTO lo nuevo
+   ========================= */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+/* =========================
+   🖼️ IMAGEN DEL PRODUCTO
+   ========================= */
+.product-image-wrapper {
+  position: relative;
+  display: block;
+  background-color: transparent;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.product-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain; /* ✅ ya no recorta, sino que ajusta */
+  max-height: 200px;
+  display: block;
+}
+
+
+/* =========================
+   🧾 CONTENIDO DEL PRODUCTO
+   ========================= */
+.product-content {
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+
+
+/* =========================
+   🛒 BOTÓN AGREGAR AL CARRITO
+   ========================= */
+.btn-add-cart {
+  width: 100%;
+  min-height: 40px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6em 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-add-cart:hover {
+  background-color: #0056b3;
+}
+
+.btn-add-cart i {
+  font-size: 1.1rem;
+}
+
+/* 🎯 Efecto táctil al presionar el botón */
+.btn-add-cart:active {
+  transform: scale(0.97);
+  background-color: #004a99;
+}
+
+/* 🎬 Animación de entrada cuando se carga el modal */
+@keyframes fadeInButton {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-add-cart {
+  animation: fadeInButton 0.4s ease;
+}
+
+/* =========================
+   💰 FOOTER HORIZONTAL
+   Precio + botón carrito
+   ========================= */
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8em 1em;
+  border-top: 1px solid var(--light-gray);
+}
+
+/* =========================
+   💸 BLOQUE DE PRECIOS
+   ========================= */
+.price-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+/* =========================
+   🛒 BOTÓN RECTANGULAR CON ÍCONO
+   ========================= */
+.btn-cart-icon {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;         /* 🔹 Bordes redondeados suaves */
+  padding: 0.4em 0.6em;       /* 🔹 Rectangular, no cápsula */
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-cart-icon:hover {
+  background-color: #0056b3;
+}
+
+/* 🔢 Control de cantidad profesional */
+.quantity-control .qty-btn {
+  width: 40px;
+  height: 38px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.quantity-control input#cantidad {
+  height: 38px;
 }
 
 /* =========================
    📱 RESPONSIVE COMPLETO
+   Ajustes para pantallas medianas, pequeñas y grandes
    ========================= */
 @media (max-width: 768px) {
-  /* 🧱 Grid adaptado para pantallas medianas */
+  /* Grid adaptado */
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
-    padding: 0;
   }
 
-  /* 📦 Imagen más compacta */
+  /* Imagen más compacta */
   .product-image-wrapper {
     height: 220px;
   }
@@ -488,7 +569,7 @@
     padding: 6px;
   }
 
-  /* 🔢 Paginación ajustada */
+  /* Paginación vertical */
   .pagination {
     padding: 30px 10px;
     flex-direction: column;
@@ -502,7 +583,7 @@
     margin-bottom: 10px;
   }
 
-  /* 🎛️ Controles de tienda alineados */
+  /* Controles simplificados */
   .shop-controls {
     padding: 1em;
     margin: 1em 0;

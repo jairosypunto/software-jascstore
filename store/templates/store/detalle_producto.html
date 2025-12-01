@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ producto.name }} | LatinShop{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row g-4">
+
+    <!-- 🖼️ Imagen del producto -->
+    <div class="col-md-6 text-center">
+      <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="img-fluid rounded shadow">
+    </div>
+
+    <!-- 📊 Información del producto -->
+    <div class="col-md-6">
+      <h2 class="fw-bold">{{ producto.name }}</h2>
+      <p class="text-muted">{{ producto.description }}</p>
+
+      <!-- 💰 Precio y descuento -->
+      {% if producto.discount > 0 %}
+        <p class="fs-4 text-danger fw-bold mb-1">${{ producto.final_price|floatformat:0 }}</p>
+        <p class="text-muted text-decoration-line-through">${{ producto.cost|floatformat:0 }}</p>
+        <span class="badge bg-success">-{{ producto.discount }}%</span>
+      {% else %}
+        <p class="fs-4 fw-bold">${{ producto.cost|floatformat:0 }}</p>
+      {% endif %}
+
+      <!-- 📦 Stock y disponibilidad (solo informativo) -->
+      {% if producto.is_available and producto.stock > 0 %}
+        <p class="text-success">Disponible ({{ producto.stock }} en stock)</p>
+      {% else %}
+        <p class="text-danger">No disponible</p>
+      {% endif %}
+
+      <!-- 🛒 Formulario de compra con selector de cantidad (SIEMPRE visible para depurar) -->
+     <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}">
+  {% csrf_token %}
+  <div class="mb-3" style="max-width: 220px;">
+    <label for="cantidad" class="form-label d-block">Cantidad:</label>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-secondary qty-btn" data-action="decrease">-</button>
+      <input type="number" id="cantidad" name="cantidad" class="form-control text-center"
+             value="1" min="1" max="{{ producto.stock|default:1 }}" required style="width: 80px;">
+      <button type="button" class="btn btn-outline-secondary qty-btn" data-action="increase">+</button>
+    </div>
+    <small class="text-muted d-block mt-1">Stock disponible: {{ producto.stock }}</small>
+  </div>
+  <button type="submit" class="btn btn-primary mt-2"
+          {% if not producto.is_available or producto.stock <= 0 %}disabled{% endif %}>
+    <i class="bi bi-cart-plus"></i> Agregar al carrito
+  </button>
+</form>
+
+      <!-- Mensaje si está deshabilitado -->
+      {% if not producto.is_available or producto.stock <= 0 %}
+        <p class="text-danger mt-2">Producto no disponible o sin stock. Selector visible para depuración.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Logs de depuración directos
+  console.log("[DEBUG] Cargando selector de cantidad en detalle_producto.html");
+  const cantidadInput = document.getElementById('cantidad');
+  const qtyButtons = document.querySelectorAll('.qty-btn');
+  console.log("[DEBUG] cantidadInput:", cantidadInput);
+  console.log("[DEBUG] qtyButtons count:", qtyButtons.length);
+
+  if (!cantidadInput) {
+    console.warn("[WARN] No se encontró #cantidad en el DOM. Verifica que el input esté en el HTML renderizado.");
+    return;
+  }
+  if (qtyButtons.length === 0) {
+    console.warn("[WARN] No se encontraron botones .qty-btn en el DOM. Verifica que el HTML renderizado contiene los botones.");
+  }
+
+  const min = parseInt(cantidadInput.min || '1', 10);
+  const max = parseInt(cantidadInput.max || '999999', 10);
+  console.log("[DEBUG] límites:", { min, max });
+
+  // Eventos +/-
+  qtyButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      let value = parseInt(cantidadInput.value || '1', 10);
+      const prev = value;
+
+      if (action === 'decrease') value = Math.max(min, value - 1);
+      if (action === 'increase') value = Math.min(max, value + 1);
+
+      cantidadInput.value = value;
+      console.log(`[DEBUG] ${action}: ${prev} -> ${value}`);
+    });
+  });
+
+  // Sanitiza entradas manuales
+  cantidadInput.addEventListener('input', () => {
+    let raw = cantidadInput.value;
+    let value = raw.replace(/\D/g, '');
+    if (value === '') value = String(min);
+    value = Math.max(min, Math.min(max, parseInt(value, 10)));
+    cantidadInput.value = value;
+    console.log(`[DEBUG] input manual: ${raw} -> ${value}`);
+  });
+});
+</script>
+{% endblock %}

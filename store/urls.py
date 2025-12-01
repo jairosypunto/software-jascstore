@@ -8,12 +8,14 @@ urlpatterns = [
     path('', views.store, name='store'),  # Página principal de la tienda
     path('category/<str:category_slug>/', views.productos_por_categoria, name='productos_por_categoria'),  # Filtro por categoría
     path('vista-rapida/<int:id>/', views.vista_rapida, name='vista_rapida'),  # Vista rápida de producto
-
+    path('producto/<slug:slug>/', views.detalle_producto, name='detalle_producto'),  # Vista detallada del producto
+    
     # 🛒 Carrito y compra
     path('agregar/<int:product_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),  # Agregar producto al carrito
     path('carrito/', views.ver_carrito, name='ver_carrito'),  # Ver contenido del carrito
     path('vaciar/', views.vaciar_carrito, name='vaciar_carrito'),  # Vaciar el carrito
     path('checkout/', views.checkout, name='checkout'),  # Proceso de pago
+    path('carrito/actualizar/<int:product_id>/', views.actualizar_cantidad, name='actualizar_cantidad'),  # Actualizar cantidad en el carrito
 
     # 💳 Pago y facturación
     path('confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),  # Confirmación de pago interno
