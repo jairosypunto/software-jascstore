@@ -181,6 +181,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'categorias.context_processors.menu_links',
                 'store.context_processors.total_items_carrito',
+                'store.context_processors.static_version',  # ✅ ESTA ES LA LÍNEA QUE DEBES AGREGAR
+
             ],
         },
     },
@@ -190,8 +192,18 @@ TEMPLATES = [
 # 🎨 ARCHIVOS ESTÁTICOS
 # ================================
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'usuario' / 'static',
+    BASE_DIR / 'store' / 'static',
+    BASE_DIR / 'home' / 'static',
+    BASE_DIR / 'auths' / 'static',
+    BASE_DIR / 'categorias' / 'static',
+    BASE_DIR / 'static',  # favicon y extras
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 
 # ================================
 # 🖼️ MEDIA
