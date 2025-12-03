@@ -4,50 +4,120 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: sans-serif; font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    th { background-color: #f2f2f2; }
+    body {
+      font-family: sans-serif;
+      font-size: 12px;
+      margin: 40px;
+      color: #2c3e50;
+    }
+    h2, h3 { margin-bottom: 10px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      table-layout: fixed;
+    }
+
+    td, th {
+      border: 1px solid #ccc;
+      padding: 6px;
+      vertical-align: top;
+      word-break: break-word;
+      white-space: normal;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      text-align: left;
+    }
+
+    .col-producto { width: 55%; }
+    .col-cantidad { width: 10%; text-align: center; white-space: nowrap; }
+    .col-unitario { width: 20%; white-space: nowrap; }
+    .col-subtotal { width: 15%; text-align: right; white-space: nowrap; }
+
+    .text-right { text-align: right; }
+    .text-muted { color: #888; font-size: 11px; }
+    .text-danger { color: #c0392b; }
+    .text-success { color: #27ae60; font-weight: bold; }
+
+    .resumen-descuento {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #555;
+    }
+
+    .resumen-descuento strong {
+      color: #2c3e50;
+    }
   </style>
 </head>
 <body>
-  <h2>Factura #{{ factura.id }}</h2>
-  
-  <!-- ✅ Botón de impresión fuera del área impresa -->
-<div style="margin-bottom: 20px;">
-  <button onclick="window.print()">🖨️ Imprimir o guardar PDF</button>
-</div>
+  <h2>🧾 Factura #{{ factura.id }} – LatinShop</h2>
+<p style="color:red; font-size:10px;">PLANTILLA ACTIVA V5</p>
+  <p><strong>Cliente:</strong> {{ factura.usuario.first_name|default:factura.usuario.username }}</p>
+  <p><strong>Email:</strong> {{ factura.usuario.email }}</p>
+  <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
+  <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
+  <p><strong>Estado del pago:</strong>
+    {% if factura.estado_pago == "Pendiente" %}
+      <span class="text-danger">Pendiente</span>
+    {% else %}
+      <span class="text-success">Pagado</span>
+    {% endif %}
+  </p>
+  {% if factura.banco %}
+    <p><strong>Banco utilizado:</strong> {{ factura.banco }}</p>
+  {% endif %}
+  {% if factura.transaccion_id %}
+    <p><strong>ID de transacción:</strong> {{ factura.transaccion_id }}</p>
+  {% endif %}
 
-
-  <p>Cliente: {{ factura.usuario.username }}</p>
-  <p>Email: {{ factura.usuario.email }}</p>
-  <p>Fecha: {{ factura.fecha }}</p>
-  <p>Método de pago: {{ factura.metodo_pago }}</p>
-  <p>Estado del pago: {{ factura.estado_pago }}</p>
-<p>DEBUG: {{ factura.usuario.username }}</p>
-  <h3>Detalles del pedido:</h3>
+  <h3>🛍 Detalles del pedido:</h3>
   <table>
     <thead>
       <tr>
-        <th>Producto</th>
-        <th>Cantidad</th>
-        <th>Subtotal</th>
+        <th class="col-producto">Producto</th>
+        <th class="col-cantidad">Cantidad</th>
+        <th class="col-unitario">Precio unitario</th>
+        <th class="col-subtotal">Subtotal</th>
       </tr>
     </thead>
     <tbody>
-      {% for item in factura.detallefactura_set.all %}
+      {% for item in factura.detalles.all %}
       <tr>
-        <td>{{ item.producto.name }}</td>
-        <td>{{ item.cantidad }}</td>
-        <td>${{ item.subtotal|intcomma }}</td>
+        <td class="col-producto">{{ item.producto.title }}</td>
+        <td class="col-cantidad">{{ item.cantidad }}</td>
+        <td class="col-unitario">
+          ${{ item.producto.final_price|floatformat:0|intcomma }}
+        </td>
+        <td class="col-subtotal">
+          ${{ item.subtotal|floatformat:0|intcomma }}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <p>Subtotal: ${{ subtotal|intcomma }}</p>
-  <p>IVA: ${{ iva|intcomma }}</p>
-  <p>Descuento: ${{ descuento|intcomma }}</p>
-  <p><strong>Total pagado: ${{ total_final|intcomma }}</strong></p>
+  {% for item in factura.detalles.all %}
+    {% if item.producto.discount > 0 %}
+      <div class="resumen-descuento">
+        <strong>{{ item.producto.title }}</strong>: Antes ${{ item.producto.cost|floatformat:0|intcomma }} ({{ item.producto.discount }}% de descuento)
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  <div class="text-right" style="margin-top: 20px;">
+    <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
+    <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
+    <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
+    <p><strong>Total pagado:</strong> <span class="text-success">${{ total_final|floatformat:0|intcomma }}</span></p>
+    <p class="text-muted">El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.</p>
+  </div>
+
+  <p class="text-muted" style="margin-top: 30px;">
+    Esta factura ha sido generada electrónicamente por JascShop. Válida sin firma. Gracias por tu compra.
+  </p>
 </body>
 </html>

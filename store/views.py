@@ -1,19 +1,32 @@
+# Librerías estándar de Python
 from decimal import Decimal
+from io import BytesIO
 
+# Django
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.http import HttpResponse
 
-from .models import Product, Factura, DetalleFactura
+# Modelos propios
+from .models import Product, Factura, DetalleFactura, Banner
 from categorias.models import Category
-from django.contrib.auth.decorators import login_required
 
-from .models import Banner, Product
-from django.conf import settings
+# Utilidades propias
+from store.utils import formatear_numero
 
-# =========================
-# Utilidades internas
-# =========================
+# ReportLab (para PDF)
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+
+
 
 def _precio_final(producto: Product) -> Decimal:
     """
@@ -61,12 +74,6 @@ def _items_carrito(request):
 
     return items, subtotal_sin_desc, subtotal_con_desc
 
-# =========================
-# Carrito (sesiones)
-# =========================
-
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
 
 def agregar_al_carrito(request, product_id):
     """
@@ -148,10 +155,6 @@ def ver_carrito(request):
     }
     return render(request, 'store/carrito.html', context)
 
-
-# =========================
-# Tienda y catálogo
-# =========================
 def store(request):
     """
     Listado de productos:
@@ -224,10 +227,6 @@ def productos_por_categoria(request, category_slug):
     return render(request, 'store/productos_por_categoria.html', context)
 
 
-# =========================
-# Checkout y pago
-# =========================
-
 def checkout(request):
     """
     Resumen previo a confirmación de pago:
@@ -257,39 +256,6 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
-
-def confirmar_pago(request):
-    """
-    Valida método de pago y autenticación.
-    Redirige al flujo adecuado (banco o generar factura).
-    """
-    if request.method == "POST":
-        carrito = request.session.get('carrito', {})
-        metodo_pago = request.POST.get('metodo_pago', 'No especificado')
-
-        if not carrito:
-            messages.error(request, "Tu carrito está vacío.")
-            return redirect('store:checkout')
-
-        if metodo_pago not in ["banco", "contraentrega"]:
-            messages.error(request, "Debes seleccionar un método de pago válido.")
-            return redirect('store:checkout')
-
-        # Si no está autenticado, guarda bandera y redirige a login con next
-        if not request.user.is_authenticated:
-            request.session['mostrar_acceso_requerido'] = True
-            return redirect('/account/login/?next=/store/checkout/')
-        # Persistimos datos necesarios
-        request.session['carrito'] = carrito
-        request.session['metodo_pago'] = metodo_pago
-        # Continuación del flujo
-        if metodo_pago == "banco":
-            return redirect('store:simular_pago_banco')
-        else:
-            return redirect('store:generar_factura')
-    return redirect('store:checkout')
-
-# ✅ Vista protegida: solo usuarios autenticados pueden generar facturas
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
     carrito = request.session.get('carrito', {})
@@ -304,7 +270,7 @@ def generar_factura(request):
         usuario=request.user,
         total=Decimal('0.00'),
         metodo_pago=metodo_pago,
-        banco=banco_seleccionado,  # ✅ se guarda el banco
+        banco=banco_seleccionado,
     )
     request.session["factura_id"] = factura.id
 
@@ -316,8 +282,10 @@ def generar_factura(request):
     for pid_str, cantidad in carrito.items():
         producto = get_object_or_404(Product, id=int(pid_str))
         cantidad = int(cantidad)
+
         precio_original = Decimal(str(producto.cost))
         precio_final = _precio_final(producto)
+
         subtotal_original = precio_original * cantidad
         subtotal_final = precio_final * cantidad
 
@@ -328,9 +296,11 @@ def generar_factura(request):
             subtotal=subtotal_final
         )
         items_detalle.append(detalle)
+
         subtotal_sin_desc += subtotal_original
         subtotal_con_desc += subtotal_final
-        if not producto.is_tax_exempt:
+
+        if not getattr(producto, "is_tax_exempt", False):
             iva_total += subtotal_final * Decimal('0.19')
 
     descuento_total = subtotal_sin_desc - subtotal_con_desc
@@ -347,18 +317,26 @@ def generar_factura(request):
     factura.save()
 
     request.session['carrito'] = {}
-    enviar_factura_por_correo(factura, request.user)  # ✅ banco incluido en correo
+
+    fecha_local = localtime(factura.fecha)
 
     contexto = {
         "factura": factura,
         "items": items_detalle,
+        "fecha_local": fecha_local,
         "subtotal": subtotal_con_desc,
         "iva": iva_total,
         "descuento": descuento_total,
         "total_final": total_final,
         "estado_pago": estado_pago,
     }
-    return render(request, "store/factura.html", contexto)
+
+    enviar_factura_por_correo(factura, request.user, contexto)
+
+    if metodo_pago == "banco":
+        return redirect("store:pago_banco")
+    else:
+        return render(request, "store/factura.html", contexto)
 
 # ✅ Vista protegida: solo el dueño puede ver su factura
 @login_required(login_url='/accounts/login/')
@@ -366,10 +344,13 @@ def ver_factura(request, factura_id):
     # 🔍 Buscar la factura del usuario actual
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
 
+    # 📦 Acceder a los detalles con el related_name correcto
+    items = factura.detalles.all()
+
     # 📦 Preparar contexto con los datos de la factura
     contexto = {
         "factura": factura,
-        "items": factura.detallefactura_set.all(),
+        "items": items,
         "subtotal": factura.total - factura.total * Decimal('0.19'),
         "iva": factura.total * Decimal('0.19'),
         "descuento": Decimal('0.00'),
@@ -377,12 +358,8 @@ def ver_factura(request, factura_id):
         "estado_pago": factura.estado_pago,
     }
 
-    # 🖥️ Renderizar plantilla PDF/HTML
+    # 🖥️ Renderizar plantilla HTML/PDF
     return render(request, "store/factura_pdf.html", contexto)
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import Factura
 
 # ✅ Vista protegida: historial de facturas del usuario autenticado
 @login_required(login_url='/accounts/login/')
@@ -394,6 +371,41 @@ def mis_facturas(request):
     return render(request, 'store/mis_facturas.html', {'facturas': facturas})
 
 
+
+def generar_factura_pdf(request, factura_id):
+    factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = f'filename="factura_{factura.id}.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # 🧾 Encabezado
+    elements.append(Paragraph(f"Factura #{factura.id}", styles['Title']))
+    elements.append(Paragraph(f"Cliente: {factura.usuario}", styles['Normal']))
+    elements.append(Paragraph(f"Total: {factura.total}", styles['Normal']))
+    elements.append(Paragraph(f"Estado: {factura.estado_pago}", styles['Normal']))
+
+    # 📦 Tabla de productos
+    data = [["Producto", "Cantidad", "Precio"]]
+    for item in factura.detalles.all():   # ✅ usar el related_name correcto
+        data.append([item.producto.nombre, item.cantidad, item.subtotal])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+    ]))
+    elements.append(table)
+
+    doc.build(elements)
+    return response
+
+
 def simular_pago_banco(request):
     """
     Pantalla de simulación de pago por banco.
@@ -402,11 +414,6 @@ def simular_pago_banco(request):
     if request.method == "POST":
         return redirect('store:generar_factura')
     return render(request, "store/simular_pago_banco.html")
-
-
-# =========================
-# Login y páginas informativas
-# =========================
 
 def login_view(request):
     """
@@ -419,56 +426,57 @@ def login_view(request):
         'next': next_url
     })
 
-from io import BytesIO
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 def formato_numero(valor):
     return f"{valor:,.2f}".replace(",", ".").replace(".", ",", 1)
 
-def enviar_factura_por_correo(factura, usuario):
-    asunto = f"Factura #{factura.id} - LatinShop"
+def enviar_factura_por_correo(factura, usuario, contexto=None):
+    if contexto is None:
+        subtotal = factura.total / Decimal('1.19')
+        iva = factura.total - subtotal
+        contexto = {
+            "factura": factura,
+            "subtotal": subtotal,
+            "iva": iva,
+            "descuento": Decimal('0.00'),
+            "total_final": factura.total,
+            "banco": factura.banco
+        }
 
-    mensaje = render_to_string('store/factura_email.html', {
-        'factura': factura,
-        'subtotal': factura.total - factura.total * Decimal('0.19'),
-        'iva': factura.total * Decimal('0.19'),
-        'descuento': Decimal('0.00'),
-        'total_final': factura.total,
-        'banco': factura.banco  # ✅ se pasa al template del correo
-    })
+    asunto = f"Factura #{factura.id} - LatinShop"
+    mensaje = render_to_string('store/factura_email.html', contexto)
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
     estilos = getSampleStyleSheet()
 
-    # Encabezado
     elementos.append(Paragraph(f"<b>Factura #{factura.id} - LatinShop</b>", estilos['Title']))
     elementos.append(Spacer(1, 12))
     elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
     elementos.append(Paragraph(f"Email: {usuario.email}", estilos['Normal']))
-    elementos.append(Paragraph(f"Fecha: {factura.fecha}", estilos['Normal']))
+    elementos.append(Paragraph(f"Fecha: {contexto.get('fecha_local', factura.fecha)}", estilos['Normal']))
     elementos.append(Paragraph(f"Método de pago: {factura.metodo_pago}", estilos['Normal']))
     elementos.append(Paragraph(f"Estado del pago: {factura.estado_pago}", estilos['Normal']))
     if factura.banco:
-        elementos.append(Paragraph(f"Banco utilizado: {factura.banco}", estilos['Normal']))  # ✅ banco en PDF
+        elementos.append(Paragraph(f"Banco utilizado: {factura.banco}", estilos['Normal']))
     elementos.append(Spacer(1, 12))
 
-    # Tabla de productos
-    datos = [["Producto", "Cantidad", "Subtotal"]]
+    datos = [["Producto", "Cantidad", "Precio unitario", "Subtotal"]]
     for item in factura.detalles.all():
+        precio_final = item.subtotal / item.cantidad
+        precio_original = Decimal(item.producto.cost)
+        texto_precio = f"${formatear_numero(precio_final)}"
+        if item.producto.discount > 0:
+            texto_precio += f" (antes ${formatear_numero(precio_original)})"
         datos.append([
             item.producto.name,
             str(item.cantidad),
-            f"${formato_numero(item.subtotal)}"
+            texto_precio,
+            f"${formatear_numero(item.subtotal)}"
         ])
 
-    tabla = Table(datos, colWidths=[250, 100, 100])
+    tabla = Table(datos, colWidths=[250, 80, 100, 100])
     tabla.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f2f2f2")),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
@@ -481,16 +489,10 @@ def enviar_factura_por_correo(factura, usuario):
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
-    # Totales
-    subtotal = factura.total - factura.total * Decimal('0.19')
-    iva = factura.total * Decimal('0.19')
-    descuento = Decimal('0.00')
-    total_final = factura.total
-
-    elementos.append(Paragraph(f"<b>Subtotal:</b> ${formato_numero(subtotal)}", estilos['Normal']))
-    elementos.append(Paragraph(f"<b>IVA (19%):</b> ${formato_numero(iva)}", estilos['Normal']))
-    elementos.append(Paragraph(f"<b>Descuento:</b> ${formato_numero(descuento)}", estilos['Normal']))
-    elementos.append(Paragraph(f"<b>Total pagado:</b> ${formato_numero(total_final)}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Subtotal:</b> ${formatear_numero(contexto['subtotal'])}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>IVA (19%):</b> ${formatear_numero(contexto['iva'])}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Descuento:</b> ${formatear_numero(contexto['descuento'])}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Total pagado:</b> ${formatear_numero(contexto['total_final'])}", estilos['Normal']))
 
     doc.build(elementos)
     buffer.seek(0)
@@ -526,6 +528,7 @@ def ver_factura(request, factura_id):
 
 
 # ✅ Vista 'pre-Wompi': prepara datos y muestra el formulario que luego redirigirá al checkout de Wompi
+
 def pago_banco_widget(request):
     # 🧾 Obtener factura desde la sesión
     factura_id = request.session.get("factura_id")
@@ -543,9 +546,13 @@ def pago_banco_widget(request):
         banco = request.POST.get("banco")
         request.session["banco_seleccionado"] = banco
         print("🏦 Banco seleccionado:", banco)
-        return redirect("store:confirmacion_pago")
 
-    # 💳 Preparar contexto para el widget de pago
+        # ✅ Redirigir directamente a confirmación simulada
+        redirect_url = reverse("store:confirmacion_pago")
+        redirect_url += f"?status=APPROVED&reference={factura.id}"
+        return redirect(redirect_url)
+
+    # 💳 Preparar contexto inicial para el widget de pago
     context = {
         "public_key": getattr(settings, "WOMPI_PUBLIC_KEY", "pub_test_simulada"),
         "amount": int(factura.total * 100),  # centavos
@@ -557,6 +564,8 @@ def pago_banco_widget(request):
     return render(request, "store/pago_banco_widget.html", context)
 
 
+from django.utils.timezone import localtime
+
 def confirmacion_pago(request):
     """
     Confirmación provisional:
@@ -566,19 +575,46 @@ def confirmacion_pago(request):
     estado = request.GET.get("status", "SIMULADO")
     referencia = request.GET.get("reference")
 
-    factura = None
-    if referencia:
-        factura = Factura.objects.filter(id=referencia).first()
+    factura = Factura.objects.filter(id=referencia).first() if referencia else None
 
     if factura:
         factura.estado = "Pagada" if estado == "APPROVED" else "Fallida"
+        fecha_local = localtime(factura.fecha)  # ✅ Hora local Colombia
         factura.save()
 
+        # ✅ Recuperar detalles de factura
+        items = factura.detalles.all()
+
+        # 🧮 Calcular totales
+        subtotal = sum(d.subtotal for d in items)
+        iva = sum(
+            d.subtotal * Decimal('0.19')
+            for d in items
+            if not d.producto.is_tax_exempt
+        )
+        descuento = sum(
+            (Decimal(d.producto.cost) - _precio_final(d.producto)) * d.cantidad
+            for d in items
+        )
+        total_final = subtotal + iva  # ✅ Incluye descuento
+
+        contexto = {
+            "factura": factura,
+            "items": items,
+            "subtotal": subtotal,
+            "iva": iva,
+            "descuento": descuento,
+            "total_final": total_final,
+            "estado_pago": factura.estado_pago,
+            "fecha_local": fecha_local,  # ✅ hora local para el PDF
+
+        }
+        return render(request, "store/factura.html", contexto)
+
+    # ⚠️ Si no hay factura válida, mostrar mensaje genérico
     context = {"estado": estado, "referencia": referencia}
     return render(request, "store/confirmacion_pago.html", context)
 
-
-from django.shortcuts import render
 
 def detalle_producto(request, product_id):
     producto = get_object_or_404(Product, id=product_id)
@@ -610,6 +646,7 @@ def actualizar_cantidad(request, product_id):
     request.session['carrito'] = carrito
     messages.success(request, f"Cantidad actualizada: {producto.name} → {nueva} und.")
     return redirect('store:ver_carrito')
+
 
 # 🌐 Vista informativa de "Nosotros"
 def nosotros(request):

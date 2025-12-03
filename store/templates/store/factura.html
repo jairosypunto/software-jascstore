@@ -1,76 +1,102 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load humanize %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-header bg-success text-white">
-      <h4 class="mb-0">🧾 Factura #{{ factura.id }}</h4>
-    </div>
-    <div class="card-body">
-      <p><strong>📅 Fecha de emisión:</strong> {{ factura.fecha|date:"d M Y H:i" }}</p>
-      <p><strong>👤 Cliente:</strong> {{ user.first_name|default:user.username }}</p>
-      <p><strong>💳 Estado del pago:</strong>
-        {% if estado_pago == "Pendiente" %}
-          <span class="text-warning fw-bold">Pendiente</span>
+<div class="container mt-5">
+
+  <div class="text-end mb-3">
+    <button onclick="imprimirFactura()" class="btn btn-primary">🖨️ Imprimir factura</button>
+  </div>
+
+  <div id="factura">
+    <h2 class="mb-4">🧾 Confirmación de pago – Factura #{{ factura.id }}</h2>
+
+    <div class="mb-3">
+      <p><strong>Cliente:</strong> {{ factura.usuario.first_name|default:factura.usuario.username }}</p>
+      <p><strong>Email:</strong> {{ factura.usuario.email }}</p>
+      <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
+      <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
+      <p><strong>Estado del pago:</strong>
+        {% if factura.estado_pago == "Pendiente" %}
+          <span class="text-danger">Pendiente</span>
         {% else %}
-          <span class="text-success fw-bold">Pagado</span>
+          <span class="text-success">Pagado</span>
         {% endif %}
       </p>
-      <p><strong>💰 Método de pago:</strong> {{ factura.metodo_pago }}</p>
       {% if factura.banco %}
-        <p><strong>🏦 Banco utilizado:</strong> {{ factura.banco }}</p>
+        <p><strong>Banco utilizado:</strong> {{ factura.banco }}</p>
       {% endif %}
-      <p><strong>🔐 ID de transacción:</strong> {{ factura.transaccion_id|default:"No disponible" }}</p>
+      {% if factura.transaccion_id %}
+        <p><strong>ID de transacción:</strong> {{ factura.transaccion_id }}</p>
+      {% endif %}
+    </div>
 
-      <hr>
+    <h4>🛍 Detalles del pedido:</h4>
+    <table class="table table-bordered mt-3" style="table-layout: fixed;">
+      <thead class="table-light">
+        <tr>
+          <th style="width:40%;">Producto</th>
+          <th style="width:10%; text-align:center;">Cantidad</th>
+          <th style="width:30%;">Precio unitario</th>
+          <th style="width:20%; text-align:right;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in factura.detalles.all %}
+        <tr>
+          <td>{{ item.producto.name }}</td>
+          <td style="text-align:center; white-space: nowrap;">{{ item.cantidad }}</td>
+          <td style="word-break: break-word;">
+            {% if item.producto.discount > 0 %}
+              <div><strong>${{ item.producto.final_price|floatformat:0|intcomma }}</strong></div>
+              <div class="text-muted" style="font-size:13px;">
+                Antes: ${{ item.producto.cost|floatformat:0|intcomma }}<br>
+                (-{{ item.producto.discount }}%)
+              </div>
+            {% else %}
+              ${{ item.producto.cost|floatformat:0|intcomma }}
+            {% endif %}
+          </td>
+          <td style="text-align:right; white-space: nowrap;">${{ item.subtotal|floatformat:0|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-      <h5 class="fw-bold text-secondary">🛍 Detalles del pedido</h5>
-      <table class="table table-bordered text-center align-middle">
-        <thead class="table-light">
-          <tr>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio unitario</th>
-            <th>Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in items %}
-          <tr>
-            <td>{{ item.producto.name }}</td>
-            <td>{{ item.cantidad }}</td>
-            <td>
-              {% if item.producto.discount > 0 %}
-                ${{ item.producto.final_price|floatformat:0 }}
-                <small class="text-muted d-block">
-                  <span class="text-decoration-line-through">${{ item.producto.cost|floatformat:0 }}</span>
-                  (-{{ item.producto.discount }}%)
-                </small>
-              {% else %}
-                ${{ item.producto.cost|floatformat:0 }}
-              {% endif %}
-            </td>
-            <td>${{ item.subtotal|floatformat:0 }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <div class="text-end mt-4">
-        <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0 }}</p>
-        <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0 }}</p>
-        <p><strong>Descuento:</strong> -${{ descuento|floatformat:0 }}</p>
-        <h5 class="mt-3">💵 Total pagado: <span class="text-success">${{ total_final|floatformat:0 }}</span></h5>
-      </div>
-
-      <hr>
-
-      <p class="text-muted">Gracias por tu compra. Tu pedido será procesado y enviado en las próximas 24-48 horas.</p>
-      <p class="text-muted">Factura validada electrónicamente – LatinShop 2025</p>
-
-      <a href="{% url 'store:store' %}" class="btn btn-outline-primary mt-3">Volver a la tienda</a>
+    <div class="text-end mt-4">
+      <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
+      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
+      <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
+      <h5 class="mt-3">💵 Total pagado: <span class="text-success fw-bold">${{ total_final|floatformat:0|intcomma }}</span></h5>
+      <p class="text-muted">El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.</p>
     </div>
   </div>
+
+  <div class="text-center mt-4">
+    <a href="{% url 'store:store' %}" class="btn btn-outline-secondary">🛍 Volver a la tienda</a>
+  </div>
+
+  <script>
+    function imprimirFactura() {
+      const contenido = document.getElementById("factura").innerHTML;
+      const ventana = window.open("", "", "width=800,height=600");
+      ventana.document.write(`
+        <html>
+          <head>
+            <title>Factura</title>
+            <style>
+              body { font-family: sans-serif; font-size: 12px; margin: 40px; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #ccc; padding: 6px; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>${contenido}</body>
+        </html>
+      `);
+      ventana.document.close();
+      ventana.print();
+    }
+  </script>
 </div>
 {% endblock %}

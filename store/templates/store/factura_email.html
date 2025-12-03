@@ -5,6 +5,9 @@
 <p><strong>Fecha de compra:</strong> {{ factura.fecha }}</p>
 <p><strong>Estado del pago:</strong> {{ factura.estado_pago }}</p>
 <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
+{% if factura.banco %}
+  <p><strong>Banco utilizado:</strong> {{ factura.banco }}</p>
+{% endif %}
 
 <h3>🧾 Detalles del pedido:</h3>
 <table style="width:100%; border-collapse: collapse;" border="1" cellpadding="6" cellspacing="0">

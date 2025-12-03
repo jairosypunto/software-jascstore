@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Pago bancario{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -13,7 +17,8 @@
           Estás a punto de realizar el pago por banco. Selecciona tu entidad y confirma para continuar.
         </p>
 
-        <form method="POST">
+        <!-- Formulario de selección de banco -->
+        <form method="POST" action="">
           {% csrf_token %}
           <div class="mb-4">
             <label for="banco" class="form-label fw-bold">🏦 Selecciona tu banco:</label>
@@ -28,6 +33,7 @@
             </select>
           </div>
 
+          <!-- Resumen de factura -->
           <div class="mt-4">
             <h5 class="fw-bold text-secondary">🧾 Resumen de factura</h5>
             <ul class="list-group list-group-flush">
@@ -46,13 +52,21 @@
             </ul>
           </div>
 
+          <!-- Botón de confirmación -->
           <div class="text-center mt-4">
-            <button type="submit" class="btn btn-success btn-lg px-5"
-              onclick="this.innerText='Procesando...'; this.classList.add('disabled');">
+            <button type="submit" class="btn btn-success btn-lg px-5">
               ✅ Confirmar pago bancario
             </button>
           </div>
         </form>
+
+        <!-- Datos de integración con Wompi (para pruebas) -->
+        <hr class="mt-4">
+        <h6 class="fw-bold text-secondary">🔗 Datos de integración</h6>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item">Public Key: {{ public_key }}</li>
+          <li class="list-group-item">Redirect URL: {{ redirect_url }}</li>
+        </ul>
       </div>
     </div>
   </div>

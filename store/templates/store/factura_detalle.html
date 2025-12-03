@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+
+  <!-- 🧾 Encabezado de la factura -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">Factura #{{ factura.id }}</h2>
+    <span class="badge {% if factura.estado_pago == 'Pagado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+      {{ estado_pago }}
+    </span>
+  </div>
+
+  <!-- 👤 Datos del cliente -->
+  <div class="mb-4">
+    <h5>Cliente</h5>
+    <p>{{ factura.usuario.get_full_name|default:factura.usuario.username }}</p>
+    <p>Email: {{ factura.usuario.email }}</p>
+  </div>
+
+  <!-- 📦 Tabla de productos -->
+  <h5>Detalle de productos</h5>
+  <table class="table table-bordered table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Precio unitario</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>{{ item.producto.nombre }}</td>
+          <td>{{ item.cantidad }}</td>
+          <td>${{ item.precio|floatformat:0 }}</td>
+          <td>${{ item.cantidad|floatformat:0|add:item.precio }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">No hay productos en esta factura.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- 💰 Totales -->
+  <div class="row justify-content-end mt-4">
+    <div class="col-md-4">
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Subtotal</span>
+          <strong>${{ subtotal|floatformat:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>IVA (19%)</span>
+          <strong>${{ iva|floatformat:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Descuento</span>
+          <strong>${{ descuento|floatformat:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between bg-light">
+          <span>Total</span>
+          <strong class="text-primary">${{ total_final|floatformat:0 }}</strong>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 🔗 Botón volver -->
+  <div class="mt-4">
+    <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-secondary">← Volver a mis facturas</a>
+  </div>
+
+</div>
+{% endblock %}

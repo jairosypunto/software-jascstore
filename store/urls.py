@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from django.urls import path, include
+from store.views import generar_factura_pdf
+
 
 app_name = 'store'
 
@@ -18,13 +21,16 @@ urlpatterns = [
     path('carrito/actualizar/<int:product_id>/', views.actualizar_cantidad, name='actualizar_cantidad'),  # Actualizar cantidad en el carrito
 
     # 💳 Pago y facturación
-    path('confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),  # Confirmación de pago interno
+    path('confirmar-pago/', views.confirmacion_pago, name='confirmar_pago'),  # Confirmación de pago interno
     path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),  # Simulación de pago bancario
     path('pago-banco/', views.pago_banco_widget, name='pago_banco'),  # Flujo real de pago bancario (Wompi)
     path('confirmacion-pago/', views.confirmacion_pago, name='confirmacion_pago'),  # Resultado del pago bancario
     path('generar-factura/', views.generar_factura, name='generar_factura'),  # Generar factura tras pago
     path('mis-facturas/', views.mis_facturas, name='mis_facturas'),  # Ver facturas del usuario
     path('factura/<int:factura_id>/', views.ver_factura, name='ver_factura'),  # Detalle de factura específica
+    path('factura/pdf/<int:factura_id>/', generar_factura_pdf, name='generar_factura_pdf'),
+    
+
 
     # 👤 Usuario y autenticación
     path('login/', views.login_view, name='login'),  # Inicio de sesión
@@ -32,4 +38,6 @@ urlpatterns = [
     # 📄 Información institucional
     path('nosotros/', views.nosotros, name='nosotros'),  # Página "Nosotros"
     path('contacto/', views.contacto, name='contacto'),  # Página "Contacto"
+    path('pedidos/', include('pedidos.urls')),  # ✅ anidado dentro de store
+
 ]

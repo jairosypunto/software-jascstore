@@ -31,3 +31,5 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.user.username}"
+    
+    
