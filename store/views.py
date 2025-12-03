@@ -341,16 +341,11 @@ def generar_factura(request):
 # ✅ Vista protegida: solo el dueño puede ver su factura
 @login_required(login_url='/accounts/login/')
 def ver_factura(request, factura_id):
-    # 🔍 Buscar la factura del usuario actual
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
 
-    # 📦 Acceder a los detalles con el related_name correcto
-    items = factura.detalles.all()
-
-    # 📦 Preparar contexto con los datos de la factura
     contexto = {
         "factura": factura,
-        "items": items,
+        "items": factura.detalles.all(),  # ✅ usar el related_name correcto
         "subtotal": factura.total - factura.total * Decimal('0.19'),
         "iva": factura.total * Decimal('0.19'),
         "descuento": Decimal('0.00'),
@@ -358,7 +353,6 @@ def ver_factura(request, factura_id):
         "estado_pago": factura.estado_pago,
     }
 
-    # 🖥️ Renderizar plantilla HTML/PDF
     return render(request, "store/factura_pdf.html", contexto)
 
 # ✅ Vista protegida: historial de facturas del usuario autenticado
@@ -515,7 +509,7 @@ def ver_factura(request, factura_id):
     # 📦 Preparar contexto con los datos de la factura
     contexto = {
         "factura": factura,
-        "items": factura.detallefactura_set.all(),
+        "items": factura.detalles.all(),  # ✅ usar el related_name correcto
         "subtotal": factura.total - factura.total * Decimal('0.19'),
         "iva": factura.total * Decimal('0.19'),
         "descuento": Decimal('0.00'),
