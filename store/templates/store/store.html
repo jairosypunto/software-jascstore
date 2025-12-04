@@ -289,25 +289,38 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 👁️ Vista rápida de producto con carga dinámica
-  document.querySelectorAll('.quick-view').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const id = this.dataset.id;
-      if (!id) return;
+// 👁️ Vista rápida de producto con carga dinámica
+document.querySelectorAll('.quick-view').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const id = this.dataset.id;
+    if (!id) return;
 
-      fetch(`/store/vista-rapida/${id}/`)
-        .then(res => res.text())
-        .then(html => {
-          document.getElementById('contenidoProducto').innerHTML = html;
-          document.getElementById('vistaRapidaModal').style.display = 'block';
-        })
-        .catch(() => {
-          document.getElementById('contenidoProducto').innerHTML = '<p class="text-danger">Error al cargar el producto.</p>';
-          document.getElementById('vistaRapidaModal').style.display = 'block';
+    fetch(`/store/vista-rapida/${id}/`)
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('contenidoProducto').innerHTML = html;
+        document.getElementById('vistaRapidaModal').style.display = 'block';
+
+        // 🚀 Inicializar Swiper del producto después de cargar el HTML
+        new Swiper(".productSwiper", {
+          loop: true,
+          navigation: {
+            nextEl: ".productSwiper .swiper-button-next",
+            prevEl: ".productSwiper .swiper-button-prev"
+          },
+          pagination: {
+            el: ".productSwiper .swiper-pagination",
+            clickable: true
+          }
         });
-    });
+      })
+      .catch(() => {
+        document.getElementById('contenidoProducto').innerHTML = '<p class="text-danger">Error al cargar el producto.</p>';
+        document.getElementById('vistaRapidaModal').style.display = 'block';
+      });
   });
+});
 
   // ❌ Cierre del modal
   const modal = document.getElementById('vistaRapidaModal');

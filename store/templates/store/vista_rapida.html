@@ -1,9 +1,30 @@
 {% load humanize %}
 
 <div class="vista-rapida-contenido text-center" style="padding: 1.5em;">
-  <!-- 🖼️ Imagen del producto -->
-  <img src="{{ producto.image.url }}" alt="{{ producto.name }}"
-       style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-bottom:1em;">
+
+  <!-- 🖼️ Carrusel de imágenes del producto -->
+  <div class="swiper productSwiper" style="margin-bottom:1em;">
+    <div class="swiper-wrapper">
+      <!-- Imagen principal -->
+      <div class="swiper-slide">
+        <img src="{{ producto.image.url }}" alt="{{ producto.name }}"
+             style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+      </div>
+
+      <!-- Imágenes adicionales -->
+      {% for img in producto.images.all %}
+        <div class="swiper-slide">
+          <img src="{{ img.image.url }}" alt="{{ producto.name }}"
+               style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Controles del carrusel -->
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-pagination"></div>
+  </div>
 
   <!-- 📝 Nombre y descripción -->
   <h3 style="font-size:1.4rem; font-weight:600; margin-bottom:0.5em;">{{ producto.name }}</h3>
