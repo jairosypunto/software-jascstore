@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "cambia-esto-en-produccion")
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "jairos.pythonanywhere.com",
@@ -149,16 +149,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ================================
 # 🔐 LOGIN / LOGOUT
 # ================================
-# URL de login (vista con name='login')
 LOGIN_URL = "account:login"
-
-# ✅ Redirigir al dashboard después de iniciar sesión
 LOGIN_REDIRECT_URL = "/account/dashboard/"
-
-# URL de logout (vista con name='logout')
 LOGOUT_URL = "account:logout"
-
-# ✅ Redirigir a home después de cerrar sesión
 LOGOUT_REDIRECT_URL = "/home/"
 
 # ================================
@@ -169,7 +162,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jairosypunto@gmail.com'         # ← tu correo real
-EMAIL_HOST_PASSWORD = 'exgy ltnm yitb nfcq'  # ← tu contraseña o app password
+EMAIL_HOST_PASSWORD = 'exgy ltnm yitb nfcq'        # ← tu contraseña o app password
 
 # ================================
 # 🆔 LLAVES PRIMARIAS
