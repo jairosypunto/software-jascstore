@@ -16,7 +16,7 @@ staticfiles/
 # Archivos de configuración y secretos
 *.env
 *.log
-settings.txt   # ⚠️ nunca versionar
+settings.txt
 
 # IDEs y editores
 .vscode/
@@ -40,7 +40,7 @@ Thumbs.db
 *.mo
 *.pot
 
-# Netlify (si lo usas en el futuro)
+# Netlify
 .netlify/
 
 # Carpeta de media (subidas dinámicas de usuarios/productos)
