@@ -29,7 +29,9 @@
           {% else %}
             <p class="text-muted">Por favor, llena el formulario para iniciar sesión:</p>
           {% endif %}
-          <form action="{% url 'login' %}" method="post">
+
+          <!-- ✅ Corrección: apuntar a la URL correcta -->
+          <form action="{% url 'account:login' %}" method="post">
               {% csrf_token %}
               <div class="form-group mb-3">
                 <label for="{{ form.username.id_for_label }}">Usuario</label>
@@ -42,18 +44,20 @@
               <input type="hidden" name="next" value="{{ next }}" />
               <button type="submit" class="btn btn-primary">Iniciar sesión</button>
           </form>
+
           <p class="mt-3">
-            <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+            <a href="{% url 'account:password_reset' %}">¿Olvidaste tu contraseña?</a>
           </p>
-            <div class="mt-4 text-center">
-              <p class="text-muted mb-1">¿Aún no tienes cuenta?</p>
-              <a href="{% url 'register' %}" class="btn btn-outline-primary">
-                Crear cuenta y continuar con tu compra
-              </a>
-              <p class="mt-2 small text-muted">
-                Registrarte te permite guardar tus pedidos, recibir confirmaciones y acceder a promociones exclusivas.
-              </p>
-            </div>
+
+          <div class="mt-4 text-center">
+            <p class="text-muted mb-1">¿Aún no tienes cuenta?</p>
+            <a href="{% url 'account:register' %}" class="btn btn-outline-primary">
+              Crear cuenta y continuar con tu compra
+            </a>
+            <p class="mt-2 small text-muted">
+              Registrarte te permite guardar tus pedidos, recibir confirmaciones y acceder a promociones exclusivas.
+            </p>
+          </div>
         </div>
       </div>
 

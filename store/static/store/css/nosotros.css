@@ -1,0 +1,15 @@
+.nosotros-section {
+  background-color: #f9f9f9;
+}
+
+.icon-box {
+  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+
+.icon-box:hover {
+  transform: translateY(-5px);
+}

@@ -43,3 +43,10 @@ def factura(request, order_id):
     # ✅ Recuperar el pedido del usuario
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'factura.html', {'order': order})
+
+
+@login_required
+def mis_pedidos(request):
+    # Aquí puedes traer los pedidos del usuario autenticado
+    # Ejemplo mínimo para que no falle:
+    return render(request, 'pedidos/mis_pedidos.html')

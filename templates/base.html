@@ -4,64 +4,79 @@
   {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 🧠 Título dinámico por vista -->
   <title>{% block title %}LatinShop{% endblock %}</title>
 
-  <!-- ✅ Bootstrap CDN -->
+  <!-- 🎨 Frameworks visuales -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- ✅ Favicon -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+
+  <!-- 🎯 Iconografía completa desde CDN oficial -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- 🖼️ Favicon para identidad visual -->
   <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 
-
-  <!-- ✅ Tus estilos -->
+  <!-- 📦 Estilos adicionales por vista (CSS específico de cada página) -->
   {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-{% if messages %}
-  <div class="container mt-3">
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
+  <!-- 🔔 Mensajes del sistema (login, errores, etc.) -->
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-  <!-- ✅ NAVBAR FIJO Y PROFESIONAL -->
+  <!-- 🧭 NAVBAR FIJO Y RESPONSIVO -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fijo">
     <div class="container-xl">
+
+      <!-- 🏠 Logo y nombre -->
       <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">LatinShop</a>
 
+      <!-- 📱 Botón hamburguesa para móviles -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
+      <!-- 📂 Menú principal -->
       <div class="collapse navbar-collapse" id="navbarContenido">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
-        <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'store:nosotros' %}">Nosotros</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a>
-        </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:nosotros' %}">Nosotros</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a></li>
         </ul>
 
+        <!-- 👤 Menú de usuario -->
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
           {% if user.is_authenticated %}
+            <!-- 👋 Saludo personalizado -->
             <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
+
+            <!-- 🛒 Carrito con contador -->
             <li class="nav-item position-relative">
               <a class="nav-link" href="{% url 'store:ver_carrito' %}">
-                🛒 Carrito
-            {% if total_items > 0 %}
-              <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill">
-                {{ total_items }}
-              </span>
-            {% endif %}
+                <i class="bi bi-cart"></i> Carrito
+                {% if total_items > 0 %}
+                  <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill">
+                    {{ total_items }}
+                  </span>
+                {% endif %}
               </a>
             </li>
+
+            <!-- ⚙️ Opciones de cuenta -->
             <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Contraseña</a></li>
+
+            <!-- 🔓 Logout -->
             <li class="nav-item">
               <form action="{% url 'logout' %}" method="post" class="d-inline">
                 {% csrf_token %}
@@ -69,6 +84,7 @@
               </form>
             </li>
           {% else %}
+            <!-- 🔐 Login y registro -->
             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
             <li class="nav-item"><a class="nav-link text-success fw-bold" href="{% url 'register' %}">Registro</a></li>
           {% endif %}
@@ -77,45 +93,38 @@
     </div>
   </nav>
 
-  <!-- ✅ CONTENIDO -->
-  <main class="contenido-principal">
+  <!-- 🖼️ Banner fuera del contenedor limitado -->
+  {% block banner_full %}{% endblock %}
+
+  <!-- 🧱 Contenido principal limitado y centrado -->
+  <div class="contenedor-tienda">
     {% block content %}{% endblock %}
-  </main>
+  </div>
 
-  <!-- ✅ Bootstrap JS -->
+  <!-- ⚙️ Scripts JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 
-  {% block extra_js %}
-  <!-- Swiper JS -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-<script>
-  window.addEventListener('load', function () {
-  const swiper = new Swiper('.mySwiper', {
-    loop: true,
-    loopFillGroupWithBlank: true,   // 🔑 rellena grupos incompletos
-    watchOverflow: false,
-    allowTouchMove: true,
-    autoplay: {
-      delay: 3000,
-      disableOnInteraction: false,
-      pauseOnMouseEnter: true
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
-    },
-    spaceBetween: 20,
-    slidesPerView: 1,
-    slidesPerGroup: 1,
-    breakpoints: {
-      480: { slidesPerView: 2, slidesPerGroup: 1 },
-      768: { slidesPerView: 3, slidesPerGroup: 1 },
-      1024: { slidesPerView: 4, slidesPerGroup: 1 },
-      1400: { slidesPerView: 5, slidesPerGroup: 1 }
-    }
-  });
-  });
-</script>
-{% endblock %}
+  <!-- 📦 Scripts adicionales por vista -->
+  {% block extra_js %}{% endblock %}
+
+  <!-- 🌐 Footer profesional -->
+  <footer class="footer-tienda bg-dark text-white mt-5 py-4">
+    <div class="container text-center">
+      <p class="mb-2">© 2025 JascEcommerce. Todos los derechos reservados.</p>
+
+      <div class="footer-links d-flex justify-content-center gap-4">
+        <a href="#" class="text-white text-decoration-none">Política de privacidad</a>
+        <a href="#" class="text-white text-decoration-none">Términos y condiciones</a>
+        <a href="#" class="text-white text-decoration-none">Ayuda</a>
+      </div>
+
+      <div class="footer-social mt-3">
+        <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+        <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+        <a href="#" class="text-white"><i class="bi bi-whatsapp"></i></a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

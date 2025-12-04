@@ -1,12 +1,45 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container mt-5">
-  <h3 class="mb-4">💳 Simulación de pago bancario</h3>
-  <p>Estás a punto de realizar el pago por banco. Haz clic en el botón para confirmar el pago.</p>
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg border-0 rounded-4 p-4">
+        <h4 class="text-center mb-3 text-primary">
+          💳 Simulación de pago bancario
+        </h4>
 
-  <form method="POST">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary">Confirmar pago bancario</button>
-  </form>
+        <p class="text-center text-muted mb-4">
+          Estás a punto de realizar el pago por banco. Selecciona tu entidad y confirma para continuar.
+        </p>
+
+        <!-- ✅ Formulario que envía banco y método de pago a generar_factura -->
+        <form method="POST" action="{% url 'store:generar_factura' %}">
+          {% csrf_token %}
+          <input type="hidden" name="metodo_pago" value="banco">  <!-- ✅ método explícito -->
+
+          <div class="mb-4">
+            <label for="banco" class="form-label fw-bold">🏦 Selecciona tu banco:</label>
+            <select name="banco" id="banco" class="form-select form-select-lg" required>
+              <option value="">-- Selecciona --</option>
+              <option value="Bancolombia">Bancolombia</option>
+              <option value="Davivienda">Davivienda</option>
+              <option value="Banco de Bogotá">Banco de Bogotá</option>
+              <option value="Nequi">Nequi</option>
+              <option value="BBVA">BBVA</option>
+              <option value="Banco Popular">Banco Popular</option>
+            </select>
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success btn-lg px-5"
+              onclick="this.innerText='Procesando...'; this.classList.add('disabled');">
+              ✅ Confirmar pago bancario
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

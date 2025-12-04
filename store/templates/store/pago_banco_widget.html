@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Pago bancario{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg border-0 rounded-4 p-4">
+        <h4 class="text-center mb-3 text-primary">
+          💳 Simulación de pago bancario
+        </h4>
+
+        <p class="text-center text-muted mb-4">
+          Estás a punto de realizar el pago por banco. Selecciona tu entidad y confirma para continuar.
+        </p>
+
+        <!-- Formulario de selección de banco -->
+        <form method="POST" action="">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label for="banco" class="form-label fw-bold">🏦 Selecciona tu banco:</label>
+            <select name="banco" id="banco" class="form-select form-select-lg" required>
+              <option value="">-- Selecciona --</option>
+              <option value="Bancolombia">Bancolombia</option>
+              <option value="Davivienda">Davivienda</option>
+              <option value="Banco de Bogotá">Banco de Bogotá</option>
+              <option value="Nequi">Nequi</option>
+              <option value="BBVA">BBVA</option>
+              <option value="Banco Popular">Banco Popular</option>
+            </select>
+          </div>
+
+          <!-- Resumen de factura -->
+          <div class="mt-4">
+            <h5 class="fw-bold text-secondary">🧾 Resumen de factura</h5>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Total a pagar:</span>
+                <strong class="text-success">${{ amount|floatformat:0|intcomma }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Referencia de factura:</span>
+                <strong>#{{ reference }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Moneda:</span>
+                <strong>{{ currency }}</strong>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Botón de confirmación -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success btn-lg px-5">
+              ✅ Confirmar pago bancario
+            </button>
+          </div>
+        </form>
+
+        <!-- Datos de integración con Wompi (para pruebas) -->
+        <hr class="mt-4">
+        <h6 class="fw-bold text-secondary">🔗 Datos de integración</h6>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item">Public Key: {{ public_key }}</li>
+          <li class="list-group-item">Redirect URL: {{ redirect_url }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

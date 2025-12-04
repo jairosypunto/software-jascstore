@@ -1,6 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>Bienvenido a tu panel</h2>
-  <p>Gestiona tus pedidos, perfil y productos.</p>
+<div class="container mt-5">
+
+  <!-- 👋 Bienvenida -->
+  <h2 class="mb-4 text-center text-primary">
+    Bienvenido, {{ user.first_name|default:user.username }}
+  </h2>
+  <p class="text-center text-muted">
+    Aquí puedes gestionar tu cuenta, pedidos y productos de forma rápida y segura.
+  </p>
+
+  <!-- 🔢 Métricas superiores -->
+  <div class="row text-center mb-5">
+    <div class="col-md-4">
+      <div class="bg-light p-3 rounded shadow-sm">
+        <h5>Total de pedidos</h5>
+        <h3 class="text-info">{{ total_pedidos }}</h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="bg-light p-3 rounded shadow-sm">
+        <h5>Productos publicados</h5>
+        <h3 class="text-success">{{ productos_publicados }}</h3>
+        <a href="{% url 'store:productos_por_categoria' category_slug='todos' %}" class="btn btn-sm btn-outline-secondary mt-2">Ver productos</a>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="bg-light p-3 rounded shadow-sm">
+        <h5>Ventas acumuladas</h5>
+        <h3 class="text-warning">${{ total_ventas|floatformat:0 }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 Tabla de pedidos recientes -->
+  <h4 class="mb-3">Últimos pedidos</h4>
+  <table class="table table-bordered table-hover" aria-label="Últimos pedidos">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Método de pago</th>
+        <th>Estado</th>
+        <th>Total</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pedido in pedidos_recientes %}
+        <tr>
+          <td>{{ pedido.id }}</td>
+          <td>{{ pedido.created_at|date:"d/m/Y H:i" }}</td>
+          <td>{{ pedido.get_payment_method_display }}</td>
+          <td>
+            {% if pedido.is_paid %}
+              <span class="badge bg-success">Pagado</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pendiente</span>
+            {% endif %}
+          </td>
+          <td>${{ pedido.total|floatformat:0 }}</td>
+          <td>
+            <a href="{% url 'store:ver_factura' factura_id=pedido.id %}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted">No hay pedidos recientes.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- 🔗 Botón para ver todos los pedidos -->
+  <div class="text-end mt-3">
+    <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-primary">Ver todos los pedidos</a>
+  </div>
+
 </div>
 {% endblock %}
