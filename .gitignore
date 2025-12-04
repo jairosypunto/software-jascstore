@@ -1,6 +1,7 @@
-# Entorno virtual
+# Entornos virtuales
 venv/
 env/
+.jascenv/
 
 # Archivos compilados de Python
 *.pyc
@@ -9,15 +10,13 @@ __pycache__/
 # Base de datos local (no subir nunca a producción)
 db.sqlite3
 
-# Ignorar solo la carpeta global de collectstatic (no los estáticos de apps)
-#/staticfiles/ y /static/ en raíz
-/staticfiles/
-/static/
+# Carpeta global de collectstatic (se genera en producción)
+staticfiles/
 
 # Archivos de configuración y secretos
 *.env
 *.log
-settings.txt   # ⚠️ importante, así nunca más se sube
+settings.txt   # ⚠️ nunca versionar
 
 # IDEs y editores
 .vscode/
@@ -44,5 +43,5 @@ Thumbs.db
 # Netlify (si lo usas en el futuro)
 .netlify/
 
-# Carpeta de media (subidas de usuarios y productos, no versionar)
+# Carpeta de media (subidas dinámicas de usuarios/productos)
 media/
