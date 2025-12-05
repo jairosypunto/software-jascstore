@@ -256,6 +256,7 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
+
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
     carrito = request.session.get('carrito', {})
@@ -385,7 +386,7 @@ def generar_factura_pdf(request, factura_id):
     # 📦 Tabla de productos
     data = [["Producto", "Cantidad", "Precio"]]
     for item in factura.detalles.all():   # ✅ usar el related_name correcto
-        data.append([item.producto.nombre, item.cantidad, item.subtotal])
+        data.append([item.producto.name, item.cantidad, item.subtotal])
 
     table = Table(data)
     table.setStyle(TableStyle([
@@ -437,15 +438,15 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
             "banco": factura.banco
         }
 
-    asunto = f"Factura #{factura.id} - LatinShop"
-    mensaje = render_to_string('store/factura_email.html', contexto)
+    asunto = f"Factura #{factura.id} - JascShop"
+    mensaje = render_to_string('emails/factura.html', contexto)
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
     estilos = getSampleStyleSheet()
 
-    elementos.append(Paragraph(f"<b>Factura #{factura.id} - LatinShop</b>", estilos['Title']))
+    elementos.append(Paragraph(f"<b>Factura #{factura.id} - JascShop</b>", estilos['Title']))
     elementos.append(Spacer(1, 12))
     elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
     elementos.append(Paragraph(f"Email: {usuario.email}", estilos['Normal']))

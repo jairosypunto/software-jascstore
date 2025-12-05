@@ -57,7 +57,7 @@ class DetalleFactura(models.Model):
 
 # 🎯 Modelo de Banner
 class Banner(models.Model):
-    title = models.CharField(max_length=200, default="Bienvenido a LatinShop")
+    title = models.CharField(max_length=200, default="Bienvenido a JascShop")
     subtitle = models.CharField(max_length=300, blank=True, null=True)
     image = models.ImageField(upload_to="banners/")
 

@@ -1,7 +1,7 @@
 # Entornos virtuales
 venv/
 env/
-.jascenv/
+.Jascenv/
 
 # Archivos compilados de Python
 *.pyc

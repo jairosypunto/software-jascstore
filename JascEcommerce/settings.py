@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "cambia-esto-en-produccion")
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "jairos.pythonanywhere.com",
@@ -154,6 +154,8 @@ LOGIN_REDIRECT_URL = "/account/dashboard/"
 LOGOUT_URL = "account:logout"
 LOGOUT_REDIRECT_URL = "/home/"
 
+from decouple import config
+
 # ================================
 # 📧 MAIL (Producción con Gmail)
 # ================================
@@ -161,8 +163,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'jairosypunto@gmail.com'         # ← tu correo real
-EMAIL_HOST_PASSWORD = 'exgy ltnm yitb nfcq'        # ← tu contraseña o app password
+
+EMAIL_HOST_USER = config('EMAIL_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_PASS')
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ================================
 # 🆔 LLAVES PRIMARIAS
