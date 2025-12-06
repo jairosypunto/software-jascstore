@@ -22,14 +22,17 @@ class ProductAdmin(admin.ModelAdmin):
         'final_price',   # Precio final calculado (con descuento)
         'stock',         # Unidades disponibles
         'is_available',  # Estado de disponibilidad
-        'category'       # Categoría asignada
+        'category',      # Categoría asignada
+        'sizes',         # 🆕 Tallas disponibles
+        'colors',        # 🆕 Colores disponibles
+        'video_url',     # 🆕 Video externo
+        'video_file'     # 🆕 Video subido al servidor
     )
     list_editable = ('discount',)  # ✅ Editar descuento directamente en la lista
     prepopulated_fields = {'slug': ('name',)}  # ✅ Slug autogenerado desde el nombre
     search_fields = ('name', 'description')    # ✅ Búsqueda por nombre y descripción
     list_filter = ('is_available', 'category', 'destacado', 'nuevo')  # ✅ Filtros útiles
     inlines = [ProductImageInline]
-
 # ================================
 # 🧾 Factura
 # ================================

@@ -381,26 +381,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // 🎬 Funciones para cambiar imagen/video en vista rápida
 function mostrarImagen(url) {
-  const img = document.getElementById('imagen-principal');
-  const videoBox = document.getElementById('video-contenedor');
-  const frame = document.getElementById('video-frame');
-  if (!img) return;
-
-  img.src = url;
-  img.style.display = 'block';
-  if (videoBox) videoBox.style.display = 'none';
-  if (frame) frame.src = '';
+  document.getElementById("imagen-principal").src = url;
+  document.getElementById("video-contenedor").style.display = "none";
+  document.getElementById("video-file").style.display = "none";
+  document.getElementById("video-frame").style.display = "none";
 }
 
-function mostrarVideo(url) {
-  const img = document.getElementById('imagen-principal');
-  const videoBox = document.getElementById('video-contenedor');
-  const frame = document.getElementById('video-frame');
-  if (!videoBox || !frame) return;
+function mostrarVideo(url, esArchivo) {
+  document.getElementById("video-contenedor").style.display = "block";
 
-  if (img) img.style.display = 'none';
-  videoBox.style.display = 'block';
-  frame.src = url;
+  if (esArchivo) {
+    // Mostrar video subido
+    document.getElementById("video-file").style.display = "block";
+    document.getElementById("video-source").src = url;
+    document.getElementById("video-file").load();
+
+    // Ocultar iframe
+    document.getElementById("video-frame").style.display = "none";
+  } else {
+    // Mostrar video externo
+    document.getElementById("video-frame").style.display = "block";
+    document.getElementById("video-frame").src = url;
+
+    // Ocultar video subido
+    document.getElementById("video-file").style.display = "none";
+  }
 }
 </script>
 {% endblock %}

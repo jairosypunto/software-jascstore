@@ -1,23 +1,41 @@
-{% load humanize %}
+{% load static humanize custom_filters %}
 
 <div class="vista-rapida-contenido" style="display:flex; flex-wrap:wrap; gap:2em; padding:2em; align-items:flex-start;">
 
   <!-- 📸 Miniaturas verticales -->
   <div class="miniaturas" style="flex:0 0 90px; display:flex; flex-direction:column; gap:0.7em;">
+    <!-- Imagen principal -->
     <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="miniatura" onclick="mostrarImagen('{{ producto.image.url }}')">
+
+    <!-- Imágenes adicionales -->
     {% for img in producto.images.all %}
       <img src="{{ img.image.url }}" alt="{{ producto.name }}" class="miniatura" onclick="mostrarImagen('{{ img.image.url }}')">
     {% endfor %}
-    {% if producto.video_url %}
-      <div class="miniatura video-thumb" onclick="mostrarVideo('{{ producto.video_url }}')">🎥 Video</div>
+
+    <!-- Miniatura de video -->
+    {% if producto.video_file %}
+      <!-- Usa un ícono o imagen fija como thumbnail -->
+      <img src="{% static 'icons/video-thumb.png' %}" alt="Video" class="miniatura" onclick="mostrarVideo('{{ producto.video_file.url }}', true)">
+    {% elif producto.video_url %}
+      <!-- Si es YouTube, puedes usar el thumbnail oficial -->
+      <img src="https://img.youtube.com/vi/{{ producto.video_url|youtube_id }}/0.jpg" alt="Video" class="miniatura" onclick="mostrarVideo('{{ producto.video_url }}', false)">
     {% endif %}
   </div>
 
-  <!-- 🖼️ Imagen principal -->
+  <!-- 🖼️ Imagen/Video principal -->
   <div class="imagen-principal" style="flex:1; min-width:300px; max-width:500px; text-align:center;">
+    <!-- Imagen principal -->
     <img id="imagen-principal" src="{{ producto.image.url }}" alt="{{ producto.name }}" style="width:100%; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+
+    <!-- Contenedor de video -->
     <div id="video-contenedor" style="display:none; margin-top:1em;">
-      <iframe id="video-frame" width="100%" height="280" frameborder="0" allowfullscreen></iframe>
+      <!-- Video subido -->
+      <video id="video-file" width="100%" height="280" controls style="display:none;">
+        <source id="video-source" src="" type="video/mp4">
+        Tu navegador no soporta video HTML5.
+      </video>
+      <!-- Video externo -->
+      <iframe id="video-frame" width="100%" height="280" frameborder="0" allowfullscreen style="display:none;"></iframe>
     </div>
   </div>
 
@@ -26,6 +44,7 @@
     <h3 style="font-size:1.6rem; font-weight:600; margin-bottom:0.5em;">{{ producto.name }}</h3>
     <p style="font-size:1rem; color:#555; margin-bottom:1em;">{{ producto.description }}</p>
 
+    <!-- 💰 Precio -->
     {% if producto.discount > 0 %}
       <p style="font-size:1.2rem; color:#d32f2f; font-weight:bold;">Precio con descuento: ${{ producto.final_price|intcomma }}</p>
       <p style="font-size:1rem; color:#888; text-decoration:line-through;">Antes: ${{ producto.cost|intcomma }}</p>
@@ -34,6 +53,31 @@
       <p style="font-size:1.2rem; font-weight:bold; color:#333;">Precio: ${{ producto.cost|intcomma }}</p>
     {% endif %}
 
+    <!-- 🎨 Selector de tallas -->
+    {% if producto.sizes_list %}
+      <div class="mb-3">
+        <label class="form-label fw-bold">Tallas:</label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for talla in producto.sizes_list %}
+            <button type="button" class="btn btn-outline-primary btn-sm">{{ talla }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- 🎨 Selector de colores -->
+    {% if producto.colors_list %}
+      <div class="mb-3">
+        <label class="form-label fw-bold">Colores:</label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for color in producto.colors_list %}
+            <span class="badge bg-secondary">{{ color }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- 🛒 Botón de compra -->
     <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}" style="margin-top:1.5em;">
       {% csrf_token %}
       <button type="submit" class="btn-add-cart">
@@ -42,3 +86,30 @@
     </form>
   </div>
 </div>
+
+<!-- 🔧 Lógica JS -->
+<script>
+function mostrarImagen(url) {
+  document.getElementById("imagen-principal").src = url;
+  document.getElementById("imagen-principal").style.display = "block";
+  document.getElementById("video-contenedor").style.display = "none";
+  document.getElementById("video-file").style.display = "none";
+  document.getElementById("video-frame").style.display = "none";
+}
+
+function mostrarVideo(url, esArchivo) {
+  document.getElementById("imagen-principal").style.display = "none";
+  document.getElementById("video-contenedor").style.display = "block";
+
+  if (esArchivo) {
+    document.getElementById("video-file").style.display = "block";
+    document.getElementById("video-source").src = url;
+    document.getElementById("video-file").load();
+    document.getElementById("video-frame").style.display = "none";
+  } else {
+    document.getElementById("video-frame").style.display = "block";
+    document.getElementById("video-frame").src = url;
+    document.getElementById("video-file").style.display = "none";
+  }
+}
+</script>

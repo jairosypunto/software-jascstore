@@ -4,21 +4,47 @@ from categorias.models import Category
 from decimal import Decimal  # ✅ Para cálculos financieros precisos
 
 # 🛍️ Modelo de Producto
+
 class Product(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.PositiveIntegerField(default=0)
-    image = models.ImageField(upload_to='imgs/products/', blank=True, null=True)
+    image = models.ImageField(upload_to="imgs/products/", blank=True, null=True)
     stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
-    category = models.ForeignKey('categorias.Category', on_delete=models.CASCADE)
+    category = models.ForeignKey("categorias.Category", on_delete=models.CASCADE)
     destacado = models.BooleanField(default=False)
     nuevo = models.BooleanField(default=False)
     is_tax_exempt = models.BooleanField(default=False)
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
+
+    # 🆕 Campos adicionales
+    sizes = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Lista de tallas separadas por coma, ej: S,M,L,XL"
+    )
+    colors = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Lista de colores separadas por coma, ej: Blanco,Negro,Azul"
+    )
+
+    # Opciones de video (ambos opcionales)
+    video_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="URL de video externo (YouTube, Vimeo, etc.)"
+    )
+    video_file = models.FileField(
+        upload_to="videos/products/",
+        blank=True,
+        null=True,
+        help_text="Sube un archivo de video (MP4, WebM, etc.)"
+    )
 
     def __str__(self):
         return self.name
@@ -27,10 +53,19 @@ class Product(models.Model):
     def final_price(self):
         """✅ Calcula el precio con descuento aplicado usando Decimal"""
         if self.discount > 0:
-            descuento = Decimal(str(self.discount)) / Decimal('100')
-            return self.cost * (Decimal('1') - descuento)
+            descuento = Decimal(str(self.discount)) / Decimal("100")
+            return self.cost * (Decimal("1") - descuento)
         return self.cost
 
+    @property
+    def sizes_list(self):
+        """Devuelve las tallas como lista para usar en templates"""
+        return [s.strip() for s in self.sizes.split(",")] if self.sizes else []
+
+    @property
+    def colors_list(self):
+        """Devuelve los colores como lista para usar en templates"""
+        return [c.strip() for c in self.colors.split(",")] if self.colors else []  
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
