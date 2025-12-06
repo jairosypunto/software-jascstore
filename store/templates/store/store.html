@@ -193,15 +193,13 @@
         </div>
       {% endfor %}
     </div>
-<!-- 🪟 Modal único para Vista Rápida -->
-<div id="vistaRapidaModal" class="modal">
-  <div class="modal-content">
-    <!-- ❌ Botón cerrar -->
-    <span class="close">&times;</span>
-    <!-- 📦 Contenido dinámico del producto cargado vía JS -->
-    <div id="contenidoProducto"></div>
-  </div>
-</div>
+    <!-- 🪟 Modal único para Vista Rápida -->
+        <div id="vistaRapidaModal" class="modal" style="display:none;">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="contenidoProducto"></div> <!-- aquí se inyecta vista_rapida.html -->
+          </div>
+        </div>
 
     <!-- 📑 Paginación -->
     {% if productos.has_other_pages %}
@@ -289,38 +287,40 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-// 👁️ Vista rápida de producto con carga dinámica
-document.querySelectorAll('.quick-view').forEach(btn => {
-  btn.addEventListener('click', function(e) {
-    e.preventDefault();
-    const id = this.dataset.id;
-    if (!id) return;
+  // 👁️ Vista rápida de producto con carga dinámica
+  document.querySelectorAll('.quick-view').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const id = this.dataset.id;
+      if (!id) return;
 
-    fetch(`/store/vista-rapida/${id}/`)
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('contenidoProducto').innerHTML = html;
-        document.getElementById('vistaRapidaModal').style.display = 'block';
+      fetch(`/store/vista-rapida/${id}/`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('contenidoProducto').innerHTML = html;
+          document.getElementById('vistaRapidaModal').style.display = 'block';
 
-        // 🚀 Inicializar Swiper del producto después de cargar el HTML
-        new Swiper(".productSwiper", {
-          loop: true,
-          navigation: {
-            nextEl: ".productSwiper .swiper-button-next",
-            prevEl: ".productSwiper .swiper-button-prev"
-          },
-          pagination: {
-            el: ".productSwiper .swiper-pagination",
-            clickable: true
+          // 🚀 Inicializar Swiper del producto si se usa
+          if (document.querySelector(".productSwiper")) {
+            new Swiper(".productSwiper", {
+              loop: true,
+              navigation: {
+                nextEl: ".productSwiper .swiper-button-next",
+                prevEl: ".productSwiper .swiper-button-prev"
+              },
+              pagination: {
+                el: ".productSwiper .swiper-pagination",
+                clickable: true
+              }
+            });
           }
+        })
+        .catch(() => {
+          document.getElementById('contenidoProducto').innerHTML = '<p class="text-danger">Error al cargar el producto.</p>';
+          document.getElementById('vistaRapidaModal').style.display = 'block';
         });
-      })
-      .catch(() => {
-        document.getElementById('contenidoProducto').innerHTML = '<p class="text-danger">Error al cargar el producto.</p>';
-        document.getElementById('vistaRapidaModal').style.display = 'block';
-      });
+    });
   });
-});
 
   // ❌ Cierre del modal
   const modal = document.getElementById('vistaRapidaModal');
@@ -378,5 +378,29 @@ document.querySelectorAll('.quick-view').forEach(btn => {
     });
   }
 });
+
+// 🎬 Funciones para cambiar imagen/video en vista rápida
+function mostrarImagen(url) {
+  const img = document.getElementById('imagen-principal');
+  const videoBox = document.getElementById('video-contenedor');
+  const frame = document.getElementById('video-frame');
+  if (!img) return;
+
+  img.src = url;
+  img.style.display = 'block';
+  if (videoBox) videoBox.style.display = 'none';
+  if (frame) frame.src = '';
+}
+
+function mostrarVideo(url) {
+  const img = document.getElementById('imagen-principal');
+  const videoBox = document.getElementById('video-contenedor');
+  const frame = document.getElementById('video-frame');
+  if (!videoBox || !frame) return;
+
+  if (img) img.style.display = 'none';
+  videoBox.style.display = 'block';
+  frame.src = url;
+}
 </script>
 {% endblock %}

@@ -81,3 +81,8 @@ class Auth(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+    
+    class Product(models.Model):
+     video_url = models.URLField(blank=True, null=True)  # ✅ Campo opcional para video
+    # Si prefieres subir archivo en vez de URL:
+    # video_file = models.FileField(upload_to="videos/products/", blank=True, null=True)

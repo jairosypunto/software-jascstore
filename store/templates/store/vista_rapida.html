@@ -1,55 +1,44 @@
 {% load humanize %}
 
-<div class="vista-rapida-contenido text-center" style="padding: 1.5em;">
+<div class="vista-rapida-contenido" style="display:flex; flex-wrap:wrap; gap:2em; padding:2em; align-items:flex-start;">
 
-  <!-- 🖼️ Carrusel de imágenes del producto -->
-  <div class="swiper productSwiper" style="margin-bottom:1em;">
-    <div class="swiper-wrapper">
-      <!-- Imagen principal -->
-      <div class="swiper-slide">
-        <img src="{{ producto.image.url }}" alt="{{ producto.name }}"
-             style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-      </div>
-
-      <!-- Imágenes adicionales -->
-      {% for img in producto.images.all %}
-        <div class="swiper-slide">
-          <img src="{{ img.image.url }}" alt="{{ producto.name }}"
-               style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-        </div>
-      {% endfor %}
-    </div>
-
-    <!-- Controles del carrusel -->
-    <div class="swiper-button-prev"></div>
-    <div class="swiper-button-next"></div>
-    <div class="swiper-pagination"></div>
+  <!-- 📸 Miniaturas verticales -->
+  <div class="miniaturas" style="flex:0 0 90px; display:flex; flex-direction:column; gap:0.7em;">
+    <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="miniatura" onclick="mostrarImagen('{{ producto.image.url }}')">
+    {% for img in producto.images.all %}
+      <img src="{{ img.image.url }}" alt="{{ producto.name }}" class="miniatura" onclick="mostrarImagen('{{ img.image.url }}')">
+    {% endfor %}
+    {% if producto.video_url %}
+      <div class="miniatura video-thumb" onclick="mostrarVideo('{{ producto.video_url }}')">🎥 Video</div>
+    {% endif %}
   </div>
 
-  <!-- 📝 Nombre y descripción -->
-  <h3 style="font-size:1.4rem; font-weight:600; margin-bottom:0.5em;">{{ producto.name }}</h3>
-  <p style="font-size:1rem; color:#555; margin-bottom:1em;">{{ producto.description }}</p>
+  <!-- 🖼️ Imagen principal -->
+  <div class="imagen-principal" style="flex:1; min-width:300px; max-width:500px; text-align:center;">
+    <img id="imagen-principal" src="{{ producto.image.url }}" alt="{{ producto.name }}" style="width:100%; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    <div id="video-contenedor" style="display:none; margin-top:1em;">
+      <iframe id="video-frame" width="100%" height="280" frameborder="0" allowfullscreen></iframe>
+    </div>
+  </div>
 
-  <!-- 💰 Precio y descuento -->
-  {% if producto.discount > 0 %}
-    <p style="font-size:1.1rem; color:#d32f2f; font-weight:bold; margin-bottom:0.3em;">
-      Precio con descuento: ${{ producto.final_price|intcomma }}
-    </p>
-    <p style="font-size:0.95rem; color:#888; text-decoration:line-through; margin-bottom:0.3em;">
-      Antes: ${{ producto.cost|intcomma }}
-    </p>
-    <span class="badge bg-success" style="margin-bottom:1em;">-{{ producto.discount }}%</span>
-  {% else %}
-    <p style="font-size:1.1rem; font-weight:bold; color:#333; margin-bottom:1em;">
-      Precio: ${{ producto.cost|intcomma }}
-    </p>
-  {% endif %}
+  <!-- 📝 Información del producto -->
+  <div class="info-producto" style="flex:1; min-width:280px;">
+    <h3 style="font-size:1.6rem; font-weight:600; margin-bottom:0.5em;">{{ producto.name }}</h3>
+    <p style="font-size:1rem; color:#555; margin-bottom:1em;">{{ producto.description }}</p>
 
-  <!-- 🛒 Botón agregar al carrito -->
-  <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}">
-    {% csrf_token %}
-    <button type="submit" class="btn-add-cart">
-      <i class="bi bi-cart-plus"></i> <span>Agregar al carrito</span>
-    </button>
-  </form>
+    {% if producto.discount > 0 %}
+      <p style="font-size:1.2rem; color:#d32f2f; font-weight:bold;">Precio con descuento: ${{ producto.final_price|intcomma }}</p>
+      <p style="font-size:1rem; color:#888; text-decoration:line-through;">Antes: ${{ producto.cost|intcomma }}</p>
+      <span class="badge bg-success">-{{ producto.discount }}%</span>
+    {% else %}
+      <p style="font-size:1.2rem; font-weight:bold; color:#333;">Precio: ${{ producto.cost|intcomma }}</p>
+    {% endif %}
+
+    <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}" style="margin-top:1.5em;">
+      {% csrf_token %}
+      <button type="submit" class="btn-add-cart">
+        <i class="bi bi-cart-plus"></i> <span>Agregar al carrito</span>
+      </button>
+    </form>
+  </div>
 </div>
