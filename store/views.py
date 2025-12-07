@@ -27,7 +27,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 
 
-
 def _precio_final(producto: Product) -> Decimal:
     """
     Devuelve el precio final del producto aplicando descuento.
@@ -71,27 +70,38 @@ def _items_carrito(request):
 
 
 def agregar_al_carrito(request, product_id):
+    # Buscar el producto en la base de datos
     producto = get_object_or_404(Product, id=product_id)
 
     if request.method == 'POST':
+        # Cantidad seleccionada (por defecto 1)
         cantidad = int(request.POST.get('cantidad', 1))
+        # Variantes seleccionadas (pueden venir vacías si el producto no tiene)
         talla = request.POST.get('selected_size', '')
         color = request.POST.get('selected_color', '')
 
-        # Lógica para agregar al carrito en sesión
+        # Obtener el carrito actual de la sesión (diccionario)
         carrito = request.session.get('carrito', {})
+
+        # Clave única para identificar el ítem (producto + talla + color)
         item_key = f"{product_id}_{talla}_{color}"
+
+        # ✅ Siempre guardar un diccionario, nunca un entero
+        # Esto evita el error 'int object is not subscriptable'
         carrito[item_key] = {
             'producto_id': product_id,
             'cantidad': cantidad,
             'talla': talla,
             'color': color,
         }
+
+        # Actualizar la sesión con el carrito modificado
         request.session['carrito'] = carrito
 
+        # Debug para validar en consola qué se agregó
         print(f"[DEBUG] Producto agregado: {producto.name}, cantidad: {cantidad}, talla: {talla}, color: {color}")
 
-    # ✅ Redirigir al carrito usando el nombre correcto
+    # Redirigir al carrito usando el nombre correcto de la ruta
     return redirect('store:ver_carrito')
 
 def vaciar_carrito(request):
@@ -100,16 +110,19 @@ def vaciar_carrito(request):
     messages.info(request, "Tu carrito fue vaciado.")
     return redirect('store:ver_carrito')
 
-
 def ver_carrito(request):
     carrito = request.session.get('carrito', {})
     items = []
 
-    subtotal = Decimal("0.00")
-    total_cantidad = 0
-    descuento_total = Decimal("0.00")
+    # Depuración: ver contenido actual
+    print("[DEBUG] Carrito en sesión:", carrito)
 
     for key, item in carrito.items():
+        # Si por error el item quedó como int, lo ignoramos
+        if not isinstance(item, dict):
+            print(f"[WARN] Ítem mal formado en clave {key}: {item} (se omite)")
+            continue
+
         producto = get_object_or_404(Product, id=item['producto_id'])
         cantidad = item['cantidad']
         talla = item.get('talla', '')
@@ -119,26 +132,26 @@ def ver_carrito(request):
         precio_unitario = producto.final_price
         subtotal_item = precio_unitario * cantidad
 
-        # acumular totales
-        subtotal += subtotal_item
-        total_cantidad += cantidad
-        if producto.discount > 0:
-            descuento_total += (precio_original - precio_unitario) * cantidad
-
         items.append({
             'producto': producto,
+            'cantidad': cantidad,
             'size': talla,
             'color': color,
-            'cantidad': cantidad,
             'precio_unitario': precio_unitario,
             'precio_original': precio_original,
             'discount': producto.discount,
             'subtotal': subtotal_item,
         })
 
-    # IVA 19%
+    subtotal = sum(i['subtotal'] for i in items)
+    descuento_total = sum(
+        (i['precio_original'] - i['precio_unitario']) * i['cantidad']
+        for i in items
+        if i['discount'] > 0
+    )
     iva = subtotal * Decimal("0.19")
     total = subtotal + iva - descuento_total
+    total_cantidad = sum(i['cantidad'] for i in items)
 
     context = {
         'items': items,
@@ -269,6 +282,8 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
+
+
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
     carrito = request.session.get('carrito', {})
@@ -303,13 +318,14 @@ def generar_factura(request):
         subtotal_original = precio_original * cantidad
         subtotal_final = precio_final * cantidad
 
+        # ✅ Persistir talla y color en la factura
         detalle = DetalleFactura.objects.create(
             factura=factura,
             producto=producto,
             cantidad=cantidad,
-            subtotal=subtotal_final
-            # talla=data.get("size"),
-            # color=data.get("color"),
+            subtotal=subtotal_final,
+            talla=data.get("talla") or data.get("size"),
+            color=data.get("color"),
         )
         items_detalle.append(detalle)
 
@@ -351,6 +367,7 @@ def generar_factura(request):
     if metodo_pago == "banco":
         return redirect("store:pago_banco")
     return render(request, "store/factura.html", contexto)
+
 
 # ✅ Vista protegida: solo el dueño puede ver su factura
 @login_required(login_url='/accounts/login/')
@@ -396,10 +413,16 @@ def generar_factura_pdf(request, factura_id):
     elements.append(Paragraph(f"Total: {factura.total}", styles['Normal']))
     elements.append(Paragraph(f"Estado: {factura.estado_pago}", styles['Normal']))
 
-    # 📦 Tabla de productos
-    data = [["Producto", "Cantidad", "Precio"]]
-    for item in factura.detalles.all():   # ✅ usar el related_name correcto
-        data.append([item.producto.name, item.cantidad, item.subtotal])
+    # 📦 Tabla de productos con talla y color
+    data = [["Producto", "Talla", "Color", "Cantidad", "Precio"]]
+    for item in factura.detalles.all():
+        data.append([
+            item.producto.name,
+            item.talla or "-",
+            item.color or "-",
+            item.cantidad,
+            item.subtotal
+        ])
 
     table = Table(data)
     table.setStyle(TableStyle([
@@ -412,7 +435,6 @@ def generar_factura_pdf(request, factura_id):
 
     doc.build(elements)
     return response
-
 
 def simular_pago_banco(request):
     """
@@ -639,30 +661,32 @@ def detalle_producto(request, slug):
     return render(request, 'store/detalle_producto.html', context)
 
 def actualizar_cantidad(request, product_id):
-    """
-    Actualiza la cantidad de un producto en el carrito usando botones + y –.
-    """
-    if request.method != 'POST':
-        return redirect('store:ver_carrito')
-
-    producto = get_object_or_404(Product, id=product_id)
     carrito = request.session.get('carrito', {})
-    pid = str(product_id)
-    cantidad_actual = int(carrito.get(pid, 0))
-
     accion = request.POST.get('accion')
-    if accion == 'sumar':
-        nueva = min(cantidad_actual + 1, producto.stock)
-    elif accion == 'restar':
-        nueva = max(cantidad_actual - 1, 1)
+
+    # Buscar la clave correcta que contiene el product_id
+    clave_encontrada = None
+    for key, item in carrito.items():
+        if isinstance(item, dict) and item.get('producto_id') == product_id:
+            clave_encontrada = key
+            break
+
+    if clave_encontrada:
+        item = carrito[clave_encontrada]
+        cantidad_actual = item.get('cantidad', 1)
+
+        if accion == 'sumar':
+            item['cantidad'] = cantidad_actual + 1
+        elif accion == 'restar' and cantidad_actual > 1:
+            item['cantidad'] = cantidad_actual - 1
+
+        carrito[clave_encontrada] = item
+        request.session['carrito'] = carrito
+        print(f"[DEBUG] Cantidad actualizada: {item['producto_id']} → {item['cantidad']} und.")
     else:
-        nueva = cantidad_actual
+        print(f"[WARN] No se encontró el producto {product_id} en el carrito.")
 
-    carrito[pid] = nueva
-    request.session['carrito'] = carrito
-    messages.success(request, f"Cantidad actualizada: {producto.name} → {nueva} und.")
     return redirect('store:ver_carrito')
-
 
 # 🌐 Vista informativa de "Nosotros"
 def nosotros(request):
