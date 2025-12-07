@@ -72,8 +72,8 @@ class DetalleFactura(models.Model):
     cantidad = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     # Opcionales: descomenta si quieres persistir variantes
-    # talla = models.CharField(max_length=20, blank=True, null=True)
-    # color = models.CharField(max_length=30, blank=True, null=True)
+    talla = models.CharField(max_length=20, blank=True, null=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"
