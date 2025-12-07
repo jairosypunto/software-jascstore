@@ -1,10 +1,9 @@
 from django.db import models
-from django.conf import settings  # Para vincular la factura al usuario autenticado
+from django.conf import settings
 from categorias.models import Category
-from decimal import Decimal  # ✅ Para cálculos financieros precisos
+from decimal import Decimal
 
 # 🛍️ Modelo de Producto
-
 class Product(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
@@ -21,29 +20,18 @@ class Product(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
 
-    # 🆕 Campos adicionales
-    sizes = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="Lista de tallas separadas por coma, ej: S,M,L,XL"
-    )
-    colors = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="Lista de colores separadas por coma, ej: Blanco,Negro,Azul"
-    )
+    # Variantes
+    sizes = models.CharField(max_length=200, blank=True, help_text="Lista separada por comas: S,M,L,XL")
+    colors = models.CharField(max_length=200, blank=True, help_text="Lista separada por comas: Blanco,Negro,Azul")
 
-    # Opciones de video (ambos opcionales)
-    video_url = models.URLField(
+    # Video
+    video_url = models.URLField(blank=True, null=True, help_text="URL YouTube/Vimeo/etc.")
+    video_file = models.FileField(upload_to="videos/products/", blank=True, null=True)
+    video_thumb = models.ImageField(
+        upload_to="imgs/products/video_thumbs/",
         blank=True,
         null=True,
-        help_text="URL de video externo (YouTube, Vimeo, etc.)"
-    )
-    video_file = models.FileField(
-        upload_to="videos/products/",
-        blank=True,
-        null=True,
-        help_text="Sube un archivo de video (MP4, WebM, etc.)"
+        help_text="Miniatura del video para miniatura clicable"
     )
 
     def __str__(self):
@@ -51,7 +39,6 @@ class Product(models.Model):
 
     @property
     def final_price(self):
-        """✅ Calcula el precio con descuento aplicado usando Decimal"""
         if self.discount > 0:
             descuento = Decimal(str(self.discount)) / Decimal("100")
             return self.cost * (Decimal("1") - descuento)
@@ -59,13 +46,11 @@ class Product(models.Model):
 
     @property
     def sizes_list(self):
-        """Devuelve las tallas como lista para usar en templates"""
         return [s.strip() for s in self.sizes.split(",")] if self.sizes else []
 
     @property
     def colors_list(self):
-        """Devuelve los colores como lista para usar en templates"""
-        return [c.strip() for c in self.colors.split(",")] if self.colors else []  
+        return [c.strip() for c in self.colors.split(",")] if self.colors else []
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
@@ -75,7 +60,7 @@ class Factura(models.Model):
     metodo_pago = models.CharField(max_length=30, default="No especificado")
     estado_pago = models.CharField(max_length=20, default="Pendiente")
     transaccion_id = models.CharField(max_length=100, blank=True, null=True)
-    banco = models.CharField(max_length=100, blank=True, null=True)  # ✅ Campo que se debe guardar
+    banco = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
@@ -86,6 +71,9 @@ class DetalleFactura(models.Model):
     producto = models.ForeignKey(Product, on_delete=models.CASCADE)
     cantidad = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    # Opcionales: descomenta si quieres persistir variantes
+    # talla = models.CharField(max_length=20, blank=True, null=True)
+    # color = models.CharField(max_length=30, blank=True, null=True)
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"
@@ -98,11 +86,11 @@ class Banner(models.Model):
 
     def __str__(self):
         return self.title
-    
+
 # 📦 Modelo de imágenes adicionales
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
     image = models.ImageField(upload_to="imgs/products/gallery/")
-    
+
     def __str__(self):
         return f"{self.product.name} - {self.id}"

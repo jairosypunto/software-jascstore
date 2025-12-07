@@ -13,6 +13,7 @@ class ProductImageInline(admin.TabularInline):
 # ================================
 # 🛍️ Producto principal
 # ================================
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -33,6 +34,26 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')    # ✅ Búsqueda por nombre y descripción
     list_filter = ('is_available', 'category', 'destacado', 'nuevo')  # ✅ Filtros útiles
     inlines = [ProductImageInline]
+
+    # ✅ Organización de campos en secciones
+    fieldsets = (
+        ("Información básica", {
+            "fields": ("name", "slug", "description", "category", "image")
+        }),
+        ("Precio y stock", {
+            "fields": ("cost", "discount", "final_price", "stock", "is_available", "is_tax_exempt")
+        }),
+        ("Opciones de producto", {
+            "fields": ("sizes", "colors", "destacado", "nuevo")
+        }),
+        ("Video", {
+            "fields": ("video_url", "video_file")
+        }),
+        ("Fechas", {
+            "fields": ("date_register", "date_update")
+        }),
+    )
+    readonly_fields = ("final_price", "date_register", "date_update")
 # ================================
 # 🧾 Factura
 # ================================

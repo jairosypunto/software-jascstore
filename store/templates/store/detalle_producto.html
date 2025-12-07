@@ -11,13 +11,13 @@
       <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="img-fluid rounded shadow mb-3">
 
       <!-- 🎥 Video del producto (opcional) -->
-      {% if producto.video_file %}
+      {% if video_file %}
         <video width="100%" height="280" controls class="rounded shadow mb-3">
-          <source src="{{ producto.video_file.url }}" type="video/mp4">
+          <source src="{{ video_file.url }}" type="video/mp4">
           Tu navegador no soporta video HTML5.
         </video>
-      {% elif producto.video_url %}
-        <iframe width="100%" height="280" src="{{ producto.video_url }}" frameborder="0" allowfullscreen class="rounded shadow mb-3"></iframe>
+      {% elif video_url %}
+        <iframe width="100%" height="280" src="{{ video_url }}" frameborder="0" allowfullscreen class="rounded shadow mb-3"></iframe>
       {% endif %}
     </div>
 
@@ -43,24 +43,30 @@
       {% endif %}
 
       <!-- 🎨 Selector de tallas -->
-      {% if producto.sizes %}
+      {% if sizes %}
         <div class="mb-3">
           <label class="form-label fw-bold">Tallas:</label>
           <div class="d-flex flex-wrap gap-2">
-            {% for talla in producto.sizes.split(',') %}
-              <button type="button" class="btn btn-outline-primary">{{ talla|trim }}</button>
+            {% for talla in sizes %}
+              <label class="option-chip">
+                <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
+                <span>{{ talla }}</span>
+              </label>
             {% endfor %}
           </div>
         </div>
       {% endif %}
 
       <!-- 🎨 Selector de colores -->
-      {% if producto.colors %}
+      {% if colors %}
         <div class="mb-3">
           <label class="form-label fw-bold">Colores:</label>
           <div class="d-flex flex-wrap gap-2">
-            {% for color in producto.colors.split(',') %}
-              <span class="badge bg-secondary">{{ color|trim }}</span>
+            {% for color in colors %}
+              <label class="option-chip">
+                <input type="radio" name="selected_color" value="{{ color }}" class="visually-hidden">
+                <span>{{ color }}</span>
+              </label>
             {% endfor %}
           </div>
         </div>
@@ -79,6 +85,11 @@
           </div>
           <small class="text-muted d-block mt-1">Stock disponible: {{ producto.stock }}</small>
         </div>
+
+        <!-- Campos ocultos para variantes -->
+        <input type="hidden" name="selected_size" id="selected_size_hidden">
+        <input type="hidden" name="selected_color" id="selected_color_hidden">
+
         <button type="submit" class="btn btn-primary mt-2"
                 {% if not producto.is_available or producto.stock <= 0 %}disabled{% endif %}>
           <i class="bi bi-cart-plus"></i> Agregar al carrito
@@ -98,31 +109,40 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   console.log("[DEBUG] Cargando selector de cantidad en detalle_producto.html");
+
   const cantidadInput = document.getElementById('cantidad');
   const qtyButtons = document.querySelectorAll('.qty-btn');
-  console.log("[DEBUG] cantidadInput:", cantidadInput);
-  console.log("[DEBUG] qtyButtons count:", qtyButtons.length);
+  const sizeRadios = document.querySelectorAll('input[name="selected_size"]');
+  const colorRadios = document.querySelectorAll('input[name="selected_color"]');
+  const sizeHidden = document.getElementById('selected_size_hidden');
+  const colorHidden = document.getElementById('selected_color_hidden');
 
-  if (!cantidadInput) {
-    console.warn("[WARN] No se encontró #cantidad en el DOM.");
-    return;
-  }
+  // Actualizar campos ocultos al seleccionar talla/color
+  sizeRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      sizeHidden.value = radio.value;
+    });
+  });
+
+  colorRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      colorHidden.value = radio.value;
+    });
+  });
+
+  // Botones de cantidad
+  if (!cantidadInput) return;
 
   const min = parseInt(cantidadInput.min || '1', 10);
   const max = parseInt(cantidadInput.max || '999999', 10);
-  console.log("[DEBUG] límites:", { min, max });
 
   qtyButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
       let value = parseInt(cantidadInput.value || '1', 10);
-      const prev = value;
-
       if (action === 'decrease') value = Math.max(min, value - 1);
       if (action === 'increase') value = Math.min(max, value + 1);
-
       cantidadInput.value = value;
-      console.log(`[DEBUG] ${action}: ${prev} -> ${value}`);
     });
   });
 
@@ -132,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (value === '') value = String(min);
     value = Math.max(min, Math.min(max, parseInt(value, 10)));
     cantidadInput.value = value;
-    console.log(`[DEBUG] input manual: ${raw} -> ${value}`);
   });
 });
 </script>
