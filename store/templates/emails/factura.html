@@ -1,10 +1,10 @@
 {% load humanize %}
-
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <style>
+    /* 🎨 Estilos básicos para el correo */
     body { font-family: sans-serif; font-size: 14px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 6px; }
@@ -12,13 +12,17 @@
   </style>
 </head>
 <body>
+  <!-- 🧾 Encabezado de la factura -->
   <h2>🧾 Factura #{{ factura.id }}</h2>
   <p><strong>Cliente:</strong> {{ factura.usuario.first_name|default:factura.usuario.username }}</p>
   <p><strong>Email:</strong> {{ factura.usuario.email }}</p>
   <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
+
+  <!-- 💳 Método de pago y estado -->
   <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
   <p><strong>Estado del pago:</strong> {{ factura.estado_pago }}</p>
 
+  <!-- 🏦 Banco y transacción (solo si aplica) -->
   {% if factura.banco %}
     <p><strong>Banco:</strong> {{ factura.banco }}</p>
   {% endif %}
@@ -26,6 +30,7 @@
     <p><strong>ID de transacción:</strong> {{ factura.transaccion_id }}</p>
   {% endif %}
 
+  <!-- 📦 Detalles del pedido -->
   <h4>🛍 Detalles del pedido:</h4>
   <table>
     <thead>
@@ -39,16 +44,29 @@
     <tbody>
       {% for item in factura.detalles.all %}
       <tr>
-        <td>{{ item.producto.name }}</td>
-        <td>{{ item.cantidad }}</td>
-        <td>${{ item.producto.final_price|floatformat:0|intcomma }}</td>
-        <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
+        <td>
+          {{ item.producto.name }}
+          <!-- 🎨 Variantes: talla y color -->
+          {% if item.talla or item.color %}
+            <div style="font-size:11px; color:#555;">
+              {% if item.talla %}Talla: {{ item.talla }}{% endif %}
+              {% if item.talla and item.color %} | {% endif %}
+              {% if item.color %}Color: {{ item.color }}{% endif %}
+            </div>
+          {% endif %}
+        </td>
+        <td style="text-align:center;">{{ item.cantidad }}</td>
+        <td style="text-align:right;">${{ item.producto.final_price|floatformat:0|intcomma }}</td>
+        <td style="text-align:right;">${{ item.subtotal|floatformat:0|intcomma }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
+  <!-- 💰 Total final -->
   <p><strong>Total pagado:</strong> ${{ total_final|floatformat:0|intcomma }}</p>
+
+  <!-- 📌 Nota final -->
   <p>Gracias por tu compra en JascEcommerce.</p>
 </body>
 </html>

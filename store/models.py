@@ -3,7 +3,6 @@ from django.conf import settings
 from categorias.models import Category
 from decimal import Decimal
 
-# 🛍️ Modelo de Producto
 class Product(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
@@ -25,14 +24,9 @@ class Product(models.Model):
     colors = models.CharField(max_length=200, blank=True, help_text="Lista separada por comas: Blanco,Negro,Azul")
 
     # Video
-    video_url = models.URLField(blank=True, null=True, help_text="URL YouTube/Vimeo/etc.")
+    video_url = models.URLField(blank=True, null=True)
     video_file = models.FileField(upload_to="videos/products/", blank=True, null=True)
-    video_thumb = models.ImageField(
-        upload_to="imgs/products/video_thumbs/",
-        blank=True,
-        null=True,
-        help_text="Miniatura del video para miniatura clicable"
-    )
+    video_thumb = models.ImageField(upload_to="imgs/products/video_thumbs/", blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -54,30 +48,82 @@ class Product(models.Model):
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
-    metodo_pago = models.CharField(max_length=30, default="No especificado")
-    estado_pago = models.CharField(max_length=20, default="Pendiente")
-    transaccion_id = models.CharField(max_length=100, blank=True, null=True)
-    banco = models.CharField(max_length=100, blank=True, null=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text="Usuario dueño de la factura"
+    )
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Fecha de creación de la factura"
+    )
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Total final de la factura con impuestos y descuentos"
+    )
+    metodo_pago = models.CharField(
+        max_length=30,
+        default="No especificado",
+        help_text="Método de pago elegido (banco, contraentrega, etc.)"
+    )
+    estado_pago = models.CharField(
+        max_length=20,
+        default="Pendiente",
+        help_text="Estado del pago (Pendiente, Pagado, Fallido)"
+    )
+    transaccion_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="ID de transacción del proveedor de pagos"
+    )
+    banco = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Banco usado en el pago si aplica"
+    )
 
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
 
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
-    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)
-    producto = models.ForeignKey(Product, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    # Opcionales: descomenta si quieres persistir variantes
-    talla = models.CharField(max_length=20, blank=True, null=True)
-    color = models.CharField(max_length=30, blank=True, null=True)
+    factura = models.ForeignKey(
+        Factura,
+        related_name="detalles",
+        on_delete=models.CASCADE,
+        help_text="Factura a la que pertenece este detalle"
+    )
+    producto = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        help_text="Producto comprado"
+    )
+    cantidad = models.PositiveIntegerField(
+        help_text="Cantidad de unidades compradas"
+    )
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Subtotal de esta línea (precio unitario * cantidad)"
+    )
+    talla = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Talla seleccionada por el cliente"
+    )
+    color = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="Color seleccionado por el cliente"
+    )
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad}"
-
 # 🎯 Modelo de Banner
 class Banner(models.Model):
     title = models.CharField(max_length=200, default="Bienvenido a JascShop")
@@ -94,3 +140,5 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.id}"
+    
+

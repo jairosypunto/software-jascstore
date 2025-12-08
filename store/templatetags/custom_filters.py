@@ -17,3 +17,14 @@ def youtube_id(url):
     if match:
         return match.group(1)
     return url
+
+
+@register.filter
+def split(value, sep=','):
+    """
+    Divide una cadena en una lista usando el separador indicado.
+    Ejemplo: "S,M,L,XL" -> ["S", "M", "L", "XL"]
+    """
+    if not value:
+        return []
+    return [item.strip() for item in value.split(sep)]

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ producto.name }} | JascShop{% endblock %}
 
 {% block content %}
@@ -42,39 +41,41 @@
         <p class="text-danger">No disponible</p>
       {% endif %}
 
-      <!-- 🎨 Selector de tallas -->
-      {% if sizes %}
-        <div class="mb-3">
-          <label class="form-label fw-bold">Tallas:</label>
-          <div class="d-flex flex-wrap gap-2">
-            {% for talla in sizes %}
-              <label class="option-chip">
-                <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
-                <span>{{ talla }}</span>
-              </label>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-
-      <!-- 🎨 Selector de colores -->
-      {% if colors %}
-        <div class="mb-3">
-          <label class="form-label fw-bold">Colores:</label>
-          <div class="d-flex flex-wrap gap-2">
-            {% for color in colors %}
-              <label class="option-chip">
-                <input type="radio" name="selected_color" value="{{ color }}" class="visually-hidden">
-                <span>{{ color }}</span>
-              </label>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-
       <!-- 🛒 Formulario de compra -->
       <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}">
         {% csrf_token %}
+
+        <!-- 🎨 Selector de tallas -->
+        {% if sizes %}
+          <div class="mb-3">
+            <label class="form-label fw-bold">Tallas:</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for talla in sizes %}
+                <label class="option-chip">
+                  <input type="radio" name="selected_size" value="{{ talla }}" {% if sizes %}required{% endif %}>
+                  <span>{{ talla }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- 🎨 Selector de colores -->
+        {% if colors %}
+          <div class="mb-3">
+            <label class="form-label fw-bold">Colores:</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for color in colors %}
+                <label class="option-chip">
+                  <input type="radio" name="selected_color" value="{{ color }}" {% if colors %}required{% endif %}>
+                  <span>{{ color }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- 📦 Cantidad -->
         <div class="mb-3" style="max-width: 220px;">
           <label for="cantidad" class="form-label d-block">Cantidad:</label>
           <div class="d-flex align-items-center gap-2">
@@ -86,19 +87,15 @@
           <small class="text-muted d-block mt-1">Stock disponible: {{ producto.stock }}</small>
         </div>
 
-        <!-- Campos ocultos para variantes -->
-        <input type="hidden" name="selected_size" id="selected_size_hidden">
-        <input type="hidden" name="selected_color" id="selected_color_hidden">
-
+        <!-- ✅ Botón de envío -->
         <button type="submit" class="btn btn-primary mt-2"
                 {% if not producto.is_available or producto.stock <= 0 %}disabled{% endif %}>
           <i class="bi bi-cart-plus"></i> Agregar al carrito
         </button>
       </form>
 
-      <!-- Mensaje si está deshabilitado -->
       {% if not producto.is_available or producto.stock <= 0 %}
-        <p class="text-danger mt-2">Producto no disponible o sin stock. Selector visible para depuración.</p>
+        <p class="text-danger mt-2">Producto no disponible o sin stock.</p>
       {% endif %}
     </div>
   </div>
@@ -112,25 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const cantidadInput = document.getElementById('cantidad');
   const qtyButtons = document.querySelectorAll('.qty-btn');
-  const sizeRadios = document.querySelectorAll('input[name="selected_size"]');
-  const colorRadios = document.querySelectorAll('input[name="selected_color"]');
-  const sizeHidden = document.getElementById('selected_size_hidden');
-  const colorHidden = document.getElementById('selected_color_hidden');
 
-  // Actualizar campos ocultos al seleccionar talla/color
-  sizeRadios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      sizeHidden.value = radio.value;
-    });
-  });
-
-  colorRadios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      colorHidden.value = radio.value;
-    });
-  });
-
-  // Botones de cantidad
   if (!cantidadInput) return;
 
   const min = parseInt(cantidadInput.min || '1', 10);

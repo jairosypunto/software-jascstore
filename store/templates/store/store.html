@@ -4,49 +4,28 @@
 {% block title %}Nuestra Tienda - JascShop{% endblock %}
 
 {% block extra_css %}
-  <!-- 🎨 Estilos específicos de la tienda -->
   <link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
-
   <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
-
   <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
-
 {% endblock %}
 
 {% block banner_full %}
-<!-- 🖼️ Banner principal con Swiper -->
 <div class="full-bleed">
   <div class="bannerSwiper swiper">
     <div class="swiper-wrapper">
-      {% if banners and banners.count %}
-        {% for banner in banners %}
-          <div class="swiper-slide">
-            <!-- Fondo dinámico del banner -->
-            <div class="banner-bg" style="background-image: url('{{ banner.image.url }}');"></div>
-            <div class="banner-caption">
-              <h2>{{ banner.title }}</h2>
-              <p>{{ banner.subtitle }}</p>
-              <a href="#productos" class="btn btn-primary btn-lg mt-3">
-                <i class="bi bi-bag"></i> Ver productos
-              </a>
-            </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <!-- Banner de respaldo -->
+      {% for banner in banners %}
         <div class="swiper-slide">
-          <img src="{% static 'store/img/fallback-banner.jpg' %}" alt="JascShop">
+          <div class="banner-bg" style="background-image: url('{{ banner.image.url }}');"></div>
           <div class="banner-caption">
-            <h2>Bienvenido a JascShop</h2>
-            <p>Especialistas en nuevos productos</p>
+            <h2>{{ banner.title }}</h2>
+            <p>{{ banner.subtitle }}</p>
             <a href="#productos" class="btn btn-primary btn-lg mt-3">
               <i class="bi bi-bag"></i> Ver productos
             </a>
           </div>
         </div>
-      {% endif %}
+      {% endfor %}
     </div>
-    <!-- Controles del slider -->
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
     <div class="swiper-pagination"></div>
@@ -58,47 +37,12 @@
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- 🔍 Buscador y filtros -->
+    <!-- Buscador y filtros -->
     <form method="get" id="filterForm" class="search-form">
-      <div class="shop-controls">
-        <div class="controls-row">
-          <!-- Campo de búsqueda -->
-          <div class="search-box" id="searchBox">
-            <input type="text" name="q" class="search-input" id="searchInput" placeholder="Buscar productos...">
-            <button type="submit" class="search-icon" id="searchIcon" aria-label="Buscar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                   class="bi bi-search" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 
-                1.415-1.414l-3.85-3.85zm-5.242.656a5.5 5.5 0 1 1 
-                0-11 5.5 5.5 0 0 1 0 11z"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Filtros de categoría y orden -->
-          <div class="filter-group">
-            <select name="category" class="filter-select" id="categoryFilter" onchange="this.form.submit()">
-              <option value="all">Todas las categorías</option>
-              {% for categoria in categorias %}
-                <option value="{{ categoria.slug }}" {% if categoria_actual == categoria %}selected{% endif %}>
-                  {{ categoria.name }}
-                </option>
-              {% endfor %}
-            </select>
-
-            <select name="order" class="filter-select" id="sortFilter" onchange="this.form.submit()">
-              <option value="">Ordenar por</option>
-              <option value="name" {% if request.GET.order == 'name' %}selected{% endif %}>Nombre: A-Z</option>
-              <option value="price" {% if request.GET.order == 'price' %}selected{% endif %}>Precio: Menor a Mayor</option>
-              <option value="price_desc" {% if request.GET.order == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-              <option value="recent" {% if request.GET.order == 'recent' %}selected{% endif %}>Más recientes</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <!-- buscador y filtros -->
     </form>
 
-    <!-- 🌟 Productos destacados -->
+    <!-- Productos destacados -->
     <div class="swiper mySwiper">
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
@@ -111,301 +55,212 @@
       <div class="swiper-button-next"></div>
     </div>
 
-    <!-- 📦 Contador de productos -->
-    <div class="products-count">
-      <p>Mostrando <strong>{{ productos.count }}</strong> productos</p>
-    </div>
-    <!-- 🛍️ Grid de productos -->
+    <!-- Grid de productos -->
     <div class="products-grid" id="productos">
       {% for product in productos %}
-        <article class="product-card {% if not product.is_available %}out-of-stock{% endif %}">
-<!-- 🖼️ Imagen del producto con vista rápida mejorada -->
-<div class="product-image-wrapper">
-  <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-
-  <!-- 🏷️ Badges de estado del producto -->
-            <div class="product-badges">
-              {% if not product.is_available %}
-                <span class="badge badge-unavailable">Agotado</span>
-              {% elif product.stock < 5 %}
-                <span class="badge badge-low-stock">¡Últimas unidades!</span>
-              {% endif %}
-              {% if product.date_register|timesince < "7 days" %}
-                <span class="badge badge-new">Nuevo</span>
-              {% endif %}
-            </div>
-
-            <!-- 📊 Datos clave en hover: precio, stock, rating -->
-            <div class="quick-info">
-              <p class="mb-1 fw-bold text-white">${{ product.final_price|floatformat:0 }}</p>
-              <p class="mb-1 text-white">Stock: {{ product.stock }}</p>
-              <p class="mb-0 text-warning">★★★★★</p>
-            </div>
-              <!-- 🔍 Botón vista rápida funcional -->
-<a href="#" class="quick-view" data-id="{{ product.id }}" title="Vista rápida">
-  <i class="bi bi-eye"></i>
-</a>
+        <article class="product-card">
+          <div class="product-image-wrapper">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+            <a href="#" class="quick-view" data-id="{{ product.id }}" title="Vista rápida">
+              <i class="bi bi-eye"></i>
+            </a>
           </div>
 
-          <!-- Contenido del producto -->
           <div class="product-content">
-            <span class="product-category">{{ product.category.name }}</span>
-            <h3 class="product-name"><a href="#">{{ product.name }}</a></h3>
-            <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description|truncatewords:12 }}</p>
 
-            <!-- Precios y botón -->
-            <div class="product-footer">
-              <div class="price-section">
-                {% if product.discount > 0 %}
-                  <p class="text-danger fw-bold mb-1">${{ product.final_price|floatformat:0 }}</p>
-                  <p class="text-muted text-decoration-line-through mb-1">${{ product.cost|floatformat:0 }}</p>
-                  <span class="badge bg-success">-{{ product.discount }}%</span>
-                {% else %}
-                  <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
-                {% endif %}
+            <!-- Opciones -->
+            {% if product.sizes_list %}
+              <div class="sizes">
+                <label>Tallas:</label>
+                {% for size in product.sizes_list %}
+                  <button type="button" name="selected_size" value="{{ size }}" class="btn-option">{{ size }}</button>
+                {% endfor %}
               </div>
+            {% endif %}
 
-              {% if product.is_available and product.stock > 0 %}
-                <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}">
-                  {% csrf_token %}
-                  <button type="submit" class="btn-cart-icon" title="Agregar al carrito">
-                    <i class="bi bi-cart-plus"></i>
-                  </button>
-                </form>
-              {% else %}
-                <button class="btn-cart-icon btn-disabled" disabled title="No disponible">
-                  <i class="bi bi-cart-x"></i>
-                </button>
-              {% endif %}
-            </div>
+            {% if product.colors_list %}
+              <div class="colors">
+                <label>Colores:</label>
+                {% for color in product.colors_list %}
+                  <button type="button" name="selected_color" value="{{ color }}" class="btn-option">{{ color }}</button>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- Precio -->
+            {% if product.discount > 0 %}
+              <p class="text-danger fw-bold">${{ product.final_price|floatformat:0 }}</p>
+              <p class="text-muted text-decoration-line-through">${{ product.cost|floatformat:0 }}</p>
+              <span class="badge bg-success">-{{ product.discount }}%</span>
+            {% else %}
+              <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+            {% endif %}
+
+            <!-- Botón carrito -->
+            <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="cantidad" value="1">
+              <button type="submit" class="btn-cart-icon">
+                <i class="bi bi-cart-plus"></i>
+              </button>
+            </form>
           </div>
         </article>
-      {% empty %}
-        <!-- Mensaje si no hay productos -->
-        <div class="no-products text-center p-4 border rounded shadow-sm bg-light">
-          {% if request.GET.q %}
-            <h4 class="text-danger mb-2">🔍 No se encontraron resultados para “{{ request.GET.q }}”</h4>
-            <p class="text-muted">Verifica la ortografía o intenta con otra palabra clave.</p>
-          {% else %}
-            <h4 class="text-primary mb-2">📦 No hay productos disponibles</h4>
-            <p class="text-muted">Explora otras categorías o vuelve más tarde.</p>
-          {% endif %}
-        </div>
       {% endfor %}
     </div>
-    <!-- 🪟 Modal único para Vista Rápida -->
-        <div id="vistaRapidaModal" class="modal" style="display:none;">
-          <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="contenidoProducto"></div> <!-- aquí se inyecta vista_rapida.html -->
-          </div>
-        </div>
 
-    <!-- 📑 Paginación -->
-    {% if productos.has_other_pages %}
-      <div class="pagination">
-        <!-- Botón anterior -->
-        {% if productos.has_previous %}
-          <a href="?page={{ productos.previous_page_number }}" class="pagination-btn">Anterior</a>
-        {% endif %}
-
-        <!-- Números de página -->
-        <div class="pagination-numbers">
-          {% for num in productos.paginator.page_range %}
-            {% if productos.number == num %}
-              <span class="pagination-number active">{{ num }}</span>
-            {% else %}
-              <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
-            {% endif %}
-          {% endfor %}
-        </div>
-
-        <!-- Botón siguiente -->
-        {% if productos.has_next %}
-          <a href="?page={{ productos.next_page_number }}" class="pagination-btn">Siguiente</a>
-        {% endif %}
+    <!-- Modal vista rápida -->
+    <div id="vistaRapidaModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="contenidoProducto"></div>
       </div>
-    {% endif %}
+    </div>
 
-  </div> <!-- cierre shop-container -->
+  </div>
 </section>
 {% endblock %}
-  
+
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // 🎞️ Banner principal con Swiper
+  // Swiper banners
   new Swiper(".bannerSwiper", {
     loop: true,
-    autoplay: { delay: 5000, disableOnInteraction: false },
+    autoplay: { delay: 5000 },
     pagination: { el: ".bannerSwiper .swiper-pagination", clickable: true },
     navigation: {
       nextEl: ".bannerSwiper .swiper-button-next",
       prevEl: ".bannerSwiper .swiper-button-prev"
-    },
-    effect: "fade",
-    fadeEffect: { crossFade: true },
-    speed: 800
+    }
   });
 
-  // 🛍️ Carrusel de productos destacados
+  // Swiper destacados
   new Swiper(".mySwiper", {
     slidesPerView: 4,
     spaceBetween: 20,
     loop: true,
-    autoplay: { delay: 3000, disableOnInteraction: false },
+    autoplay: { delay: 3000 },
     navigation: {
       nextEl: ".mySwiper .swiper-button-next",
       prevEl: ".mySwiper .swiper-button-prev"
-    },
-    breakpoints: {
-      1024: { slidesPerView: 4 },
-      768: { slidesPerView: 2 },
-      480: { slidesPerView: 1 }
     }
   });
 
-  // 🔍 Lupa como ícono dentro del input de búsqueda
-  const searchInput = document.getElementById("searchInput");
-  const searchBox = document.getElementById("searchBox");
-  const searchIcon = document.getElementById("searchIcon");
-  const filterForm = document.getElementById("filterForm");
-
-  if (searchInput && searchBox && searchIcon && filterForm) {
-    const toggleSearchState = () => {
-      const hasText = searchInput.value.trim().length > 0;
-      searchBox.classList.toggle("active", hasText);
-    };
-
-    toggleSearchState(); // inicial
-    searchInput.addEventListener("input", toggleSearchState);
-
-    searchIcon.addEventListener("click", () => {
-      if (searchInput.value.trim()) {
-        filterForm.submit();
-      }
-    });
-  }
-
-  // 👁️ Vista rápida de producto con carga dinámica
+  // Vista rápida con fetch
   document.querySelectorAll('.quick-view').forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       const id = this.dataset.id;
-      if (!id) return;
-
       fetch(`/store/vista-rapida/${id}/`)
         .then(res => res.text())
         .then(html => {
-          document.getElementById('contenidoProducto').innerHTML = html;
+          const cont = document.getElementById('contenidoProducto');
+          cont.innerHTML = html;                  // inserta HTML (los <script> internos NO ejecutan)
           document.getElementById('vistaRapidaModal').style.display = 'block';
 
-          // 🚀 Inicializar Swiper del producto si se usa
-          if (document.querySelector(".productSwiper")) {
-            new Swiper(".productSwiper", {
-              loop: true,
-              navigation: {
-                nextEl: ".productSwiper .swiper-button-next",
-                prevEl: ".productSwiper .swiper-button-prev"
-              },
-              pagination: {
-                el: ".productSwiper .swiper-pagination",
-                clickable: true
-              }
-            });
-          }
-        })
-        .catch(() => {
-          document.getElementById('contenidoProducto').innerHTML = '<p class="text-danger">Error al cargar el producto.</p>';
-          document.getElementById('vistaRapidaModal').style.display = 'block';
+          // Estado inicial seguro tras insertar contenido
+          const img = cont.querySelector('#imagen-principal');
+          const vc  = cont.querySelector('#video-contenedor');
+          const vf  = cont.querySelector('#video-file');
+          const ifr = cont.querySelector('#video-frame');
+
+          if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
+          if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
+          if (vf)  { try { vf.pause(); } catch(e){} }
+          if (ifr) { ifr.src = ''; }
         });
     });
   });
 
-  // ❌ Cierre del modal
+  // Cerrar modal
   const modal = document.getElementById('vistaRapidaModal');
-  if (modal) {
-    const closeBtn = modal.querySelector('.close');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function() {
-        modal.style.display = 'none';
-        document.getElementById('contenidoProducto').innerHTML = '';
-      });
+  const closeBtn = modal.querySelector('.close');
+  closeBtn.addEventListener('click', () => {
+    // pausa y resetea video al cerrar para evitar audio fantasma
+    const cont = document.getElementById('contenidoProducto');
+    const vf  = cont.querySelector('#video-file');
+    const ifr = cont.querySelector('#video-frame');
+    const vc  = cont.querySelector('#video-contenedor');
+    const img = cont.querySelector('#imagen-principal');
+
+    if (vf) { try { vf.pause(); } catch(e){} }
+    if (ifr) { ifr.src = ''; }
+    if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
+    if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
+
+    modal.style.display = 'none';
+  });
+
+  window.addEventListener('click', e => {
+    if (e.target === modal) {
+      // mismo reset si se cierra por click fuera
+      const cont = document.getElementById('contenidoProducto');
+      const vf  = cont.querySelector('#video-file');
+      const ifr = cont.querySelector('#video-frame');
+      const vc  = cont.querySelector('#video-contenedor');
+      const img = cont.querySelector('#imagen-principal');
+
+      if (vf) { try { vf.pause(); } catch(e){} }
+      if (ifr) { ifr.src = ''; }
+      if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
+      if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
+
+      modal.style.display = 'none';
     }
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        modal.style.display = 'none';
-        document.getElementById('contenidoProducto').innerHTML = '';
-      }
-    });
-
-    window.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        modal.style.display = 'none';
-        document.getElementById('contenidoProducto').innerHTML = '';
-      }
-    });
-  }
-
-  // 🔢 Control de cantidad con botones + y -
-  const cantidadInput = document.getElementById('cantidad');
-  if (cantidadInput) {
-    const min = parseInt(cantidadInput.min || '1', 10);
-    const max = parseInt(cantidadInput.max || '999999', 10);
-
-    document.querySelectorAll('.qty-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const action = btn.dataset.action;
-        let value = parseInt(cantidadInput.value || '1', 10);
-
-        if (action === 'decrease') {
-          value = Math.max(min, value - 1);
-        }
-        if (action === 'increase') {
-          value = Math.min(max, value + 1);
-        }
-
-        cantidadInput.value = value;
-      });
-    });
-
-    cantidadInput.addEventListener('input', () => {
-      let value = cantidadInput.value.replace(/\D/g, '');
-      if (value === '') value = String(min);
-      value = Math.max(min, Math.min(max, parseInt(value, 10)));
-      cantidadInput.value = value;
-    });
-  }
+  });
 });
 
-// 🎬 Funciones para cambiar imagen/video en vista rápida
-function mostrarImagen(url) {
-  document.getElementById("imagen-principal").src = url;
-  document.getElementById("video-contenedor").style.display = "none";
-  document.getElementById("video-file").style.display = "none";
-  document.getElementById("video-frame").style.display = "none";
-}
+/* Funciones globales usadas por los onclick del HTML inyectado */
+window.mostrarVideo = function(url, esArchivo) {
+  const cont = document.getElementById('contenidoProducto');
+  const img = cont.querySelector("#imagen-principal");
+  const vc  = cont.querySelector("#video-contenedor");
+  const vf  = cont.querySelector("#video-file");
+  const vs  = cont.querySelector("#video-source");
+  const ifr = cont.querySelector("#video-frame");
 
-function mostrarVideo(url, esArchivo) {
-  document.getElementById("video-contenedor").style.display = "block";
+/* Debug */
+console.log("🔍 mostrarVideo activado");
+console.log("➡️ URL:", url);
+console.log("➡️ esArchivo:", esArchivo);
+console.log("📦 contenedor:", vc);
+console.log("🎥 video file:", vf);
+console.log("🌐 iframe:", ifr);
+console.log("📄 video source:", vs);
+
+  // alterna visibilidad con clases
+  if (img) { img.classList.add('hidden'); img.classList.remove('visible'); }
+  if (vc)  { vc.classList.add('visible'); vc.classList.remove('hidden'); }
 
   if (esArchivo) {
-    // Mostrar video subido
-    document.getElementById("video-file").style.display = "block";
-    document.getElementById("video-source").src = url;
-    document.getElementById("video-file").load();
-
-    // Ocultar iframe
-    document.getElementById("video-frame").style.display = "none";
+    if (ifr) { ifr.src = ''; ifr.classList.add('hidden'); }
+    if (vf && vs) {
+      vs.src = url;
+      vf.classList.add('visible');
+      vf.classList.remove('hidden');
+      vf.load();
+      vf.onloadeddata = function() { try { vf.play(); } catch(e){} };
+    }
   } else {
-    // Mostrar video externo
-    document.getElementById("video-frame").style.display = "block";
-    document.getElementById("video-frame").src = url;
-
-    // Ocultar video subido
-    document.getElementById("video-file").style.display = "none";
+    if (vf) { try { vf.pause(); } catch(e){} vf.classList.add('hidden'); }
+    if (ifr) { ifr.src = url; ifr.classList.add('visible'); ifr.classList.remove('hidden'); }
   }
-}
+};
+
+window.mostrarImagen = function(url) {
+  const cont = document.getElementById('contenidoProducto');
+  const img = cont.querySelector("#imagen-principal");
+  const vc  = cont.querySelector("#video-contenedor");
+  const vf  = cont.querySelector("#video-file");
+  const ifr = cont.querySelector("#video-frame");
+
+  if (img) { img.src = url; img.classList.add('visible'); img.classList.remove('hidden'); }
+  if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
+  if (vf)  { try { vf.pause(); } catch(e){} vf.classList.add('hidden'); }
+  if (ifr) { ifr.src = ''; ifr.classList.add('hidden'); }
+};
 </script>
 {% endblock %}

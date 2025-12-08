@@ -23,9 +23,8 @@ from store.utils import formatear_numero
 # ReportLab (para PDF)
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-
+from reportlab.lib import colors
 
 def _precio_final(producto: Product) -> Decimal:
     """
@@ -40,13 +39,22 @@ def _precio_final(producto: Product) -> Decimal:
         if discount > 0:
             return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
         return cost
-
+    
+# 🛒 Función auxiliar optimizada para construir lista de ítems del carrito
 def _items_carrito(request):
     carrito = request.session.get('carrito', {})
     items = []
 
+    # Obtener todos los IDs de productos en el carrito
+    ids = [item['producto_id'] for item in carrito.values()]
+    # Cargar todos los productos en un solo query
+    productos = Product.objects.in_bulk(ids)
+
     for key, item in carrito.items():
-        producto = get_object_or_404(Product, id=item['producto_id'])
+        producto = productos.get(item['producto_id'])
+        if not producto:
+            continue  # Si el producto no existe, saltar
+
         cantidad = item['cantidad']
         talla = item.get('talla', '')
         color = item.get('color', '')
@@ -55,6 +63,7 @@ def _items_carrito(request):
         precio_unitario = producto.final_price
         subtotal_item = precio_unitario * cantidad
 
+        # Diccionario que representa un ítem del carrito
         items.append({
             'producto': producto,
             'size': talla,
@@ -70,24 +79,20 @@ def _items_carrito(request):
 
 
 def agregar_al_carrito(request, product_id):
-    # Buscar el producto en la base de datos
     producto = get_object_or_404(Product, id=product_id)
 
     if request.method == 'POST':
-        # Cantidad seleccionada (por defecto 1)
         cantidad = int(request.POST.get('cantidad', 1))
-        # Variantes seleccionadas (pueden venir vacías si el producto no tiene)
         talla = request.POST.get('selected_size', '')
         color = request.POST.get('selected_color', '')
 
-        # Obtener el carrito actual de la sesión (diccionario)
-        carrito = request.session.get('carrito', {})
+        # 🔎 Validación inmediata en consola
+        print(">>> DEBUG talla:", talla)
+        print(">>> DEBUG color:", color)
 
-        # Clave única para identificar el ítem (producto + talla + color)
+        carrito = request.session.get('carrito', {})
         item_key = f"{product_id}_{talla}_{color}"
 
-        # ✅ Siempre guardar un diccionario, nunca un entero
-        # Esto evita el error 'int object is not subscriptable'
         carrito[item_key] = {
             'producto_id': product_id,
             'cantidad': cantidad,
@@ -95,13 +100,10 @@ def agregar_al_carrito(request, product_id):
             'color': color,
         }
 
-        # Actualizar la sesión con el carrito modificado
         request.session['carrito'] = carrito
-
-        # Debug para validar en consola qué se agregó
         print(f"[DEBUG] Producto agregado: {producto.name}, cantidad: {cantidad}, talla: {talla}, color: {color}")
+        print(">>> DEBUG carrito:", request.session['carrito'])  # 👈 Aquí ves todo el diccionario
 
-    # Redirigir al carrito usando el nombre correcto de la ruta
     return redirect('store:ver_carrito')
 
 def vaciar_carrito(request):
@@ -110,47 +112,18 @@ def vaciar_carrito(request):
     messages.info(request, "Tu carrito fue vaciado.")
     return redirect('store:ver_carrito')
 
+# 📋 Vista para mostrar el carrito
 def ver_carrito(request):
-    carrito = request.session.get('carrito', {})
-    items = []
-
-    # Depuración: ver contenido actual
-    print("[DEBUG] Carrito en sesión:", carrito)
-
-    for key, item in carrito.items():
-        # Si por error el item quedó como int, lo ignoramos
-        if not isinstance(item, dict):
-            print(f"[WARN] Ítem mal formado en clave {key}: {item} (se omite)")
-            continue
-
-        producto = get_object_or_404(Product, id=item['producto_id'])
-        cantidad = item['cantidad']
-        talla = item.get('talla', '')
-        color = item.get('color', '')
-
-        precio_original = producto.cost
-        precio_unitario = producto.final_price
-        subtotal_item = precio_unitario * cantidad
-
-        items.append({
-            'producto': producto,
-            'cantidad': cantidad,
-            'size': talla,
-            'color': color,
-            'precio_unitario': precio_unitario,
-            'precio_original': precio_original,
-            'discount': producto.discount,
-            'subtotal': subtotal_item,
-        })
+    items = _items_carrito(request)  # Usamos la función auxiliar
 
     subtotal = sum(i['subtotal'] for i in items)
     descuento_total = sum(
         (i['precio_original'] - i['precio_unitario']) * i['cantidad']
-        for i in items
-        if i['discount'] > 0
+        for i in items if i['discount'] > 0
     )
-    iva = subtotal * Decimal("0.19")
-    total = subtotal + iva - descuento_total
+    base_imponible = subtotal - descuento_total
+    iva = base_imponible * Decimal("0.19")
+    total = base_imponible + iva
     total_cantidad = sum(i['cantidad'] for i in items)
 
     context = {
@@ -234,43 +207,19 @@ def productos_por_categoria(request, category_slug):
     }
     return render(request, 'store/productos_por_categoria.html', context)
 
+# 🧾 Vista de checkout
 def checkout(request):
-    carrito = request.session.get('carrito', {})
-    items = []
+    items = _items_carrito(request)  # Reutilizamos la función auxiliar
 
-    subtotal = Decimal("0.00")
-    descuento_total = Decimal("0.00")
-    total_cantidad = 0
-
-    for key, item in carrito.items():
-        producto = get_object_or_404(Product, id=item['producto_id'])
-        cantidad = item['cantidad']
-        talla = item.get('talla', '')
-        color = item.get('color', '')
-
-        precio_original = producto.cost
-        precio_unitario = producto.final_price
-        subtotal_item = precio_unitario * cantidad
-
-        subtotal += subtotal_item
-        total_cantidad += cantidad
-
-        if producto.discount > 0:
-            descuento_total += (precio_original - precio_unitario) * cantidad
-
-        items.append({
-            'producto': producto,
-            'cantidad': cantidad,
-            'size': talla,
-            'color': color,
-            'precio_unitario': precio_unitario,
-            'precio_original': precio_original,
-            'discount': producto.discount,
-            'subtotal': subtotal_item,
-        })
-
-    iva = subtotal * Decimal("0.19")
-    total = subtotal + iva - descuento_total
+    subtotal = sum(i['subtotal'] for i in items)
+    descuento_total = sum(
+        (i['precio_original'] - i['precio_unitario']) * i['cantidad']
+        for i in items if i['discount'] > 0
+    )
+    base_imponible = subtotal - descuento_total
+    iva = base_imponible * Decimal("0.19")
+    total = base_imponible + iva
+    total_cantidad = sum(i['cantidad'] for i in items)
 
     context = {
         'items': items,
@@ -282,91 +231,90 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
+from .views import _items_carrito  # 👈 reutilizamos la función auxiliar
 
-
+# 🧾 Generar factura a partir del carrito
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
-    carrito = request.session.get('carrito', {})
-    metodo_pago = request.POST.get("metodo_pago") or request.session.get("metodo_pago", "No especificado")
-    banco_seleccionado = request.POST.get("banco") or request.session.get("banco_seleccionado")
+    # 🚦 Validar método
+    if request.method != "POST":
+        return redirect("store:checkout")
 
-    if not carrito:
+    # 🚦 Validar método de pago
+    metodo_pago = request.POST.get("metodo_pago")
+    if not metodo_pago:
+        messages.error(request, "Debes seleccionar un método de pago.")
+        return redirect("store:checkout")
+
+    # 🛒 Obtener ítems del carrito
+    items = _items_carrito(request)
+    if not items:
         messages.error(request, "Tu carrito está vacío.")
-        return redirect('store:checkout')
+        return redirect("store:ver_carrito")
 
+    # 🧮 Cálculos globales
+    subtotal = sum(i["subtotal"] for i in items)
+    descuento = sum(
+        (i["precio_original"] - i["precio_unitario"]) * i["cantidad"]
+        for i in items if i["discount"] > 0
+    )
+    base_imponible = subtotal - descuento
+    iva = base_imponible * Decimal("0.19")
+    total_final = base_imponible + iva
+
+    # 🧾 Crear factura principal
     factura = Factura.objects.create(
         usuario=request.user,
-        total=Decimal('0.00'),
+        total=total_final,
         metodo_pago=metodo_pago,
-        banco=banco_seleccionado,
+        estado_pago="Pendiente"
     )
+
+    # 🧾 Crear detalles de factura (líneas de productos)
+    for i in items:
+        DetalleFactura.objects.create(
+            factura=factura,
+            producto=i["producto"],
+            cantidad=i["cantidad"],
+            subtotal=i["subtotal"],  # subtotal de la línea
+            talla=i.get("size", ""),  # variante seleccionada
+            color=i.get("color", "")  # variante seleccionada
+        )
+
+    # 🧹 Vaciar carrito y guardar factura en sesión
+    request.session["carrito"] = {}
     request.session["factura_id"] = factura.id
 
-    items_detalle = []
-    subtotal_con_desc = Decimal('0')
-    subtotal_sin_desc = Decimal('0')
-    iva_total = Decimal('0')
+    # 📧 Enviar correo con factura y PDF adjunto
+    try:
+        enviar_factura_por_correo(factura, request.user, {
+            "factura": factura,
+            "subtotal": subtotal,
+            "descuento": descuento,
+            "iva": iva,
+            "total_final": total_final,
+            # ⚠️ Validar si existe campo banco en Factura antes de usarlo
+            "fecha_local": factura.fecha,
+        })
+    except Exception as e:
+        # ⚠️ Si falla el envío, mostrar mensaje pero no romper el flujo
+        messages.warning(request, f"No se pudo enviar el correo: {e}")
 
-    for key, data in carrito.items():
-        product_id = int(data.get("producto_id") or str(key).split("-")[0])
-        producto = get_object_or_404(Product, id=product_id)
-        cantidad = int(data.get("cantidad", 0))
-
-        precio_original = Decimal(str(producto.cost))
-        precio_final = Decimal(str(_precio_final(producto)))
-
-        subtotal_original = precio_original * cantidad
-        subtotal_final = precio_final * cantidad
-
-        # ✅ Persistir talla y color en la factura
-        detalle = DetalleFactura.objects.create(
-            factura=factura,
-            producto=producto,
-            cantidad=cantidad,
-            subtotal=subtotal_final,
-            talla=data.get("talla") or data.get("size"),
-            color=data.get("color"),
-        )
-        items_detalle.append(detalle)
-
-        subtotal_sin_desc += subtotal_original
-        subtotal_con_desc += subtotal_final
-
-        if not getattr(producto, "is_tax_exempt", False):
-            iva_total += subtotal_final * Decimal('0.19')
-
-    descuento_total = subtotal_sin_desc - subtotal_con_desc
-    total_final = subtotal_con_desc + iva_total
-
-    estado_pago = {
-        "contraentrega": "Pendiente",
-        "transferencia": "Pendiente",
-        "banco": "Pagado en prueba",
-    }.get(metodo_pago, "Pendiente")
-
-    factura.total = total_final
-    factura.estado_pago = estado_pago
-    factura.save()
-
-    request.session['carrito'] = {}
-    fecha_local = localtime(factura.fecha)
-
-    contexto = {
-        "factura": factura,
-        "items": items_detalle,
-        "fecha_local": fecha_local,
-        "subtotal": subtotal_con_desc,
-        "iva": iva_total,
-        "descuento": descuento_total,
-        "total_final": total_final,
-        "estado_pago": estado_pago,
-    }
-
-    enviar_factura_por_correo(factura, request.user, contexto)
-
+    # 🏦 Redirigir si el método es banco
     if metodo_pago == "banco":
         return redirect("store:pago_banco")
-    return render(request, "store/factura.html", contexto)
+
+    # 🧾 Mostrar factura directamente si es contraentrega
+    context = {
+        "factura": factura,
+        "items": items,
+        "subtotal": subtotal,
+        "descuento": descuento,
+        "iva": iva,
+        "total_final": total_final,
+        "estado_pago": factura.estado_pago,
+    }
+    return render(request, "store/factura_detalle.html", context)
 
 
 # ✅ Vista protegida: solo el dueño puede ver su factura
@@ -395,36 +343,49 @@ def mis_facturas(request):
     # 📦 Renderizar plantilla con listado
     return render(request, 'store/mis_facturas.html', {'facturas': facturas})
 
-
-
+# 📄 Generar factura en PDF y devolverla como respuesta HTTP
 def generar_factura_pdf(request, factura_id):
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
+    detalles = DetalleFactura.objects.filter(factura=factura)
 
-    response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = f'filename="factura_{factura.id}.pdf"'
+    # 🧮 Recalcular subtotal, descuento, IVA
+    subtotal = sum(d.subtotal for d in detalles)
+    descuento = sum(
+        (d.producto.cost - d.producto.final_price) * d.cantidad
+        for d in detalles if d.producto.discount > 0
+    )
+    base_imponible = subtotal - descuento
+    iva = base_imponible * Decimal("0.19")
+    total = base_imponible + iva
 
-    doc = SimpleDocTemplate(response)
+    # 🧾 Generar PDF con ReportLab
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🧾 Encabezado
+    # Encabezado
     elements.append(Paragraph(f"Factura #{factura.id}", styles['Title']))
-    elements.append(Paragraph(f"Cliente: {factura.usuario}", styles['Normal']))
-    elements.append(Paragraph(f"Total: {factura.total}", styles['Normal']))
-    elements.append(Paragraph(f"Estado: {factura.estado_pago}", styles['Normal']))
+    elements.append(Spacer(1, 12))
 
-    # 📦 Tabla de productos con talla y color
-    data = [["Producto", "Talla", "Color", "Cantidad", "Precio"]]
-    for item in factura.detalles.all():
+    # Tabla de productos con talla, color y precios
+    data = [["Producto", "Talla", "Color", "Cantidad", "Precio original", "Precio unitario", "Subtotal"]]
+    for d in detalles:
+        precio_original = d.producto.cost
+        precio_unitario = d.producto.final_price
+        subtotal_linea = d.total
+
         data.append([
-            item.producto.name,
-            item.talla or "-",
-            item.color or "-",
-            item.cantidad,
-            item.subtotal
+            d.producto.nombre,
+            getattr(d, "talla", ""),   # si tienes campo talla
+            getattr(d, "color", ""),   # si tienes campo color
+            d.cantidad,
+            f"${precio_original:.2f}",
+            f"${precio_unitario:.2f}",
+            f"${subtotal_linea:.2f}",
         ])
 
-    table = Table(data)
+    table = Table(data, hAlign='LEFT')
     table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.grey),
         ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
@@ -432,8 +393,22 @@ def generar_factura_pdf(request, factura_id):
         ('GRID', (0,0), (-1,-1), 1, colors.black),
     ]))
     elements.append(table)
+    elements.append(Spacer(1, 12))
+
+    # Totales
+    elements.append(Paragraph(f"Subtotal: ${subtotal:.2f}", styles['Normal']))
+    elements.append(Paragraph(f"Descuento: ${descuento:.2f}", styles['Normal']))
+    elements.append(Paragraph(f"IVA: ${iva:.2f}", styles['Normal']))
+    elements.append(Paragraph(f"Total: ${total:.2f}", styles['Normal']))
 
     doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    # Respuesta HTTP con PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="factura_{factura.id}.pdf"'
+    response.write(pdf)
     return response
 
 def simular_pago_banco(request):
@@ -456,11 +431,16 @@ def login_view(request):
         'next': next_url
     })
 
-
 def formato_numero(valor):
     return f"{valor:,.2f}".replace(",", ".").replace(".", ",", 1)
 
+# Función auxiliar para formatear números con separador de miles
+def formatear_numero(valor):
+    return f"{valor:,.0f}".replace(",", ".")
+
+# 📧 Generar y enviar factura por correo con PDF adjunto
 def enviar_factura_por_correo(factura, usuario, contexto=None):
+    # Si no se pasa contexto, calcular totales básicos
     if contexto is None:
         subtotal = factura.total / Decimal('1.19')
         iva = factura.total - subtotal
@@ -470,28 +450,33 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
             "iva": iva,
             "descuento": Decimal('0.00'),
             "total_final": factura.total,
-            "banco": factura.banco
+            "banco": factura.banco,
+            "fecha_local": factura.fecha,
         }
 
+    # Asunto y cuerpo del correo
     asunto = f"Factura #{factura.id} - JascShop"
     mensaje = render_to_string('emails/factura.html', contexto)
 
+    # Buffer para PDF
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
     estilos = getSampleStyleSheet()
 
+    # Encabezado de la factura
     elementos.append(Paragraph(f"<b>Factura #{factura.id} - JascShop</b>", estilos['Title']))
     elementos.append(Spacer(1, 12))
     elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
     elementos.append(Paragraph(f"Email: {usuario.email}", estilos['Normal']))
-    elementos.append(Paragraph(f"Fecha: {contexto.get('fecha_local', factura.fecha)}", estilos['Normal']))
+    elementos.append(Paragraph(f"Fecha: {contexto['fecha_local']}", estilos['Normal']))
     elementos.append(Paragraph(f"Método de pago: {factura.metodo_pago}", estilos['Normal']))
     elementos.append(Paragraph(f"Estado del pago: {factura.estado_pago}", estilos['Normal']))
     if factura.banco:
         elementos.append(Paragraph(f"Banco utilizado: {factura.banco}", estilos['Normal']))
     elementos.append(Spacer(1, 12))
 
+    # Tabla de productos
     datos = [["Producto", "Cantidad", "Precio unitario", "Subtotal"]]
     for item in factura.detalles.all():
         precio_final = item.subtotal / item.cantidad
@@ -499,8 +484,19 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
         texto_precio = f"${formatear_numero(precio_final)}"
         if item.producto.discount > 0:
             texto_precio += f" (antes ${formatear_numero(precio_original)})"
+
+        # 👇 Incluir talla y color en el nombre del producto
+        nombre_producto = item.producto.name
+        if item.talla or item.color:
+            variantes = []
+            if item.talla:
+                variantes.append(f"Talla: {item.talla}")
+            if item.color:
+                variantes.append(f"Color: {item.color}")
+            nombre_producto += f" ({' | '.join(variantes)})"
+
         datos.append([
-            item.producto.name,
+            nombre_producto,
             str(item.cantidad),
             texto_precio,
             f"${formatear_numero(item.subtotal)}"
@@ -519,25 +515,37 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
+    # Totales
     elementos.append(Paragraph(f"<b>Subtotal:</b> ${formatear_numero(contexto['subtotal'])}", estilos['Normal']))
     elementos.append(Paragraph(f"<b>IVA (19%):</b> ${formatear_numero(contexto['iva'])}", estilos['Normal']))
     elementos.append(Paragraph(f"<b>Descuento:</b> ${formatear_numero(contexto['descuento'])}", estilos['Normal']))
     elementos.append(Paragraph(f"<b>Total pagado:</b> ${formatear_numero(contexto['total_final'])}", estilos['Normal']))
 
+    # Construir PDF
     doc.build(elementos)
     buffer.seek(0)
 
-    email = EmailMessage(asunto, mensaje, to=[usuario.email])
+    # Crear y enviar correo con PDF adjunto
+    email = EmailMessage(
+        asunto,
+        mensaje,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[usuario.email]
+    )
     email.content_subtype = "html"
     email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
     email.send()
 
 def vista_rapida(request, id):
     producto = get_object_or_404(Product, id=id)
-    return render(request, 'store/vista_rapida.html', {'producto': producto})
-
-
+    context = {
+        'producto': producto,
+        'sizes': producto.sizes_list,
+        'colors': producto.colors_list,
+    }
+    return render(request, 'store/vista_rapida.html', context)
 @login_required(login_url='/accounts/login/')
+
 def ver_factura(request, factura_id):
     # 🔍 Buscar la factura del usuario actual
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
@@ -558,7 +566,6 @@ def ver_factura(request, factura_id):
 
 
 # ✅ Vista 'pre-Wompi': prepara datos y muestra el formulario que luego redirigirá al checkout de Wompi
-
 def pago_banco_widget(request):
     # 🧾 Obtener factura desde la sesión
     factura_id = request.session.get("factura_id")
@@ -577,6 +584,10 @@ def pago_banco_widget(request):
         request.session["banco_seleccionado"] = banco
         print("🏦 Banco seleccionado:", banco)
 
+        # ✅ Guardar banco en la factura
+        factura.banco = banco
+        factura.save()
+
         # ✅ Redirigir directamente a confirmación simulada
         redirect_url = reverse("store:confirmacion_pago")
         redirect_url += f"?status=APPROVED&reference={factura.id}"
@@ -592,8 +603,6 @@ def pago_banco_widget(request):
     }
 
     return render(request, "store/pago_banco_widget.html", context)
-
-
 from django.utils.timezone import localtime
 
 def confirmacion_pago(request):
@@ -646,18 +655,21 @@ def confirmacion_pago(request):
     return render(request, "store/confirmacion_pago.html", context)
 
 
+# 🧾 Vista para mostrar detalle de un producto
 def detalle_producto(request, slug):
+    # Buscar el producto por su slug
     producto = get_object_or_404(Product, slug=slug)
-    print("Usando plantilla: detalle_producto.html")  # 👈 Esto aparecerá en consola
+    print("Usando plantilla: detalle_producto.html")  # Debug en consola
 
+    # Contexto que se pasa a la plantilla
     context = {
         'producto': producto,
+        # Convertimos los campos de texto en listas usando las propiedades del modelo
         'sizes': producto.sizes_list if hasattr(producto, 'sizes_list') else [],
         'colors': producto.colors_list if hasattr(producto, 'colors_list') else [],
         'video_file': producto.video_file,
         'video_url': producto.video_url,
     }
-
     return render(request, 'store/detalle_producto.html', context)
 
 def actualizar_cantidad(request, product_id):

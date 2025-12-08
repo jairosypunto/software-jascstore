@@ -223,158 +223,53 @@
   box-shadow: var(--shadow-md);
 }
 
-/* =========================
-   👁️ VISTA RÁPIDA MEJORADA
-   ========================= */
-.product-image-wrapper {
-  position: relative;
-  display: block;
-  background-color: transparent;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.product-image-wrapper:hover::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.3); /* 🔹 Capa oscura */
-  border-radius: 8px;
-  z-index: 1;
-}
-
-/* 🔍 Botón flotante con animación */
-.quick-view {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: #fff;
-  color: #007bff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.4em 0.6em;
-  font-size: 1.2rem;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.3s ease;
-  z-index: 2;
-}
-
-.product-image-wrapper:hover .quick-view {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* 📊 Datos flotantes: precio, stock, rating */
-.quick-info {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: #fff;
-  font-size: 0.85rem;
-  opacity: 0;
-  z-index: 2;
-  transition: opacity 0.3s ease;
-}
-
-.product-image-wrapper:hover .quick-info {
-  opacity: 1;
-}
-
-/* =========================
-   🪟 MODAL DE VISTA RÁPIDA
-   ========================= */
-
-
-/* ❌ Botón cerrar arriba a la derecha */
-.modal-content .close {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-/* 🧱 Layout interno de la vista rápida: 3 columnas */
-.vista-rapida-contenido {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-/* 📸 Miniaturas a la izquierda */
-.miniaturas {
-  flex: 0 0 90px;           /* columna fija de miniaturas */
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* 🖼 Imagen principal al centro-derecha (más ancha) */
-.imagen-principal {
-  flex: 1;                  /* ocupa espacio principal */
-  min-width: 380px;
-  max-width: 520px;         /* ✅ limita a un ancho óptimo */
-  text-align: center;
-}
-
-/* 📝 Información del producto a la derecha */
-.info-producto {
-  flex: 1;
-  min-width: 320px;
-}
-
-/* 🎴 Miniatura */
-.miniatura {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.miniatura:hover {
-  transform: scale(1.05);
-  border-color: #333;
-}
-
-/* 🎥 Miniatura de video */
-.video-thumb {
-  display: flex;
+/* Botón agregar con feedback visual */
+.btn-add-cart {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 80px;
-  border-radius: 8px;
-  background: #000;
+  gap: .5rem;
+  background: var(--primary);
   color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: .75rem 1rem;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.2s ease;
+  animation: fadeInButton 0.4s ease;
+}
+.btn-add-cart:hover { background: var(--primary-dark); transform: scale(1.03); }
+.btn-add-cart:disabled { cursor: not-allowed; opacity: .7; }
+
+/* Chips de opción */
+.option-chip {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1.5px solid #bbb;
+  border-radius:8px;
+  padding:8px 12px;
+  cursor:pointer;
+  user-select:none;
+  transition: all .2s ease;
+}
+.option-chip span { font-weight:600; color:#333; }
+.option-chip.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+.visually-hidden {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
 }
 
-/* 🖼 Imagen principal */
-.imagen-principal img {
-  width: 100%;
-  max-width: 520px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  display: block;
-}
-
-/* ▶️ Contenedor de video */
-#video-contenedor {
-  display: none;
-  margin-top: 12px;
-}
-
-#video-frame {
-  width: 100%;
-  height: 300px;
-  border: 0;
-}
+/* Quantity control en carrito */
+.quantity-control .qty-btn { width: 40px; height: 38px; font-weight: 700; line-height: 1; }
+.quantity-control input#cantidad,
+.quantity-control input[name="cantidad"] { height: 38px; }
 
 /* 📱 Responsive: columnas a filas */
 @media (max-width: 900px) {
@@ -665,94 +560,7 @@ td {
 /* =========================
    🖼️ MINIATURAS DE IMÁGENES
    ========================= */
-.video-miniatura {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 6px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px solid #ddd;
-}
 
-.video-miniatura img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.video-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.6rem;
-}
-/* Unificación de miniaturas */
-.miniatura {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid #ddd;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-.miniatura:hover { transform: scale(1.05); border-color: #333; }
-
-.video-thumb {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#000;
-  color:#fff;
-  font-size:0.9rem;
-  border-radius:6px;
-  cursor:pointer;
-  width: 80px;
-  height: 80px;
-}
-
-/* Video overlay en mismo marco */
-.imagen-principal { position: relative; }
-#video-contenedor {
-  display: none;
-  position: absolute;
-  inset: 0;
-  margin-top: 0; /* ✅ evita que se muestre debajo */
-}
-
-/* Botón agregar con feedback visual */
-.btn-add-cart {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: .75rem 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.2s ease;
-  animation: fadeInButton 0.4s ease;
-}
-.btn-add-cart:hover { background: var(--primary-dark); transform: scale(1.03); }
-.btn-add-cart:disabled { cursor: not-allowed; opacity: .7; }
-
-/* Chips de opción */
-.option-chip { display:inline-flex; align-items:center; justify-content:center; border:1.5px solid #bbb; border-radius:8px; padding:8px 12px; cursor:pointer; user-select:none; transition: all .2s ease; }
-.option-chip span { font-weight:600; color:#333; }
-.option-chip.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
-.visually-hidden { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
-
-/* Quantity control en carrito */
-.quantity-control .qty-btn { width: 40px; height: 38px; font-weight: 700; line-height: 1; }
-.quantity-control input#cantidad, .quantity-control input[name="cantidad"] { height: 38px; }
 /* 📱 Responsive para móvil */
 @media (max-width: 768px) {
   .vista-rapida-contenido {

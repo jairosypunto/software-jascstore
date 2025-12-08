@@ -19,6 +19,15 @@
     <p>Email: {{ factura.usuario.email }}</p>
   </div>
 
+  <!-- 💳 Método de pago -->
+  <div class="mb-4">
+    <h5>Pago</h5>
+    <p><strong>Método:</strong> {{ factura.metodo_pago }}</p>
+    {% if factura.banco %}
+      <p><strong>Banco:</strong> {{ factura.banco }}</p>
+    {% endif %}
+  </div>
+
   <!-- 📦 Tabla de productos -->
   <h5>Detalle de productos</h5>
   <table class="table table-bordered table-hover">
@@ -33,10 +42,20 @@
     <tbody>
       {% for item in items %}
         <tr>
-          <td>{{ item.producto.nombre }}</td>
+          <td>
+            {{ item.producto.name }}
+            <!-- 🎨 Variantes: talla y color -->
+            {% if item.size or item.color %}
+              <div class="small text-muted">
+                {% if item.size %}Talla: {{ item.size }}{% endif %}
+                {% if item.size and item.color %} | {% endif %}
+                {% if item.color %}Color: {{ item.color }}{% endif %}
+              </div>
+            {% endif %}
+          </td>
           <td>{{ item.cantidad }}</td>
           <td>${{ item.precio|floatformat:0 }}</td>
-          <td>${{ item.cantidad|floatformat:0|add:item.precio }}</td>
+          <td>${{ item.subtotal|floatformat:0 }}</td>
         </tr>
       {% empty %}
         <tr>
@@ -60,7 +79,7 @@
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Descuento</span>
-          <strong>${{ descuento|floatformat:0 }}</strong>
+          <strong>-${{ descuento|floatformat:0 }}</strong>
         </li>
         <li class="list-group-item d-flex justify-content-between bg-light">
           <span>Total</span>
@@ -70,9 +89,11 @@
     </div>
   </div>
 
-  <!-- 🔗 Botón volver -->
-  <div class="mt-4">
+  <!-- 🔗 Acciones -->
+  <div class="mt-4 d-flex gap-2">
     <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-secondary">← Volver a mis facturas</a>
+    <!-- 📄 Botón para descargar PDF -->
+    <a href="{% url 'store:generar_factura_pdf' factura.id %}" class="btn btn-primary">Descargar PDF</a>
   </div>
 
 </div>
