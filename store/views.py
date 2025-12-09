@@ -103,7 +103,6 @@ def agregar_al_carrito(request, product_id):
         request.session['carrito'] = carrito
         print(f"[DEBUG] Producto agregado: {producto.name}, cantidad: {cantidad}, talla: {talla}, color: {color}")
         print(">>> DEBUG carrito:", request.session['carrito'])  # 👈 Aquí ves todo el diccionario
-
     return redirect('store:ver_carrito')
 
 def vaciar_carrito(request):
@@ -272,13 +271,32 @@ def generar_factura(request):
 
     # 🧾 Crear detalles de factura (líneas de productos)
     for i in items:
+        producto = i["producto"]
+
+        # ⚠️ Validar talla y color contra las listas del producto
+        talla = i.get("size", "")
+        color = i.get("color", "")
+
+        if talla and talla not in producto.sizes_list:
+            talla = ""  # limpiar si no es válido
+        if color and color not in producto.colors_list:
+            color = ""  # limpiar si no es válido
+
+        # ⚠️ Reducir stock
+        if producto.stock >= i["cantidad"]:
+            producto.stock -= i["cantidad"]
+            producto.save()
+        else:
+            messages.warning(request, f"Stock insuficiente para {producto.name}.")
+            continue
+
         DetalleFactura.objects.create(
             factura=factura,
-            producto=i["producto"],
+            producto=producto,
             cantidad=i["cantidad"],
             subtotal=i["subtotal"],  # subtotal de la línea
-            talla=i.get("size", ""),  # variante seleccionada
-            color=i.get("color", "")  # variante seleccionada
+            talla=talla,
+            color=color
         )
 
     # 🧹 Vaciar carrito y guardar factura en sesión
@@ -293,14 +311,13 @@ def generar_factura(request):
             "descuento": descuento,
             "iva": iva,
             "total_final": total_final,
-            # ⚠️ Validar si existe campo banco en Factura antes de usarlo
             "fecha_local": factura.fecha,
         })
+        messages.success(request, "Factura generada y enviada por correo.")
     except Exception as e:
-        # ⚠️ Si falla el envío, mostrar mensaje pero no romper el flujo
         messages.warning(request, f"No se pudo enviar el correo: {e}")
 
-    # 🏦 Redirigir si el método es banco
+    # 🏦 Redirigir según método de pago
     if metodo_pago == "banco":
         return redirect("store:pago_banco")
 
@@ -315,7 +332,6 @@ def generar_factura(request):
         "estado_pago": factura.estado_pago,
     }
     return render(request, "store/factura_detalle.html", context)
-
 
 # ✅ Vista protegida: solo el dueño puede ver su factura
 @login_required(login_url='/accounts/login/')
@@ -339,7 +355,6 @@ def ver_factura(request, factura_id):
 def mis_facturas(request):
     # 🔍 Filtrar facturas del usuario actual
     facturas = Factura.objects.filter(usuario=request.user).order_by('-fecha')
-
     # 📦 Renderizar plantilla con listado
     return render(request, 'store/mis_facturas.html', {'facturas': facturas})
 
@@ -536,15 +551,24 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
     email.send()
 
+
+
+@login_required(login_url='/accounts/login/')
 def vista_rapida(request, id):
     producto = get_object_or_404(Product, id=id)
+    modo = request.GET.get('modo')  # lee ?modo=carrito si existe
+
+    # Contexto común para ambas plantillas
     context = {
         'producto': producto,
         'sizes': producto.sizes_list,
         'colors': producto.colors_list,
     }
-    return render(request, 'store/vista_rapida.html', context)
-@login_required(login_url='/accounts/login/')
+
+    # Selección de plantilla según el modo
+    template = 'store/vista_rapida_directa.html' if modo == 'carrito' else 'store/vista_rapida.html'
+    return render(request, template, context)
+
 
 def ver_factura(request, factura_id):
     # 🔍 Buscar la factura del usuario actual
@@ -605,6 +629,7 @@ def pago_banco_widget(request):
     return render(request, "store/pago_banco_widget.html", context)
 from django.utils.timezone import localtime
 
+
 def confirmacion_pago(request):
     """
     Confirmación provisional:
@@ -617,7 +642,8 @@ def confirmacion_pago(request):
     factura = Factura.objects.filter(id=referencia).first() if referencia else None
 
     if factura:
-        factura.estado = "Pagada" if estado == "APPROVED" else "Fallida"
+        # ✅ Usar el campo correcto del modelo: estado_pago
+        factura.estado_pago = "Pagado" if estado == "APPROVED" else "Fallido"
         fecha_local = localtime(factura.fecha)  # ✅ Hora local Colombia
         factura.save()
 
@@ -632,10 +658,12 @@ def confirmacion_pago(request):
             if not d.producto.is_tax_exempt
         )
         descuento = sum(
-            (Decimal(d.producto.cost) - _precio_final(d.producto)) * d.cantidad
+            (d.producto.cost - d.producto.final_price) * d.cantidad
             for d in items
+            if d.producto.discount > 0
         )
-        total_final = subtotal + iva  # ✅ Incluye descuento
+        # ✅ Total final incluye descuento y IVA
+        total_final = subtotal - descuento + iva
 
         contexto = {
             "factura": factura,
@@ -646,14 +674,12 @@ def confirmacion_pago(request):
             "total_final": total_final,
             "estado_pago": factura.estado_pago,
             "fecha_local": fecha_local,  # ✅ hora local para el PDF
-
         }
         return render(request, "store/factura.html", contexto)
 
     # ⚠️ Si no hay factura válida, mostrar mensaje genérico
     context = {"estado": estado, "referencia": referencia}
     return render(request, "store/confirmacion_pago.html", context)
-
 
 # 🧾 Vista para mostrar detalle de un producto
 def detalle_producto(request, slug):

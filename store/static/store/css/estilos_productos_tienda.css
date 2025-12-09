@@ -671,3 +671,27 @@ td {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
+
+.vista-rapida-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 720px;
+  height: 100%;
+  background: #fff;
+  z-index: 9999;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
+
+/* Estado oculto */
+.vista-rapida-panel.hidden {
+  transform: translateX(100%);
+}
+
+/* Estado visible */
+.vista-rapida-panel.visible {
+  transform: translateX(0);
+}

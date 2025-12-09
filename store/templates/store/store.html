@@ -55,41 +55,28 @@
       <div class="swiper-button-next"></div>
     </div>
 
-    <!-- Grid de productos -->
+    <!-- 🔹 Grid de productos (limpio, con carrito y vista rápida) -->
     <div class="products-grid" id="productos">
       {% for product in productos %}
         <article class="product-card">
+          
+          <!-- 🖼 Imagen protagonista con botón de vista rápida -->
           <div class="product-image-wrapper">
             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+            <!-- 👁 Vista rápida: abre modal para ver detalles y elegir talla/color -->
             <a href="#" class="quick-view" data-id="{{ product.id }}" title="Vista rápida">
               <i class="bi bi-eye"></i>
             </a>
           </div>
 
+          <!-- 📄 Contenido del producto -->
           <div class="product-content">
-            <h3>{{ product.name }}</h3>
-            <p>{{ product.description|truncatewords:12 }}</p>
+            <!-- 🔹 Nombre truncado para mantener el layout -->
+            <h3 class="product-title text-truncate">{{ product.name }}</h3>
+            <!-- 🔹 Descripción breve -->
+            <p class="product-description text-muted">{{ product.description|truncatewords:12 }}</p>
 
-            <!-- Opciones -->
-            {% if product.sizes_list %}
-              <div class="sizes">
-                <label>Tallas:</label>
-                {% for size in product.sizes_list %}
-                  <button type="button" name="selected_size" value="{{ size }}" class="btn-option">{{ size }}</button>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            {% if product.colors_list %}
-              <div class="colors">
-                <label>Colores:</label>
-                {% for color in product.colors_list %}
-                  <button type="button" name="selected_color" value="{{ color }}" class="btn-option">{{ color }}</button>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            <!-- Precio -->
+            <!-- 💲 Precio y descuento -->
             {% if product.discount > 0 %}
               <p class="text-danger fw-bold">${{ product.final_price|floatformat:0 }}</p>
               <p class="text-muted text-decoration-line-through">${{ product.cost|floatformat:0 }}</p>
@@ -98,25 +85,31 @@
               <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
             {% endif %}
 
-            <!-- Botón carrito -->
-            <form method="POST" action="{% url 'store:agregar_al_carrito' product.id %}">
-              {% csrf_token %}
-              <input type="hidden" name="cantidad" value="1">
-              <button type="submit" class="btn-cart-icon">
+            <!-- 🛒 Acciones: carrito directo y vista rápida -->
+            <div class="d-flex gap-2 mt-2">
+              <!-- 🛒 Botón de carrito actualizado: abre vista_rapida_directa.html en modal -->
+              <button type="button" 
+                      class="btn-cart-icon abrir-modal" 
+                      data-id="{{ product.id }}" 
+                      title="Agregar al carrito">
                 <i class="bi bi-cart-plus"></i>
               </button>
-            </form>
+
+              <!-- 👁 Ver más: abre modal para variantes (tallas/colores) -->
+              <button type="button" class="btn btn-outline-primary btn-sm quick-view" data-id="{{ product.id }}">
+                <i class="bi bi-eye"></i> Ver más
+              </button>
+            </div>
           </div>
         </article>
       {% endfor %}
     </div>
 
     <!-- Modal vista rápida -->
-    <div id="vistaRapidaModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <div id="contenidoProducto"></div>
-      </div>
+<!-- Panel estilo Temu para vista_rapida_directa.html -->
+    <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
+      <button class="cerrar-panel">&times;</button>
+      <div id="contenidoProducto" class="panel-contenido"></div>
     </div>
 
   </div>
@@ -126,7 +119,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // Swiper banners
+  // ============================
+  // 🎞️ Swiper banners
+  // ============================
   new Swiper(".bannerSwiper", {
     loop: true,
     autoplay: { delay: 5000 },
@@ -137,7 +132,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Swiper destacados
+  // ============================
+  // ⭐ Swiper destacados
+  // ============================
   new Swiper(".mySwiper", {
     slidesPerView: 4,
     spaceBetween: 20,
@@ -149,7 +146,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Vista rápida con fetch
+  // ============================
+  // 👁 Vista rápida normal (botón "Ver más")
+  // ============================
   document.querySelectorAll('.quick-view').forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -158,10 +157,12 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.text())
         .then(html => {
           const cont = document.getElementById('contenidoProducto');
-          cont.innerHTML = html;                  // inserta HTML (los <script> internos NO ejecutan)
-          document.getElementById('vistaRapidaModal').style.display = 'block';
+          cont.innerHTML = html;
+          const panel = document.getElementById('vistaRapidaPanel');
+          panel.classList.remove('hidden');
+          panel.classList.add('visible');
 
-          // Estado inicial seguro tras insertar contenido
+          // Estado inicial seguro
           const img = cont.querySelector('#imagen-principal');
           const vc  = cont.querySelector('#video-contenedor');
           const vf  = cont.querySelector('#video-file');
@@ -175,45 +176,52 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Cerrar modal
-  const modal = document.getElementById('vistaRapidaModal');
-  const closeBtn = modal.querySelector('.close');
-  closeBtn.addEventListener('click', () => {
-    // pausa y resetea video al cerrar para evitar audio fantasma
-    const cont = document.getElementById('contenidoProducto');
-    const vf  = cont.querySelector('#video-file');
-    const ifr = cont.querySelector('#video-frame');
-    const vc  = cont.querySelector('#video-contenedor');
-    const img = cont.querySelector('#imagen-principal');
+  // ============================
+  // 🛒 Vista rápida directa (carrito)
+  // ============================
+  document.querySelectorAll('.abrir-modal').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const id = this.dataset.id;
+      fetch(`/store/vista-rapida/${id}/?modo=carrito`)
+        .then(res => res.text())
+        .then(html => {
+          const cont = document.getElementById('contenidoProducto');
+          cont.innerHTML = html;
+          const panel = document.getElementById('vistaRapidaPanel');
+          panel.classList.remove('hidden');
+          panel.classList.add('visible');
 
-    if (vf) { try { vf.pause(); } catch(e){} }
-    if (ifr) { ifr.src = ''; }
-    if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
-    if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
+          // Estado inicial seguro
+          const img = cont.querySelector('#imagen-principal');
+          const vc  = cont.querySelector('#video-contenedor');
+          const vf  = cont.querySelector('#video-file');
+          const ifr = cont.querySelector('#video-frame');
 
-    modal.style.display = 'none';
+          if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
+          if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
+          if (vf)  { try { vf.pause(); } catch(e){} }
+          if (ifr) { ifr.src = ''; }
+        });
+    });
   });
 
-  window.addEventListener('click', e => {
-    if (e.target === modal) {
-      // mismo reset si se cierra por click fuera
-      const cont = document.getElementById('contenidoProducto');
-      const vf  = cont.querySelector('#video-file');
-      const ifr = cont.querySelector('#video-frame');
-      const vc  = cont.querySelector('#video-contenedor');
-      const img = cont.querySelector('#imagen-principal');
-
-      if (vf) { try { vf.pause(); } catch(e){} }
-      if (ifr) { ifr.src = ''; }
-      if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
-      if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
-
-      modal.style.display = 'none';
-    }
-  });
+  // ============================
+  // ❌ Cerrar panel
+  // ============================
+  const closeBtn = document.querySelector('.cerrar-panel');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      const panel = document.getElementById('vistaRapidaPanel');
+      panel.classList.remove('visible');
+      panel.classList.add('hidden');
+    });
+  }
 });
 
-/* Funciones globales usadas por los onclick del HTML inyectado */
+/* ============================
+   🌐 Funciones globales usadas por el HTML inyectado
+   ============================ */
 window.mostrarVideo = function(url, esArchivo) {
   const cont = document.getElementById('contenidoProducto');
   const img = cont.querySelector("#imagen-principal");
@@ -222,16 +230,6 @@ window.mostrarVideo = function(url, esArchivo) {
   const vs  = cont.querySelector("#video-source");
   const ifr = cont.querySelector("#video-frame");
 
-/* Debug */
-console.log("🔍 mostrarVideo activado");
-console.log("➡️ URL:", url);
-console.log("➡️ esArchivo:", esArchivo);
-console.log("📦 contenedor:", vc);
-console.log("🎥 video file:", vf);
-console.log("🌐 iframe:", ifr);
-console.log("📄 video source:", vs);
-
-  // alterna visibilidad con clases
   if (img) { img.classList.add('hidden'); img.classList.remove('visible'); }
   if (vc)  { vc.classList.add('visible'); vc.classList.remove('hidden'); }
 

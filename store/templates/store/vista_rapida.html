@@ -235,3 +235,20 @@
   border: none !important;
 }
 </style>
+
+<script>
+  // Sincronizar tallas
+  document.querySelectorAll('input[name="selected_size"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelector('#form-add-cart input[type="hidden"][name="selected_size"]').value = radio.value;
+    });
+  });
+
+  // Sincronizar colores
+  document.querySelectorAll('input[name="selected_color"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelector('#form-add-cart input[type="hidden"][name="selected_color"]').value = radio.value;
+    });
+  });
+
+</script>

@@ -45,16 +45,16 @@
           <td>
             {{ item.producto.name }}
             <!-- 🎨 Variantes: talla y color -->
-            {% if item.size or item.color %}
+            {% if item.talla or item.color %}
               <div class="small text-muted">
-                {% if item.size %}Talla: {{ item.size }}{% endif %}
-                {% if item.size and item.color %} | {% endif %}
+                {% if item.talla %}Talla: {{ item.talla }}{% endif %}
+                {% if item.talla and item.color %} | {% endif %}
                 {% if item.color %}Color: {{ item.color }}{% endif %}
               </div>
             {% endif %}
           </td>
           <td>{{ item.cantidad }}</td>
-          <td>${{ item.precio|floatformat:0 }}</td>
+          <td>${{ item.precio_unitario|floatformat:0 }}</td>
           <td>${{ item.subtotal|floatformat:0 }}</td>
         </tr>
       {% empty %}
