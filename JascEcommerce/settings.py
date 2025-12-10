@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "cambia-esto-en-produccion")
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "jairos.pythonanywhere.com",
