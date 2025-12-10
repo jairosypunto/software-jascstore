@@ -25,12 +25,16 @@ class Product(models.Model):
 
     @property
     def final_price(self):
-        """✅ Calcula el precio con descuento aplicado usando Decimal"""
-        if self.discount > 0:
-            descuento = Decimal(str(self.discount)) / Decimal('100')
+        """Calcula el precio con descuento aplicado usando Decimal"""
+        try:
+            discount_value = int(self.discount)  # 👈 fuerza a entero
+        except (ValueError, TypeError):
+            discount_value = 0
+
+        if discount_value > 0:
+            descuento = Decimal(discount_value) / Decimal('100')
             return self.cost * (Decimal('1') - descuento)
         return self.cost
-
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
