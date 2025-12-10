@@ -16,3 +16,4 @@ psycopg2-binary==2.9.10   # si usas PostgreSQL
 mysqlclient==2.2.6        # si usas MySQL
 reportlab==3.6.12
 xhtml2pdf==0.2.9
+python-decouple==3.8
