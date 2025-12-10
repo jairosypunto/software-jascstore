@@ -5,16 +5,24 @@ from django.conf.urls.static import static
 from home import views as home_views  # ✅ Usamos la vista home como portada
 
 urlpatterns = [
+    # Admin
     path('admin/', admin.site.urls),
-    path('account/', include('usuario.urls')),
-    path('', home_views.home, name="inicio"),  # ✅ Portada con vitrina
+
+    # Usuarios y autenticación
+    path('account/', include('usuario.urls')),          # App personalizada
+    path("accounts/", include("django.contrib.auth.urls")),  # Login/logout Django
+
+    # Portada
+    path('', home_views.home, name="inicio"),
+
+    # Apps principales
     path('store/', include('store.urls')),
-    path('home/', include('home.urls')),  # opcional si querés mantener /home/
     path('categorias/', include('categorias.urls')),
     path('pedidos/', include('pedidos.urls')),
-    path("accounts/", include("django.contrib.auth.urls")),  # login/logout
-
+    path('home/', include('home.urls')),  # opcional
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# Archivos estáticos y media (solo en desarrollo)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

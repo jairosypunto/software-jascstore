@@ -1,55 +1,254 @@
-{% load humanize %}
+{% load static humanize %}
 
-<div class="vista-rapida-contenido text-center" style="padding: 1.5em;">
+<div class="vista-rapida-contenido" style="display:flex; flex-wrap:wrap; gap:2em; padding:2em; align-items:flex-start;">
 
-  <!-- 🖼️ Carrusel de imágenes del producto -->
-  <div class="swiper productSwiper" style="margin-bottom:1em;">
-    <div class="swiper-wrapper">
-      <!-- Imagen principal -->
-      <div class="swiper-slide">
-        <img src="{{ producto.image.url }}" alt="{{ producto.name }}"
-             style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <!-- Miniaturas -->
+  <div class="miniaturas" style="flex:0 0 90px; display:flex; flex-direction:column; gap:0.7em;">
+    {% if producto.image %}
+      <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="miniatura"
+           onclick="mostrarImagen('{{ producto.image.url }}')">
+    {% endif %}
+    {% for img in producto.images.all %}
+      <img src="{{ img.image.url }}" alt="{{ producto.name }}" class="miniatura"
+           onclick="mostrarImagen('{{ img.image.url }}')">
+    {% endfor %}
+    {% if producto.video_file or producto.video_url %}
+      <div class="miniatura video-miniatura"
+           onclick="mostrarVideo('{% if producto.video_file %}{{ producto.video_file.url }}{% else %}{{ producto.video_url }}{% endif %}', {% if producto.video_file %}true{% else %}false{% endif %})">
+        {% if producto.video_thumb %}
+          <img src="{{ producto.video_thumb.url }}" alt="Video">
+        {% elif producto.image %}
+          <img src="{{ producto.image.url }}" alt="Video">
+        {% else %}
+          <img src="{% static 'icons/video-thumb.png' %}" alt="Video">
+        {% endif %}
+        <div class="video-overlay"><i class="bi bi-play-circle-fill"></i></div>
       </div>
-
-      <!-- Imágenes adicionales -->
-      {% for img in producto.images.all %}
-        <div class="swiper-slide">
-          <img src="{{ img.image.url }}" alt="{{ producto.name }}"
-               style="width:100%; max-width:280px; max-height:250px; object-fit:cover; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-        </div>
-      {% endfor %}
-    </div>
-
-    <!-- Controles del carrusel -->
-    <div class="swiper-button-prev"></div>
-    <div class="swiper-button-next"></div>
-    <div class="swiper-pagination"></div>
+    {% endif %}
   </div>
 
-  <!-- 📝 Nombre y descripción -->
-  <h3 style="font-size:1.4rem; font-weight:600; margin-bottom:0.5em;">{{ producto.name }}</h3>
-  <p style="font-size:1rem; color:#555; margin-bottom:1em;">{{ producto.description }}</p>
+  <!-- Imagen/Video principal -->
+  <div class="imagen-principal">
+    {% if producto.image %}
+      <img id="imagen-principal" src="{{ producto.image.url }}" alt="{{ producto.name }}" class="big-image visible">
+    {% else %}
+      <img id="imagen-principal" src="{% static 'icons/no-image.png' %}" alt="{{ producto.name }}" class="big-image visible">
+    {% endif %}
 
-  <!-- 💰 Precio y descuento -->
-  {% if producto.discount > 0 %}
-    <p style="font-size:1.1rem; color:#d32f2f; font-weight:bold; margin-bottom:0.3em;">
-      Precio con descuento: ${{ producto.final_price|intcomma }}
-    </p>
-    <p style="font-size:0.95rem; color:#888; text-decoration:line-through; margin-bottom:0.3em;">
-      Antes: ${{ producto.cost|intcomma }}
-    </p>
-    <span class="badge bg-success" style="margin-bottom:1em;">-{{ producto.discount }}%</span>
-  {% else %}
-    <p style="font-size:1.1rem; font-weight:bold; color:#333; margin-bottom:1em;">
-      Precio: ${{ producto.cost|intcomma }}
-    </p>
-  {% endif %}
+    <div id="video-contenedor" class="video-container hidden">
+      <video id="video-file" controls class="video-el">
+        <source id="video-source" src="" type="video/mp4">
+        Tu navegador no soporta video HTML5.
+      </video>
+      <iframe id="video-frame" frameborder="0" allowfullscreen class="iframe-el"></iframe>
+    </div>
+  </div>
 
-  <!-- 🛒 Botón agregar al carrito -->
-  <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}">
-    {% csrf_token %}
-    <button type="submit" class="btn-add-cart">
-      <i class="bi bi-cart-plus"></i> <span>Agregar al carrito</span>
-    </button>
-  </form>
+  <!-- Información del producto -->
+  <div class="info-producto" style="flex:1; min-width:280px;">
+    <h3>{{ producto.name }}</h3>
+    <p>{{ producto.description }}</p>
+
+    {% if producto.discount > 0 %}
+      <p class="text-danger fw-bold">Precio con descuento: ${{ producto.final_price|intcomma }}</p>
+      <p class="text-muted text-decoration-line-through">Antes: ${{ producto.cost|intcomma }}</p>
+      <span class="badge bg-success">-{{ producto.discount }}%</span>
+    {% else %}
+      <p class="fw-bold">Precio: ${{ producto.cost|intcomma }}</p>
+    {% endif %}
+
+    {% if producto.sizes_list %}
+      <div class="mb-3">
+        <label>Tallas:</label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for talla in producto.sizes_list %}
+            <label class="option-chip">
+              <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
+              <span>{{ talla }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if producto.colors_list %}
+      <div class="mb-3">
+        <label>Colores:</label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for color in producto.colors_list %}
+            <label class="option-chip">
+              <input type="radio" name="selected_color" value="{{ color }}" class="visually-hidden">
+              <span>{{ color }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}" id="form-add-cart">
+      {% csrf_token %}
+      <input type="hidden" name="selected_size">
+      <input type="hidden" name="selected_color">
+      <input type="hidden" name="cantidad" value="1">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-cart-plus"></i> Agregar al carrito
+      </button>
+    </form>
+  </div>
 </div>
+
+<style>
+/* =========================
+   🎴 MINIATURAS DE IMAGEN Y VIDEO
+   ========================= */
+.miniatura {
+  width: 80px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: transform .2s ease;
+}
+.miniatura:hover {
+  transform: scale(1.05);
+}
+
+/* Miniatura de video con overlay */
+.video-miniatura {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  display: block;
+}
+
+.video-miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+}
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 1.5rem;
+  border-radius: 6px;
+}
+
+/* =========================
+   🎨 CHIPS DE SELECCIÓN (Talla, Color)
+   ========================= */
+.option-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.option-chip.selected {
+  border-color: #0d6efd;
+  background: #e7f1ff;
+  color: #0d6efd;
+}
+.option-chip input {
+  display: none;
+}
+
+/* =========================
+   🖼️ CONTENEDOR PRINCIPAL DE IMAGEN/VIDEO
+   ========================= */
+.imagen-principal {
+  flex: 1;
+  min-width: 300px;
+  max-width: 520px;
+  text-align: center;
+  position: relative; /* permite overlay del video */
+}
+
+/* Imagen grande y contenedor de video comparten estilo base */
+.big-image,
+.video-container {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  transition: transform .3s ease;
+}
+
+/* Zoom suave en imagen */
+.big-image:hover {
+  transform: scale(1.2);
+}
+
+/* =========================
+   🎥 CONTENEDOR DE VIDEO
+   ========================= */
+.video-container {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+  z-index: 2;
+  height: 100%; /* ocupa todo el alto del marco de .imagen-principal */
+}
+
+/* Elementos de reproducción: video nativo e iframe */
+.video-el,
+.iframe-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* llena el marco, recorta bordes */
+  /* object-fit: contain; */ /* muestra todo el video, deja barras negras */
+  display: block;
+  border: 0;
+  border-radius: 8px;
+  background: #000;
+}
+
+/* =========================
+   ⚙️ ESTADOS CONTROLADOS POR JS
+   ========================= */
+.visible {
+  display: block !important;
+}
+.hidden {
+  display: none !important;
+}
+
+/* Mantén el marco de la imagen aunque esté oculta */
+#imagen-principal.hidden {
+  display: block !important;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Elimina borde de depuración si quedó activo */
+#video-contenedor {
+  border: none !important;
+}
+</style>
+
+<script>
+  // Sincronizar tallas
+  document.querySelectorAll('input[name="selected_size"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelector('#form-add-cart input[type="hidden"][name="selected_size"]').value = radio.value;
+    });
+  });
+
+  // Sincronizar colores
+  document.querySelectorAll('input[name="selected_color"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelector('#form-add-cart input[type="hidden"][name="selected_color"]').value = radio.value;
+    });
+  });
+
+</script>

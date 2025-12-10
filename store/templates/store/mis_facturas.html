@@ -14,7 +14,11 @@
         <th>ID</th>
         <th>Fecha</th>
         <th>Estado</th>
+        <th>Método de pago</th>
         <th>Total</th>
+        <th>Productos</th>
+        <!-- 🆕 Nueva columna para el preview de variantes -->
+        <th>Variantes</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -30,7 +34,42 @@
               <span class="badge bg-warning text-dark">Pendiente</span>
             {% endif %}
           </td>
+          <td>{{ factura.metodo_pago|title }}</td>
           <td>${{ factura.total|intcomma }}</td>
+          <td>{{ factura.detalles.count }} ítem(s)</td>
+
+          <!-- 🆕 Columna de variantes (talla y color) -->
+          <td class="small">
+            {# 
+              Recorremos los detalles para construir un preview.
+              No agregamos lógica compleja: mostramos las tallas y colores encontrados como badges.
+              Si quieres agrupar/contar por variante, lo hacemos luego en la vista (opcional).
+            #}
+            {% with tallas_list="" colores_list="" %}
+              {# Recolectamos tallas y colores presentes #}
+              {% for det in factura.detalles.all %}
+                {% if det.talla %}
+                  {# Mostramos cada talla como badge #}
+                  <span class="badge bg-primary me-1 mb-1">Talla: {{ det.talla }}</span>
+                {% endif %}
+                {% if det.color %}
+                  {# Mostramos cada color como badge #}
+                  <span class="badge bg-secondary me-1 mb-1">Color: {{ det.color }}</span>
+                {% endif %}
+              {% endfor %}
+
+              {# Si no hay variantes en ningún detalle, indicamos que no aplican #}
+              {% if not factura.detalles.all|length %}
+                <span class="text-muted">Sin detalles</span>
+              {% else %}
+                {# Si recorrió y no encontró ninguna talla/color, mostramos un estado neutro #}
+                {% if not factura.detalles.all.0.talla and not factura.detalles.all.0.color %}
+                  {# Este chequeo es limitado; si quieres exactitud total, mejor validar en la vista #}
+                {% endif %}
+              {% endif %}
+            {% endwith %}
+          </td>
+
           <td>
             <a href="{% url 'store:ver_factura' factura_id=factura.id %}" 
                class="btn btn-sm btn-outline-primary">
@@ -40,7 +79,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="5" class="text-center text-muted">
+          <td colspan="8" class="text-center text-muted">
             No tienes facturas registradas.
           </td>
         </tr>

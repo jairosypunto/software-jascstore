@@ -32,7 +32,29 @@ class UserManager(BaseUserManager):
 
         return self.create_user(name, lastname, username, email, password, **extra_fields)
 
+
 class Auth(AbstractBaseUser, PermissionsMixin):
+    # Campos principales
+    name = models.CharField(max_length=50)
+    lastname = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(unique=True)
+
+    # Flags de permisos
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    is_superadmin = models.BooleanField(default=False)
+
+    # Manager
+    objects = UserManager()
+
+    # Configuración de login
+    USERNAME_FIELD = 'email'   # 👈 login con email
+    REQUIRED_FIELDS = ['name', 'lastname', 'username']  # 👈 campos obligatorios al crear superusuario
+
+    def __str__(self):
+        return f"{self.name} {self.lastname} ({self.email})"
     name = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
@@ -59,3 +81,4 @@ class Auth(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+    

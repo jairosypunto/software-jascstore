@@ -2,33 +2,47 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}Carrito - LatinShop{% endblock %}
+{% block title %}Carrito - JascShop{% endblock %}
 
 {% block content %}
 <section class="cart-section">
   <h1>Tu carrito de compras</h1>
 
   {% if items %}
+    <!-- 📋 Lista de productos en el carrito -->
     <ul class="list-group mb-3">
       {% for it in items %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <div>
-            <!-- Nombre del producto -->
+            <!-- 🏷️ Nombre del producto -->
             <strong>{{ it.producto.name }}</strong>
-            <!-- Precio unitario -->
+
+            <!-- 🎨 Variantes: talla y color -->
+            {% if it.size or it.color %}
+              <div class="small text-muted">
+                {% if it.size %}Talla: {{ it.size }}{% endif %}
+                {% if it.size and it.color %} | {% endif %}
+                {% if it.color %}Color: {{ it.color }}{% endif %}
+              </div>
+            {% endif %}
+
+            <!-- 💰 Precio unitario y descuento -->
             <div class="small text-muted">
-              Precio unitario: ${{ it.producto.cost|floatformat:0 }}
+              Precio unitario: ${{ it.precio_unitario|floatformat:0 }}
+              {% if it.discount %}
+                <span class="strike">Antes: ${{ it.precio_original|floatformat:0 }}</span>
+              {% endif %}
             </div>
           </div>
+
+          <!-- 🔢 Control de cantidad y subtotal -->
           <div class="text-end">
-            <!-- Cantidad -->
-           <form method="POST" action="{% url 'store:actualizar_cantidad' it.producto.id %}" class="d-flex align-items-center gap-2">
+            <form method="POST" action="{% url 'store:actualizar_cantidad' it.producto.id %}" class="d-flex align-items-center gap-2 quantity-control">
               {% csrf_token %}
-              <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm">–</button>
+              <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm qty-btn">–</button>
               <input type="text" name="cantidad" value="{{ it.cantidad }}" class="form-control text-center" style="width: 60px;" readonly>
-              <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm">+</button>
+              <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm qty-btn">+</button>
             </form>
-            <!-- Subtotal -->
             <div class="mt-2">
               Subtotal: <strong>${{ it.subtotal|floatformat:0 }}</strong>
             </div>
@@ -36,38 +50,30 @@
         </li>
       {% endfor %}
 
-      <!-- Subtotal con descuento aplicado -->
+      <!-- 📊 Totales -->
       <li class="list-group-item d-flex justify-content-between">
         <strong>Subtotal</strong>
         <strong>${{ subtotal|floatformat:0 }}</strong>
       </li>
-
-      <!-- Descuento total -->
       <li class="list-group-item d-flex justify-content-between">
         <strong>Descuento</strong>
         <strong>-${{ descuento|floatformat:0 }}</strong>
       </li>
-
-      <!-- IVA -->
       <li class="list-group-item d-flex justify-content-between">
         <strong>IVA (19%)</strong>
         <strong>${{ iva|floatformat:0 }}</strong>
       </li>
-
-      <!-- Total final -->
       <li class="list-group-item d-flex justify-content-between bg-light fw-bold">
         <span>Total a pagar</span>
         <span>${{ total|floatformat:0 }}</span>
       </li>
-
-      <!-- ✅ Nuevo bloque: total de productos -->
       <li class="list-group-item d-flex justify-content-between">
         <strong>Total de productos</strong>
         <strong>{{ total_cantidad }} unidades</strong>
       </li>
     </ul>
 
-    <!-- Botones de acción -->
+    <!-- 🔗 Acciones finales -->
     <div class="d-flex gap-2">
       <a href="{% url 'store:store' %}" class="btn btn-secondary">Continuar comprando</a>
       <form method="post" action="{% url 'store:vaciar_carrito' %}">
@@ -78,6 +84,7 @@
     </div>
 
   {% else %}
+    <!-- 🛒 Carrito vacío -->
     <p>Tu carrito está vacío.</p>
     <a class="btn btn-primary" href="{% url 'store:store' %}">Ir a la tienda</a>
   {% endif %}

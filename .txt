@@ -7,9 +7,9 @@
 * [33m7e63f09[m[33m ([m[1;31morigin/main[m[33m)[m Modelo Category validado y funcional en local
 * [33mc5b78c1[m Limpieza: elimino archivos compilados y de sistema del repositorio
 * [33m712753c[m[33m ([m[1;33mtag: [m[1;33mv1.0.1[m[33m)[m ✅ Corrección de bloques y carga de static en plantillas base y extendidas
-* [33m681454d[m Creación de página institucional 'Nosotros' con diseño visual, misión, visión y valores para LatinShop
+* [33m681454d[m Creación de página institucional 'Nosotros' con diseño visual, misión, visión y valores para JascShop
 * [33mbf2d978[m Mejoras visuales en tienda: descripción validada, estado de disponibilidad, imagen responsiva y botón dinámico
-* [33m589623e[m Reestructura del proyecto: se mueve base.html, se agrega carrito, y se implementa navbar fijo con filtros centrados en LatinShop
+* [33m589623e[m Reestructura del proyecto: se mueve base.html, se agrega carrito, y se implementa navbar fijo con filtros centrados en JascShop
 * [33mff9c97d[m Actualización de filtros visuales y funcionales en tienda: búsqueda, ordenamiento y categorías desplegables
 * [33meae90e2[m ✅ Actualiza home.html para mostrar productos con imágenes y estilos validados
 * [33m37f1b59[m Corrige loop de productos en tienda.html y muestra imágenes correctamente
