@@ -3,6 +3,7 @@ from django.conf import settings
 from categorias.models import Category
 from decimal import Decimal
 
+# 🛍️ Modelo de Producto
 class Product(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
@@ -20,8 +21,16 @@ class Product(models.Model):
     date_update = models.DateTimeField(auto_now=True)
 
     # Variantes
-    sizes = models.CharField(max_length=200, blank=True, help_text="Lista separada por comas: S,M,L,XL")
-    colors = models.CharField(max_length=200, blank=True, help_text="Lista separada por comas: Blanco,Negro,Azul")
+    talla = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Lista separada por comas: S,M,L,XL"
+    )
+    color = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Lista separada por comas: Blanco,Negro,Azul"
+    )
 
     # Video
     video_url = models.URLField(blank=True, null=True)
@@ -35,7 +44,7 @@ class Product(models.Model):
     def final_price(self):
         """Calcula el precio con descuento aplicado usando Decimal"""
         try:
-            discount_value = int(self.discount)  # 👈 fuerza a entero
+            discount_value = int(self.discount)
         except (ValueError, TypeError):
             discount_value = 0
 
@@ -44,18 +53,16 @@ class Product(models.Model):
             return self.cost * (Decimal('1') - descuento)
         return self.cost
 
-        if self.discount > 0:
-            descuento = Decimal(str(self.discount)) / Decimal("100")
-            return self.cost * (Decimal("1") - descuento)
-        return self.cost
+    @property
+    def talla_list(self):
+        """Devuelve lista de tallas separadas por comas"""
+        return [s.strip() for s in self.talla.split(",") if s.strip()] if self.talla else []
 
     @property
-    def sizes_list(self):
-        return [s.strip() for s in self.sizes.split(",")] if self.sizes else []
+    def color_list(self):
+        """Devuelve lista de colores separados por comas"""
+        return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
 
-    @property
-    def colors_list(self):
-        return [c.strip() for c in self.colors.split(",")] if self.colors else []
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
@@ -99,6 +106,7 @@ class Factura(models.Model):
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
 
+
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
     factura = models.ForeignKey(
@@ -133,8 +141,19 @@ class DetalleFactura(models.Model):
         help_text="Color seleccionado por el cliente"
     )
 
+    def variantes(self):
+        """Devuelve un string con las variantes seleccionadas (talla y color)."""
+        partes = []
+        if self.talla:
+            partes.append(f"Talla: {self.talla}")
+        if self.color:
+            partes.append(f"Color: {self.color}")
+        return " | ".join(partes) if partes else "Sin variantes"
+
     def __str__(self):
-        return f"{self.producto.name} x {self.cantidad}"
+        return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"
+
+
 # 🎯 Modelo de Banner
 class Banner(models.Model):
     title = models.CharField(max_length=200, default="Bienvenido a JascShop")
@@ -143,6 +162,7 @@ class Banner(models.Model):
 
     def __str__(self):
         return self.title
+
 
 # 📦 Modelo de imágenes adicionales
 class ProductImage(models.Model):

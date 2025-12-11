@@ -13,7 +13,6 @@ class ProductImageInline(admin.TabularInline):
 # ================================
 # 🛍️ Producto principal
 # ================================
-
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -24,18 +23,18 @@ class ProductAdmin(admin.ModelAdmin):
         'stock',         # Unidades disponibles
         'is_available',  # Estado de disponibilidad
         'category',      # Categoría asignada
-        'sizes',         # 🆕 Tallas disponibles
-        'colors',        # 🆕 Colores disponibles
-        'video_url',     # 🆕 Video externo
-        'video_file'     # 🆕 Video subido al servidor
+        'talla',         # ✅ Tallas disponibles
+        'color',         # ✅ Colores disponibles
+        'video_url',     # Video externo
+        'video_file'     # Video subido al servidor
     )
-    list_editable = ('discount',)  # ✅ Editar descuento directamente en la lista
-    prepopulated_fields = {'slug': ('name',)}  # ✅ Slug autogenerado desde el nombre
-    search_fields = ('name', 'description')    # ✅ Búsqueda por nombre y descripción
-    list_filter = ('is_available', 'category', 'destacado', 'nuevo')  # ✅ Filtros útiles
+    list_editable = ('discount',)  # Editar descuento directamente en la lista
+    prepopulated_fields = {'slug': ('name',)}  # Slug autogenerado desde el nombre
+    search_fields = ('name', 'description')    # Búsqueda por nombre y descripción
+    list_filter = ('is_available', 'category', 'destacado', 'nuevo')  # Filtros útiles
     inlines = [ProductImageInline]
 
-    # ✅ Organización de campos en secciones
+    # Organización de campos en secciones
     fieldsets = (
         ("Información básica", {
             "fields": ("name", "slug", "description", "category", "image")
@@ -44,7 +43,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("cost", "discount", "final_price", "stock", "is_available", "is_tax_exempt")
         }),
         ("Opciones de producto", {
-            "fields": ("sizes", "colors", "destacado", "nuevo")
+            "fields": ("talla", "color", "destacado", "nuevo")  # ✅ actualizado
         }),
         ("Video", {
             "fields": ("video_url", "video_file")
@@ -54,6 +53,7 @@ class ProductAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ("final_price", "date_register", "date_update")
+
 # ================================
 # 🧾 Factura
 # ================================
@@ -81,11 +81,13 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
         'factura',
         'producto',
         'cantidad',
+        'talla',     # ✅ mostrar talla
+        'color',     # ✅ mostrar color
         'subtotal'
     )
     list_select_related = ('factura', 'producto')
     search_fields = ('producto__name',)
-    list_filter = ('factura',)
+    list_filter = ('factura', 'talla', 'color')  # ✅ filtros útiles
 
 # ================================
 # 🎯 Banner promocional
@@ -94,3 +96,4 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
 class BannerAdmin(admin.ModelAdmin):
     list_display = ("title", "subtitle", "image")
     search_fields = ("title", "subtitle")
+    
