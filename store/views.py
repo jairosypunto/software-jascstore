@@ -26,6 +26,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 
+
 def _precio_final(producto: Product) -> Decimal:
     """
     Devuelve el precio final del producto aplicando descuento.
@@ -39,6 +40,7 @@ def _precio_final(producto: Product) -> Decimal:
         if discount > 0:
             return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
         return cost
+    
     
 # 🛒 Función auxiliar optimizada para construir lista de ítems del carrito
 def _items_carrito(request):
@@ -66,7 +68,7 @@ def _items_carrito(request):
         # Diccionario que representa un ítem del carrito
         items.append({
             'producto': producto,
-            'size': talla,
+            'talla': talla,
             'color': color,
             'cantidad': cantidad,
             'precio_unitario': precio_unitario,
@@ -273,23 +275,23 @@ def generar_factura(request):
     for i in items:
         producto = i["producto"]
 
-        # ⚠️ Validar talla y color contra las listas del producto
-        talla = i.get("size", "")
+        # ⚠️ Validar talla y color solo si las listas existen
+        talla = i.get("talla", "")
         color = i.get("color", "")
 
-        if talla and talla not in producto.sizes_list:
-            talla = ""  # limpiar si no es válido
-        if color and color not in producto.colors_list:
-            color = ""  # limpiar si no es válido
+        if producto.talla_list and talla and talla not in producto.talla_list:
+            talla = ""
+        if producto.colors_list and color and color not in producto.colors_list:
+            color = ""
 
         # ⚠️ Reducir stock
-        if producto.stock >= i["cantidad"]:
-            producto.stock -= i["cantidad"]
-            producto.save()
-        else:
+        if producto.stock < i["cantidad"]:
             messages.warning(request, f"Stock insuficiente para {producto.name}.")
             continue
+        producto.stock -= i["cantidad"]
+        producto.save()
 
+        # Crear detalle
         DetalleFactura.objects.create(
             factura=factura,
             producto=producto,
@@ -552,7 +554,6 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     email.send()
 
 
-
 @login_required(login_url='/accounts/login/')
 def vista_rapida(request, id):
     producto = get_object_or_404(Product, id=id)
@@ -561,7 +562,7 @@ def vista_rapida(request, id):
     # Contexto común para ambas plantillas
     context = {
         'producto': producto,
-        'sizes': producto.sizes_list,
+        'talla': producto.talla_list,
         'colors': producto.colors_list,
     }
 
@@ -690,9 +691,8 @@ def detalle_producto(request, slug):
     # Contexto que se pasa a la plantilla
     context = {
         'producto': producto,
-        # Convertimos los campos de texto en listas usando las propiedades del modelo
-        'sizes': producto.sizes_list if hasattr(producto, 'sizes_list') else [],
-        'colors': producto.colors_list if hasattr(producto, 'colors_list') else [],
+        # Usamos directamente las propiedades del modelo
+        'colors': producto.colors_list,
         'video_file': producto.video_file,
         'video_url': producto.video_url,
     }

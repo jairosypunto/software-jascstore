@@ -46,13 +46,13 @@
         {% csrf_token %}
 
         <!-- 🎨 Selector de tallas -->
-        {% if sizes %}
+        {% if producto.talla_list %}
           <div class="mb-3">
             <label class="form-label fw-bold">Tallas:</label>
             <div class="d-flex flex-wrap gap-2">
-              {% for talla in sizes %}
+              {% for talla in producto.talla_list %}
                 <label class="option-chip">
-                  <input type="radio" name="selected_size" value="{{ talla }}" {% if sizes %}required{% endif %}>
+                  <input type="radio" name="selected_size" value="{{ talla }}" required>
                   <span>{{ talla }}</span>
                 </label>
               {% endfor %}

@@ -56,11 +56,11 @@
       <p class="fw-bold">Precio: ${{ producto.cost|intcomma }}</p>
     {% endif %}
 
-    {% if producto.sizes_list %}
+    {% if producto.talla_list %}
       <div class="mb-3">
         <label>Tallas:</label>
         <div class="d-flex flex-wrap gap-2">
-          {% for talla in producto.sizes_list %}
+          {% for talla in producto.talla_list %}
             <label class="option-chip" for="talla-{{ forloop.counter }}">
               <input id="talla-{{ forloop.counter }}" type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
               <span>{{ talla }}</span>

@@ -34,10 +34,10 @@
           <!-- 🏷️ Nombre y variantes -->
           <td>
             {{ item.producto.name }}
-            {% if item.size or item.color %}
+            {% if item.talla or item.color %}
               <div class="small text-muted">
-                {% if item.size %}Talla: {{ item.size }}{% endif %}
-                {% if item.size and item.color %} | {% endif %}
+                {% if item.talla %}Talla: {{ item.talla }}{% endif %}
+                {% if item.talla and item.color %} | {% endif %}
                 {% if item.color %}Color: {{ item.color }}{% endif %}
               </div>
             {% endif %}

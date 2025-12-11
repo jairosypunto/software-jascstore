@@ -1,0 +1,38 @@
+[
+  {
+    "model": "store.product",
+    "fields": {
+      "name": "Camiseta Básica",
+      "slug": "camiseta-basica",
+      "description": "Camiseta de algodón 100% con corte clásico.",
+      "cost": "35000.00",
+      "discount": 10,
+      "stock": 50,
+      "is_available": true,
+      "category": 1,
+      "destacado": true,
+      "nuevo": false,
+      "is_tax_exempt": false,
+      "talla": "S,M,L,XL",
+      "color": "Blanco,Negro,Azul"
+    }
+  },
+  {
+    "model": "store.product",
+    "fields": {
+      "name": "Zapatos Deportivos",
+      "slug": "zapatos-deportivos",
+      "description": "Zapatos ligeros para correr y entrenar.",
+      "cost": "120000.00",
+      "discount": 15,
+      "stock": 30,
+      "is_available": true,
+      "category": 2,
+      "destacado": false,
+      "nuevo": true,
+      "is_tax_exempt": false,
+      "talla": "38,39,40,41,42,43",
+      "color": "Rojo,Azul,Negro"
+    }
+  }
+]

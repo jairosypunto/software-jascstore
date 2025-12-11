@@ -18,10 +18,10 @@
             <strong>{{ it.producto.name }}</strong>
 
             <!-- 🎨 Variantes: talla y color -->
-            {% if it.size or it.color %}
+            {% if it.talla or it.color %}
               <div class="small text-muted">
-                {% if it.size %}Talla: {{ it.size }}{% endif %}
-                {% if it.size and it.color %} | {% endif %}
+                {% if it.talla %}Talla: {{ it.talla }}{% endif %}
+                {% if it.talla and it.color %} | {% endif %}
                 {% if it.color %}Color: {{ it.color }}{% endif %}
               </div>
             {% endif %}

@@ -18,7 +18,7 @@ class FlujoCompraTest(TestCase):
             slug="camisa-elegante",
             cost=Decimal("40000"),
             discount=5,
-            sizes="S,M,L,XL",
+            talla="S,M,L,XL",
             colors="Blanco,Negro,Rojo",
             stock=10,
             is_available=True

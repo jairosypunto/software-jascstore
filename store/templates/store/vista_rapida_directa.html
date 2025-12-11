@@ -61,11 +61,11 @@
     {% endif %}
 
     <!-- 🎯 Tallas -->
-    {% if producto.sizes_list %}
+    {% if producto.talla_list %}
       <div class="mt-3">
         <label class="fw-semibold">Tamaño:</label>
         <div class="d-flex flex-wrap gap-2 mt-1">
-          {% for talla in producto.sizes_list %}
+          {% for talla in producto.talla_list %}
             <label class="option-chip">
               <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
               <span>{{ talla }}</span>
