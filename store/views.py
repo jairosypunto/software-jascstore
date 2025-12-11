@@ -281,7 +281,7 @@ def generar_factura(request):
 
         if producto.talla_list and talla and talla not in producto.talla_list:
             talla = ""
-        if producto.colors_list and color and color not in producto.colors_list:
+        if producto.color_list and color and color not in producto.color_list:
             color = ""
 
         # ⚠️ Reducir stock
@@ -563,7 +563,7 @@ def vista_rapida(request, id):
     context = {
         'producto': producto,
         'talla': producto.talla_list,
-        'colors': producto.colors_list,
+        'color': producto.color_list,
     }
 
     # Selección de plantilla según el modo
