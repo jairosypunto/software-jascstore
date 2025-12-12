@@ -76,6 +76,10 @@ INSTALLED_APPS = [
 
     "django.contrib.humanize",
     "django_extensions",
+
+    # ✅ Cloudinary
+    "cloudinary",
+    "cloudinary_storage",
 ]
 
 # ================================
@@ -142,10 +146,20 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ================================
-# 🖼️ MEDIA
+# 🖼️ MEDIA (Cloudinary)
 # ================================
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# ✅ Almacenamiento de media en Cloudinary (evita quota en disco)
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+CLOUDINARY = {
+    "cloud_name": config("CLOUDINARY_CLOUD_NAME", default=""),
+    "api_key": config("CLOUDINARY_API_KEY", default=""),
+    "api_secret": config("CLOUDINARY_API_SECRET", default=""),
+    "secure": True,
+}
 
 # ================================
 # 🔐 LOGIN / LOGOUT
@@ -158,13 +172,13 @@ LOGOUT_REDIRECT_URL = "/home/"
 # ================================
 # 📧 MAIL (Producción con Gmail)
 # ================================
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = config('EMAIL_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_PASS', default='')
+EMAIL_HOST_USER = config("EMAIL_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_PASS", default="")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
