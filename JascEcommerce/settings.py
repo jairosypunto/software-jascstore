@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 import os
+from decouple import config
 
 # ================================
 # 📁 BASE DEL PROYECTO
@@ -154,8 +155,6 @@ LOGIN_REDIRECT_URL = "/account/dashboard/"
 LOGOUT_URL = "account:logout"
 LOGOUT_REDIRECT_URL = "/home/"
 
-from decouple import config
-
 # ================================
 # 📧 MAIL (Producción con Gmail)
 # ================================
@@ -177,4 +176,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ================================
 # 🔄 VERSIONADO DE STATIC
 # ================================
-STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
+STATIC_VERSION = "20251211231500"

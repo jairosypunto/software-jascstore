@@ -40,9 +40,33 @@
   <div class="shop-container">
 
     <!-- Buscador y filtros -->
-    <form method="get" id="filterForm" class="search-form">
-      <!-- buscador y filtros -->
-    </form>
+<form method="get" id="filterForm" class="search-form d-flex gap-2 mb-4">
+
+  <!-- 🔎 Buscador -->
+  <input type="text" name="q" placeholder="Buscar productos..."
+         value="{{ search_query }}" class="form-control">
+
+  <!-- 📂 Categorías -->
+  <select name="category" class="form-select">
+    <option value="all">Todas las categorías</option>
+    {% for cat in categorias %}
+      <option value="{{ cat.slug }}" {% if categoria_actual and categoria_actual.slug == cat.slug %}selected{% endif %}>
+        {{ cat.name }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <!-- 📊 Ordenamiento -->
+  <select name="order" class="form-select">
+    <option value="">Ordenar por...</option>
+    <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
+    <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ascendente</option>
+    <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
+    <option value="recent" {% if order == 'recent' %}selected{% endif %}>Más recientes</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary">Filtrar</button>
+</form>
 
     <!-- Productos destacados -->
     <div class="swiper mySwiper">
