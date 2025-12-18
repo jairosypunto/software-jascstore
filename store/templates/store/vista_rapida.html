@@ -1,421 +1,135 @@
 {% load static humanize %}
 
 <div class="vista-rapida-contenido">
-  <!-- Miniaturas -->
-  <div class="miniaturas">
-    {% if producto.image %}
-      <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="miniatura"
-           onclick="mostrarImagen('{{ producto.image.url }}')">
-    {% endif %}
-    {% for img in producto.images.all %}
-      <img src="{{ img.image.url }}" alt="{{ producto.name }}" class="miniatura"
-           onclick="mostrarImagen('{{ img.image.url }}')">
-    {% endfor %}
-    {% if producto.video_file or producto.video_url %}
-      <div class="miniatura video-miniatura"
-           onclick="mostrarVideo('{% if producto.video_file %}{{ producto.video_file.url }}{% else %}{{ producto.video_url }}{% endif %}', {% if producto.video_file %}true{% else %}false{% endif %})">
-        {% if producto.video_thumb %}
-          <img src="{{ producto.video_thumb.url }}" alt="Video">
-        {% elif producto.image %}
-          <img src="{{ producto.image.url }}" alt="Video">
-        {% else %}
-          <img src="{% static 'icons/video-thumb.png' %}" alt="Video">
-        {% endif %}
-        <div class="video-overlay"><i class="bi bi-play-circle-fill"></i></div>
-      </div>
-    {% endif %}
-  </div>
 
-  <!-- Imagen/Video principal -->
-  <div class="imagen-principal">
-    {% if producto.image %}
-      <img id="imagen-principal" src="{{ producto.image.url }}" alt="{{ producto.name }}" class="big-image visible">
-    {% else %}
-      <img id="imagen-principal" src="{% static 'icons/no-image.png' %}" alt="{{ producto.name }}" class="big-image visible">
-    {% endif %}
+  <!-- =====================================================
+       📸 GALERÍA DEL PRODUCTO (IMÁGENES + VIDEO)
+  ====================================================== -->
+  <div class="galeria-producto">
 
-    <div id="video-contenedor" class="video-container hidden">
-      <video id="video-file" controls class="video-el">
-        <source id="video-source" src="" type="video/mp4">
-        Tu navegador no soporta video HTML5.
-      </video>
-      <iframe id="video-frame" frameborder="0" allowfullscreen class="iframe-el"></iframe>
+    <!-- MINIATURAS (izquierda) -->
+    <div class="miniaturas">
+      {% if producto.video_file %}
+        <div class="miniatura video-thumb"
+            data-type="video"
+            data-src="{{ producto.video_file.url }}"
+            {% if producto.video_thumb %}
+              style="background-image:url('{{ producto.video_thumb.url }}')"
+            {% endif %}>
+          <span class="play-icon">▶</span>
+        </div>
+      {% endif %}
+
+
+
+
+      <!-- Imagen principal -->
+      {% if producto.image %}
+        <img src="{{ producto.image.url }}"
+             class="miniatura activa"
+             data-type="image"
+             data-src="{{ producto.image.url }}"
+             alt="Imagen principal">
+      {% endif %}
+
+      <!-- Imágenes adicionales -->
+      {% for img in producto.images.all %}
+        <img src="{{ img.image.url }}"
+             class="miniatura"
+             data-type="image"
+             data-src="{{ img.image.url }}"
+             alt="Imagen adicional">
+      {% endfor %}
+
+      <!-- Video del producto -->
+      {% if producto.video %}
+        <div class="miniatura video-thumb"
+             data-type="video"
+             data-src="{{ producto.video.url }}">
+          ▶
+        </div>
+      {% endif %}
+
     </div>
+
+    <!-- VISOR PRINCIPAL -->
+    <div class="imagen-principal" id="visor-principal">
+      {% if producto.image %}
+        <img src="{{ producto.image.url }}"
+             class="big-image"
+             alt="{{ producto.name }}">
+      {% else %}
+        <img src="{% static 'icons/no-image.png' %}" class="big-image">
+      {% endif %}
+    </div>
+
   </div>
 
-  <!-- Información del producto -->
+  <!-- =====================================================
+       ℹ️ INFORMACIÓN DEL PRODUCTO
+  ====================================================== -->
   <div class="info-producto">
-    <h3>{{ producto.name }}</h3>
-    <p>{{ producto.description }}</p>
 
+    <h3 class="titulo">{{ producto.name }}</h3>
+    <p class="descripcion">{{ producto.description }}</p>
+
+    <!-- PRECIOS -->
     {% if producto.discount > 0 %}
-      <p class="text-danger fw-bold">Precio con descuento: ${{ producto.final_price|intcomma }}</p>
-      <p class="text-muted text-decoration-line-through">Antes: ${{ producto.cost|intcomma }}</p>
-      <span class="badge bg-success">-{{ producto.discount }}%</span>
+      <div class="precio">
+        <span class="precio-final">${{ producto.final_price|intcomma }}</span>
+        <span class="precio-original">${{ producto.cost|intcomma }}</span>
+        <span class="badge-descuento">-{{ producto.discount }}%</span>
+      </div>
     {% else %}
-      <p class="fw-bold">Precio: ${{ producto.cost|intcomma }}</p>
+      <div class="precio">
+        <span class="precio-final">${{ producto.cost|intcomma }}</span>
+      </div>
     {% endif %}
 
+    <!-- TALLAS -->
     {% if producto.talla_list %}
-      <div class="mb-3">
-        <label>Tallas:</label>
-        <div class="d-flex flex-wrap gap-2">
-          {% for talla in producto.talla_list %}
-            <label class="option-chip" for="talla-{{ forloop.counter }}">
-              <input id="talla-{{ forloop.counter }}" type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
-              <span>{{ talla }}</span>
-            </label>
-          {% endfor %}
-        </div>
+    <div class="bloque-opciones">
+      <label class="label-opcion">Tallas</label>
+      <div class="opciones">
+        {% for talla in producto.talla_list %}
+        <label class="option-chip size-chip">
+          <input type="radio" class="visually-hidden" value="{{ talla }}">
+          <span>{{ talla }}</span>
+        </label>
+        {% endfor %}
       </div>
+    </div>
     {% endif %}
 
+    <!-- COLORES -->
     {% if producto.colors_list %}
-      <div class="mb-3">
-        <label>Colores:</label>
-        <div class="d-flex flex-wrap gap-2">
-          {% for color in producto.colors_list %}
-            <label class="option-chip" for="color-{{ forloop.counter }}">
-              <input id="color-{{ forloop.counter }}" type="radio" name="selected_color" value="{{ color }}" class="visually-hidden">
-              <span>{{ color }}</span>
-            </label>
-          {% endfor %}
-        </div>
+    <div class="bloque-opciones">
+      <label class="label-opcion">Colores</label>
+      <div class="opciones">
+        {% for color in producto.colors_list %}
+        <label class="option-chip color-chip">
+          <input type="radio" class="visually-hidden" value="{{ color }}">
+          <span>{{ color }}</span>
+        </label>
+        {% endfor %}
       </div>
+    </div>
     {% endif %}
 
-    <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}" id="form-add-cart">
+    <!-- FORMULARIO CARRITO -->
+    <form method="POST"
+          action="{% url 'store:agregar_al_carrito' producto.id %}"
+          id="form-add-cart">
       {% csrf_token %}
-      <input type="hidden" name="selected_size">
-      <input type="hidden" name="selected_color">
+
+      <input type="hidden" name="selected_size_hidden">
+      <input type="hidden" name="selected_color_hidden">
       <input type="hidden" name="cantidad" value="1">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-cart-plus"></i> Agregar al carrito
+
+      <button type="submit" class="btn-agregar" disabled>
+        🛒 Agregar al carrito
       </button>
     </form>
+
   </div>
 </div>
-
-<style>
-/* =========================
-   📦 CONTENEDOR PRINCIPAL
-   ========================= */
-.vista-rapida-contenido {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5em;
-  padding: 1.5em;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-/* =========================
-   🖼️ MINIATURAS
-   ========================= */
-.miniaturas {
-  flex: 0 0 90px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7em;
-}
-
-.miniatura {
-  width: 80px;
-  cursor: pointer;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  transition: transform .2s ease;
-}
-
-.miniatura:hover {
-  transform: scale(1.05);
-}
-
-/* Miniatura de video con overlay */
-.video-miniatura {
-  width: 80px;
-  height: 80px;
-  position: relative;
-  overflow: hidden;
-}
-
-.video-miniatura img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.video-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  font-size: 1.5rem;
-  border-radius: 6px;
-}
-
-/* =========================
-   🖼️ IMAGEN PRINCIPAL
-   ========================= */
-.imagen-principal {
-  flex: 1;
-  min-width: 280px;
-  max-width: 480px;
-  text-align: center;
-  position: relative;
-}
-
-.big-image {
-  width: 100%;
-  aspect-ratio: 1/1;
-  object-fit: cover;
-  border-radius: 8px;
-  transition: transform 0.3s ease;
-}
-
-.big-image:hover {
-  transform: scale(1.05);
-}
-
-/* =========================
-   🎥 VIDEO
-   ========================= */
-.video-container {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  overflow: hidden;
-  z-index: 2;
-  height: 100%;
-}
-
-.video-el,
-.iframe-el {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border: 0;
-  border-radius: 8px;
-  background: #000;
-}
-
-/* =========================
-   📄 INFO PRODUCTO
-   ========================= */
-.info-producto {
-  flex: 1;
-  min-width: 280px;
-}
-
-/* =========================
-   🎨 CHIPS
-   ========================= */
-.option-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.option-chip input {
-  display: none;
-}
-
-.option-chip.selected {
-  border-color: #0d6efd;
-  background: #e7f1ff;
-  color: #0d6efd;
-}
-
-/* =========================
-   📱 RESPONSIVE
-   ========================= */
-@media (max-width: 768px) {
-  .vista-rapida-contenido {
-    flex-direction: column;
-    padding: 1em;
-    gap: 1em;
-  }
-
-  .miniaturas {
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.5em;
-  }
-
-  .imagen-principal {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .info-producto {
-    width: 100%;
-    text-align: center;
-    padding: 0.5em;
-  }
-
-  .info-producto h3 {
-    font-size: 1rem;
-    margin-bottom: 0.5em;
-  }
-
-  .info-producto p {
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-
-  .btn.btn-primary {
-    font-size: 0.9rem;
-    padding: 0.6em 1em;
-  }
-}
-
-/* =========================
-   💲 PRECIO Y DESCUENTO
-   ========================= */
-.text-danger {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #ef4444;
-}
-
-.text-decoration-line-through {
-  font-size: 0.85rem;
-  color: #999;
-}
-
-/* =========================
-   🎯 Control de visibilidad
-   ========================= */
-.hidden {
-  display: none !important;
-}
-
-.visible {
-  display: block !important;
-}
-/* =========================
-   🎥 Visibilidad del video
-   ========================= */
-.video-container.hidden {
-  display: none !important;
-}
-
-.video-container.visible {
-  display: block !important;
-  position: relative;
-  height: auto;
-}
-
-.video-el,
-.iframe-el {
-  width: 100%;
-  height: 100%;
-  max-height: 480px;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #000;
-}
-</style>
-
-<style>
-/* ... tu CSS existente ... */
-
-/* 🎯 Control de visibilidad */
-.hidden { display: none !important; }
-.visible { display: block !important; }
-
-/* 🎥 Visibilidad del video */
-.video-container.hidden { display: none !important; }
-.video-container.visible { display: block !important; position: relative; height: auto; }
-.video-el, .iframe-el { width: 100%; height: 100%; max-height: 480px; object-fit: cover; border-radius: 8px; background: #000; }
-</style>
-
-<script>
-// =========================
-// 🔧 Funciones auxiliares
-// =========================
-function toggleVisibility(showVideo) {
-  const img = document.getElementById('imagen-principal');
-  const videoCont = document.getElementById('video-contenedor');
-  if (!img || !videoCont) return;
-
-  if (showVideo) {
-    img.classList.add('hidden'); img.classList.remove('visible'); img.style.display = 'none';
-    videoCont.classList.remove('hidden'); videoCont.classList.add('visible'); videoCont.style.display = 'block';
-  } else {
-    img.classList.remove('hidden'); img.classList.add('visible'); img.style.display = 'block';
-    videoCont.classList.add('hidden'); videoCont.classList.remove('visible'); videoCont.style.display = 'none';
-  }
-}
-
-// =========================
-// ⚙️ Estado inicial
-// =========================
-window.addEventListener('DOMContentLoaded', () => {
-  toggleVisibility(false);
-  const videoFile = document.getElementById('video-file');
-  const videoFrame = document.getElementById('video-frame');
-  if (videoFile) { videoFile.pause(); videoFile.currentTime = 0; }
-  if (videoFrame) videoFrame.src = '';
-});
-
-// =========================
-// 🖼️ Mostrar imagen
-// =========================
-function mostrarImagen(url) {
-  const img = document.getElementById('imagen-principal');
-  const videoFile = document.getElementById('video-file');
-  const videoFrame = document.getElementById('video-frame');
-  if (img) img.src = url;
-  toggleVisibility(false);
-  if (videoFile) { videoFile.pause(); videoFile.currentTime = 0; }
-  if (videoFrame) videoFrame.src = '';
-}
-
-// =========================
-// 🎥 Mostrar video
-// =========================
-function mostrarVideo(src, isFile) {
-  if (!src) return;
-  const videoFile = document.getElementById('video-file');
-  const videoSource = document.getElementById('video-source');
-  const videoFrame = document.getElementById('video-frame');
-  toggleVisibility(true);
-
-  if (isFile) {
-    if (videoFrame) videoFrame.src = '';
-    if (videoSource) videoSource.src = src;
-    if (videoFile) { videoFile.load(); videoFile.play(); }
-  } else {
-    if (videoFile) { videoFile.pause(); videoFile.currentTime = 0; }
-    if (videoFrame) videoFrame.src = src;
-  }
-}
-
-// =========================
-// 🎯 Sincronización opciones
-// =========================
-function syncOptions(name, logLabel) {
-  document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
-    radio.addEventListener('change', () => {
-      const hidden = document.querySelector(`#form-add-cart input[name="${name}"]`);
-      if (hidden) hidden.value = radio.value;
-      document.querySelectorAll('label.option-chip').forEach(chip => chip.classList.remove('selected'));
-      const chip = radio.closest('label.option-chip');
-      if (chip) chip.classList.add('selected');
-      console.log(`${logLabel} ${radio.value}`);
-    });
-  });
-}
-
-syncOptions("selected_size", "✅ Talla seleccionada:");
-syncOptions("selected_color", "🎨 Color seleccionado:");
-</script>

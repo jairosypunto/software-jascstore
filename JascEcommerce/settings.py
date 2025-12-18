@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "cambia-esto-en-produccion")
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "jairos.pythonanywhere.com",
@@ -68,16 +68,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "categorias",
+    # Apps del proyecto
     "auths",
     "store",
     "home",
     "pedidos",
 
+    # Extras
     "django.contrib.humanize",
     "django_extensions",
 
-    # ✅ Cloudinary
+    # ✅ Cloudinary (media)
     "cloudinary",
     "cloudinary_storage",
 ]
@@ -87,7 +88,7 @@ INSTALLED_APPS = [
 # ================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # ✅ sirve estáticos en producción
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -114,7 +115,7 @@ TEMPLATES = [
             BASE_DIR / "store" / "templates",
             BASE_DIR / "home" / "templates",
             BASE_DIR / "auths" / "templates",
-            BASE_DIR / "categorias" / "templates",
+            # ❌ eliminado: BASE_DIR / "categorias" / "templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -122,9 +123,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "categorias.context_processors.menu_links",
+                # ✅ menú de categorías desde store
+                "store.context_processors.menu_links",
                 "store.context_processors.total_items_carrito",
-                "store.context_processors.static_version",  # ✅ versionado de CSS
+                "store.context_processors.static_version",
             ],
         },
     },
@@ -139,8 +141,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "store" / "static",
     BASE_DIR / "home" / "static",
     BASE_DIR / "auths" / "static",
-    BASE_DIR / "categorias" / "static",
     BASE_DIR / "static",  # favicon y extras globales
+    # ❌ eliminado: BASE_DIR / "categorias" / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -151,13 +153,14 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# ✅ Almacenamiento de media en Cloudinary (evita quota en disco)
+# Usar Cloudinary como almacenamiento por defecto
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
+# Configuración de Cloudinary
 CLOUDINARY = {
-    "cloud_name": config("CLOUDINARY_CLOUD_NAME", default=""),
-    "api_key": config("CLOUDINARY_API_KEY", default=""),
-    "api_secret": config("CLOUDINARY_API_SECRET", default=""),
+    "cloud_name": config("CLOUDINARY_CLOUD_NAME"),
+    "api_key": config("CLOUDINARY_API_KEY"),
+    "api_secret": config("CLOUDINARY_API_SECRET"),
     "secure": True,
 }
 
@@ -170,16 +173,14 @@ LOGOUT_URL = "account:logout"
 LOGOUT_REDIRECT_URL = "/home/"
 
 # ================================
-# 📧 MAIL (Producción con Gmail)
+# 📧 MAIL (SMTP)
 # ================================
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
 EMAIL_HOST_USER = config("EMAIL_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_PASS", default="")
-
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ================================

@@ -44,19 +44,18 @@
       <tbody>
         {% for item in factura.detalles.all %}
         <tr>
-          <td>{{ item.producto.name }}</td>
-          <td style="text-align:center; white-space: nowrap;">{{ item.cantidad }}</td>
-          <td style="word-break: break-word;">
-            {% if item.producto.discount > 0 %}
-              <div><strong>${{ item.producto.final_price|floatformat:0|intcomma }}</strong></div>
-              <div class="text-muted" style="font-size:13px;">
-                Antes: ${{ item.producto.cost|floatformat:0|intcomma }}<br>
-                (-{{ item.producto.discount }}%)
-              </div>
-            {% else %}
-              ${{ item.producto.cost|floatformat:0|intcomma }}
-            {% endif %}
-          </td>
+     <td>
+        <strong>{{ item.producto.name }}</strong>
+
+        {% if item.talla or item.color %}
+          <div class="text-muted small">
+            {% if item.talla %}Talla: {{ item.talla }}{% endif %}
+            {% if item.talla and item.color %} | {% endif %}
+            {% if item.color %}Color: {{ item.color }}{% endif %}
+          </div>
+        {% endif %}
+      </td>
+
           <td style="text-align:right; white-space: nowrap;">${{ item.subtotal|floatformat:0|intcomma }}</td>
         </tr>
         {% endfor %}

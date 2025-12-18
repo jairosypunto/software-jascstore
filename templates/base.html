@@ -5,74 +5,70 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 🧠 Título dinámico por vista -->
+  <!-- 🧠 Título dinámico -->
   <title>{% block title %}JascShop{% endblock %}</title>
 
   <!-- 🎨 Frameworks visuales -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+<!-- 🎨 Frameworks visuales -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-  <!-- 🎯 Iconografía completa desde CDN oficial -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<!-- ✅ CSS VISTA RÁPIDA (JascEcommerce) -->
+<link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}">
 
-  <!-- 🖼️ Favicon para identidad visual -->
-  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+<!-- 📦 Estilos adicionales por página -->
+{% block extra_css %}{% endblock %}
 
-  <!-- 📦 Estilos adicionales por vista (CSS específico de cada página) -->
-  {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-  <!-- 🔔 Mensajes del sistema (login, errores, etc.) -->
+  <!-- 🔔 Mensajes del sistema -->
   {% if messages %}
     <div class="container mt-3">
       {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-          {{ message }}
-        </div>
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %}
     </div>
   {% endif %}
 
-  <!-- 🧭 NAVBAR FIJO Y RESPONSIVO -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fijo">
+  <!-- 🧭 NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-xl">
-
-      <!-- 🏠 Logo y nombre -->
+      <!-- 🏠 Logo -->
       <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">JascShop</a>
 
-      <!-- 📱 Botón hamburguesa para móviles -->
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
+      <!-- 📱 Botón móvil -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <!-- 📂 Menú principal -->
+      <!-- 📂 Menú -->
       <div class="collapse navbar-collapse" id="navbarContenido">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+        <ul class="navbar-nav me-auto gap-2">
           <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'store:nosotros' %}">Nosotros</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a></li>
         </ul>
 
-        <!-- 👤 Menú de usuario -->
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+        <!-- 👤 Usuario -->
+        <ul class="navbar-nav ms-auto gap-2">
           {% if user.is_authenticated %}
-            <!-- 👋 Saludo personalizado -->
             <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
 
-            <!-- 🛒 Carrito con contador -->
+            <!-- 🛒 Carrito -->
             <li class="nav-item position-relative">
               <a class="nav-link" href="{% url 'store:ver_carrito' %}">
                 <i class="bi bi-cart"></i> Carrito
-                {% if total_items > 0 %}
+                {% if total_items_carrito > 0 %}
                   <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill">
-                    {{ total_items }}
+                    {{ total_items_carrito }}
                   </span>
                 {% endif %}
               </a>
             </li>
 
-            <!-- ⚙️ Opciones de cuenta -->
+            <!-- ⚙️ Cuenta -->
             <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Contraseña</a></li>
 
@@ -84,7 +80,6 @@
               </form>
             </li>
           {% else %}
-            <!-- 🔐 Login y registro -->
             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
             <li class="nav-item"><a class="nav-link text-success fw-bold" href="{% url 'register' %}">Registro</a></li>
           {% endif %}
@@ -93,33 +88,30 @@
     </div>
   </nav>
 
-  <!-- 🖼️ Banner fuera del contenedor limitado -->
+  <!-- 🖼️ Banner -->
   {% block banner_full %}{% endblock %}
 
-  <!-- 🧱 Contenido principal limitado y centrado -->
+  <!-- 🧱 Contenido -->
   <div class="contenedor-tienda">
     {% block content %}{% endblock %}
   </div>
 
-  <!-- ⚙️ Scripts JS -->
+  <!-- ⚙️ Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 
-  <!-- 📦 Scripts adicionales por vista -->
   {% block extra_js %}{% endblock %}
 
-  <!-- 🌐 Footer profesional -->
-  <footer class="footer-tienda bg-dark text-white mt-5 py-4">
+  <!-- 🌐 Footer -->
+  <footer class="bg-dark text-white mt-5 py-4">
     <div class="container text-center">
       <p class="mb-2">© 2025 JascEcommerce. Todos los derechos reservados.</p>
-
-      <div class="footer-links d-flex justify-content-center gap-4">
+      <div class="d-flex justify-content-center gap-4">
         <a href="#" class="text-white text-decoration-none">Política de privacidad</a>
         <a href="#" class="text-white text-decoration-none">Términos y condiciones</a>
         <a href="#" class="text-white text-decoration-none">Ayuda</a>
       </div>
-
-      <div class="footer-social mt-3">
+      <div class="mt-3">
         <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
         <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
         <a href="#" class="text-white"><i class="bi bi-whatsapp"></i></a>

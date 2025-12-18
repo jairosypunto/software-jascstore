@@ -1,26 +1,64 @@
 from django.db import models
 from django.conf import settings
-from categorias.models import Category
 from decimal import Decimal
+
+# 🧾 Nota histórica:
+# El modelo Category antes vivía en la app `categorias`.
+# Ahora está consolidado en `store` para simplificar el proyecto y evitar dependencias rotas.
+# El campo Product.category apunta directamente a store.Category.
+
+
+# 📂 Modelo de Categoría
+class Category(models.Model):
+    """Clasificación principal de productos en la tienda."""
+    name = models.CharField(max_length=120, unique=True)
+    slug = models.SlugField(max_length=140, unique=True)
+
+    class Meta:
+        verbose_name = "Categoría"
+        verbose_name_plural = "Categorías"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
 
 # 🛍️ Modelo de Producto
 class Product(models.Model):
+    """Modelo principal de productos, con variantes y multimedia."""
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
+
+    # 💰 Precios y descuentos
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.PositiveIntegerField(default=0)
+
+    # 📸 Imagen principal
     image = models.ImageField(upload_to="imgs/products/", blank=True, null=True)
+
+    # 📦 Stock y disponibilidad
     stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
-    category = models.ForeignKey("categorias.Category", on_delete=models.CASCADE)
-    destacado = models.BooleanField(default=False)
-    nuevo = models.BooleanField(default=False)
-    is_tax_exempt = models.BooleanField(default=False)
+
+    # 🔗 Relación con categoría
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="products",
+        help_text="Categoría a la que pertenece el producto"
+    )
+
+    # ⭐ Flags de marketing
+    destacado = models.BooleanField(default=False, help_text="Producto destacado en portada")
+    nuevo = models.BooleanField(default=False, help_text="Producto marcado como nuevo")
+    is_tax_exempt = models.BooleanField(default=False, help_text="Exento de impuestos")
+
+    # 📅 Fechas de registro y actualización
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
 
-    # Variantes
+    # 👕 Variantes
     talla = models.CharField(
         max_length=200,
         blank=True,
@@ -32,7 +70,7 @@ class Product(models.Model):
         help_text="Lista separada por comas: Blanco,Negro,Azul"
     )
 
-    # Video
+    # 🎥 Multimedia
     video_url = models.URLField(blank=True, null=True)
     video_file = models.FileField(upload_to="videos/products/", blank=True, null=True)
     video_thumb = models.ImageField(upload_to="imgs/products/video_thumbs/", blank=True, null=True)
@@ -42,7 +80,7 @@ class Product(models.Model):
 
     @property
     def final_price(self):
-        """Calcula el precio con descuento aplicado usando Decimal"""
+        """Calcula el precio final aplicando descuento."""
         try:
             discount_value = int(self.discount)
         except (ValueError, TypeError):
@@ -55,53 +93,29 @@ class Product(models.Model):
 
     @property
     def talla_list(self):
-        """Devuelve lista de tallas separadas por comas"""
+        """Devuelve lista de tallas separadas por comas."""
         return [s.strip() for s in self.talla.split(",") if s.strip()] if self.talla else []
 
     @property
     def color_list(self):
-        """Devuelve lista de colores separados por comas"""
+        """Devuelve lista de colores separadas por comas."""
         return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
 
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
+    """Factura generada tras una compra."""
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         help_text="Usuario dueño de la factura"
     )
-    fecha = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Fecha de creación de la factura"
-    )
-    total = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        help_text="Total final de la factura con impuestos y descuentos"
-    )
-    metodo_pago = models.CharField(
-        max_length=30,
-        default="No especificado",
-        help_text="Método de pago elegido (banco, contraentrega, etc.)"
-    )
-    estado_pago = models.CharField(
-        max_length=20,
-        default="Pendiente",
-        help_text="Estado del pago (Pendiente, Pagado, Fallido)"
-    )
-    transaccion_id = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        help_text="ID de transacción del proveedor de pagos"
-    )
-    banco = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        help_text="Banco usado en el pago si aplica"
-    )
+    fecha = models.DateTimeField(auto_now_add=True, help_text="Fecha de creación de la factura")
+    total = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total final con impuestos y descuentos")
+    metodo_pago = models.CharField(max_length=30, default="No especificado", help_text="Método de pago elegido")
+    estado_pago = models.CharField(max_length=20, default="Pendiente", help_text="Estado del pago")
+    transaccion_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID de transacción del banco/proveedor")
+    banco = models.CharField(max_length=100, blank=True, null=True, help_text="Banco usado en el pago si aplica")
 
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
@@ -109,37 +123,13 @@ class Factura(models.Model):
 
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
-    factura = models.ForeignKey(
-        Factura,
-        related_name="detalles",
-        on_delete=models.CASCADE,
-        help_text="Factura a la que pertenece este detalle"
-    )
-    producto = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        help_text="Producto comprado"
-    )
-    cantidad = models.PositiveIntegerField(
-        help_text="Cantidad de unidades compradas"
-    )
-    subtotal = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        help_text="Subtotal de esta línea (precio unitario * cantidad)"
-    )
-    talla = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="Talla seleccionada por el cliente"
-    )
-    color = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        help_text="Color seleccionado por el cliente"
-    )
+    """Detalle de cada producto dentro de una factura."""
+    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)
+    producto = models.ForeignKey(Product, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    talla = models.CharField(max_length=20, blank=True, null=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
 
     def variantes(self):
         """Devuelve un string con las variantes seleccionadas (talla y color)."""
@@ -156,6 +146,7 @@ class DetalleFactura(models.Model):
 
 # 🎯 Modelo de Banner
 class Banner(models.Model):
+    """Banner principal para la tienda (portada)."""
     title = models.CharField(max_length=200, default="Bienvenido a JascShop")
     subtitle = models.CharField(max_length=300, blank=True, null=True)
     image = models.ImageField(upload_to="banners/")
@@ -166,6 +157,7 @@ class Banner(models.Model):
 
 # 📦 Modelo de imágenes adicionales
 class ProductImage(models.Model):
+    """Galería de imágenes adicionales para un producto."""
     product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
     image = models.ImageField(upload_to="imgs/products/gallery/")
 

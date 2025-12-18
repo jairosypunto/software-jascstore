@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import Product, ProductImage, Factura, DetalleFactura, Banner
+from .models import Product, ProductImage, Factura, DetalleFactura, Banner, Category
 
 # ================================
 # 🖼️ Configuración en línea de imágenes adicionales
 # ================================
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 1
+    extra = 1  # Permite agregar una imagen adicional por defecto
     verbose_name = "Imagen adicional"
     verbose_name_plural = "Imágenes adicionales"
 
@@ -23,18 +23,18 @@ class ProductAdmin(admin.ModelAdmin):
         'stock',         # Unidades disponibles
         'is_available',  # Estado de disponibilidad
         'category',      # Categoría asignada
-        'talla',         # ✅ Tallas disponibles
-        'color',         # ✅ Colores disponibles
+        'talla',         # Tallas disponibles
+        'color',         # Colores disponibles
         'video_url',     # Video externo
         'video_file'     # Video subido al servidor
     )
-    list_editable = ('discount',)  # Editar descuento directamente en la lista
+    list_editable = ('discount',)  # Permite editar el descuento directamente en la lista
     prepopulated_fields = {'slug': ('name',)}  # Slug autogenerado desde el nombre
     search_fields = ('name', 'description')    # Búsqueda por nombre y descripción
     list_filter = ('is_available', 'category', 'destacado', 'nuevo')  # Filtros útiles
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline]  # Muestra imágenes adicionales en línea
 
-    # Organización de campos en secciones
+    # Organización de campos en secciones del formulario
     fieldsets = (
         ("Información básica", {
             "fields": ("name", "slug", "description", "category", "image")
@@ -43,7 +43,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("cost", "discount", "final_price", "stock", "is_available", "is_tax_exempt")
         }),
         ("Opciones de producto", {
-            "fields": ("talla", "color", "destacado", "nuevo")  # ✅ actualizado
+            "fields": ("talla", "color", "destacado", "nuevo")
         }),
         ("Video", {
             "fields": ("video_url", "video_file")
@@ -52,7 +52,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("date_register", "date_update")
         }),
     )
-    readonly_fields = ("final_price", "date_register", "date_update")
+    readonly_fields = ("final_price", "date_register", "date_update")  # Campos calculados o automáticos
 
 # ================================
 # 🧾 Factura
@@ -68,9 +68,9 @@ class FacturaAdmin(admin.ModelAdmin):
         'estado_pago',
         'banco'
     )
-    date_hierarchy = 'fecha'
-    search_fields = ('usuario__username', 'usuario__email')
-    list_filter = ('estado_pago', 'metodo_pago', 'banco')
+    date_hierarchy = 'fecha'  # Navegación por fechas
+    search_fields = ('usuario__username', 'usuario__email')  # Búsqueda por usuario
+    list_filter = ('estado_pago', 'metodo_pago', 'banco')  # Filtros por estado y método
 
 # ================================
 # 📦 Detalle de factura
@@ -81,13 +81,13 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
         'factura',
         'producto',
         'cantidad',
-        'talla',     # ✅ mostrar talla
-        'color',     # ✅ mostrar color
+        'talla',     # Mostrar talla
+        'color',     # Mostrar color
         'subtotal'
     )
-    list_select_related = ('factura', 'producto')
-    search_fields = ('producto__name',)
-    list_filter = ('factura', 'talla', 'color')  # ✅ filtros útiles
+    list_select_related = ('factura', 'producto')  # Optimiza consultas
+    search_fields = ('producto__name',)  # Búsqueda por nombre de producto
+    list_filter = ('factura', 'talla', 'color')  # Filtros útiles
 
 # ================================
 # 🎯 Banner promocional
@@ -96,4 +96,12 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
 class BannerAdmin(admin.ModelAdmin):
     list_display = ("title", "subtitle", "image")
     search_fields = ("title", "subtitle")
-    
+
+# ================================
+# 🗂️ Categoría de productos
+# ================================
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug")  # Mostrar nombre y slug
+    search_fields = ("name",)        # Búsqueda por nombre
+    prepopulated_fields = {"slug": ("name",)}  # Slug autogenerado desde el nombre

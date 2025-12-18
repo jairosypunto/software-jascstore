@@ -1,4 +1,14 @@
 from datetime import datetime
+from django.conf import settings
+from .models import Category
+
+def menu_links(request):
+    """
+    Context processor para inyectar categorías en el menú de navegación.
+    Obtiene todas las categorías ordenadas alfabéticamente.
+    """
+    categories = Category.objects.all().order_by("name")
+    return {"menu_categories": categories}
 
 def total_items_carrito(request):
     """
@@ -26,6 +36,10 @@ def total_items_carrito(request):
 def static_version(request):
     """
     Context processor para versionar archivos estáticos.
-    Devuelve un número de versión basado en fecha/hora.
+    Devuelve un número de versión fijo desde settings o dinámico por fecha/hora.
     """
-    return {"STATIC_VERSION": datetime.now().strftime("%Y%m%d%H%M%S")}
+    return {
+        "STATIC_VERSION": getattr(
+            settings, "STATIC_VERSION", datetime.now().strftime("%Y%m%d%H%M%S")
+        )
+    }

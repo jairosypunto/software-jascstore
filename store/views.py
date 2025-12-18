@@ -1,8 +1,12 @@
+# ============================
 # Librerías estándar de Python
+# ============================
 from decimal import Decimal
 from io import BytesIO
 
-# Django
+# ============
+# Librerías Django
+# ============
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,44 +17,59 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.http import HttpResponse
 
-# Modelos propios
-from .models import Product, Factura, DetalleFactura, Banner
-from categorias.models import Category
+from django.utils.timezone import localtime
 
+# ============
+# Modelos propios
+# ============
+from .models import Product, Factura, DetalleFactura, Banner, Category
+
+# ============
 # Utilidades propias
+# ============
 from store.utils import formatear_numero
 
-# ReportLab (para PDF)
+# ============
+# Librerías externas (ReportLab para PDF)
+# ============
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 
 
+# ============================================================
+# 🧮 Función auxiliar: cálculo de precio final con descuento
+# ============================================================
 def _precio_final(producto: Product) -> Decimal:
     """
     Devuelve el precio final del producto aplicando descuento.
     Usa la propiedad del modelo si existe; si no, lo calcula aquí.
     """
     try:
-        return producto.final_price  # ✅ propiedad del modelo
+        return producto.final_price  # ✅ propiedad definida en Product
     except AttributeError:
         discount = getattr(producto, 'discount', 0) or 0
         cost = Decimal(str(producto.cost))
         if discount > 0:
             return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
         return cost
-    
-    
-# 🛒 Función auxiliar optimizada para construir lista de ítems del carrito
+
+
+# ============================================================
+# 🛒 Función auxiliar: construir lista de ítems del carrito
+# ============================================================
 def _items_carrito(request):
+    """
+    Construye una lista de ítems del carrito desde la sesión.
+    Optimizado para cargar todos los productos en un solo query.
+    """
     carrito = request.session.get('carrito', {})
     items = []
 
     # Obtener todos los IDs de productos en el carrito
     ids = [item['producto_id'] for item in carrito.values()]
-    # Cargar todos los productos en un solo query
-    productos = Product.objects.in_bulk(ids)
+    productos = Product.objects.in_bulk(ids)  # carga masiva
 
     for key, item in carrito.items():
         producto = productos.get(item['producto_id'])
@@ -80,100 +99,133 @@ def _items_carrito(request):
     return items
 
 
+# ============================================================
+# 🛒 Vista: agregar producto al carrito
+# ============================================================
 def agregar_al_carrito(request, product_id):
+    print("🔥 ENTRÓ A agregar_al_carrito")
+
     producto = get_object_or_404(Product, id=product_id)
 
-    if request.method == 'POST':
-        cantidad = int(request.POST.get('cantidad', 1))
-        talla = request.POST.get('selected_size', '')
-        color = request.POST.get('selected_color', '')
+    if request.method != "POST":
+        return redirect("store:store")
 
-        # 🔎 Validación inmediata en consola
-        print(">>> DEBUG talla:", talla)
-        print(">>> DEBUG color:", color)
+    # 📥 Datos
+    cantidad = max(1, int(request.POST.get("cantidad", 1)))
+    talla = request.POST.get("selected_size_hidden", "").strip()
+    color = request.POST.get("selected_color_hidden", "").strip()
 
-        carrito = request.session.get('carrito', {})
-        item_key = f"{product_id}_{talla}_{color}"
+    # ❌ Validación real
+    if producto.talla_list and not talla:
+        print("❌ ERROR: talla no enviada")
+        return redirect("store:store")
 
+    carrito = request.session.get("carrito", {})
+    item_key = f"{product_id}|{talla}|{color}"
+
+    if item_key in carrito:
+        carrito[item_key]["cantidad"] += cantidad
+    else:
         carrito[item_key] = {
-            'producto_id': product_id,
-            'cantidad': cantidad,
-            'talla': talla,
-            'color': color,
+            "producto_id": product_id,
+            "nombre": producto.name,
+            "precio": float(producto.final_price),
+            "cantidad": cantidad,
+            "talla": talla,
+            "color": color,
         }
 
-        request.session['carrito'] = carrito
-        print(f"[DEBUG] Producto agregado: {producto.name}, cantidad: {cantidad}, talla: {talla}, color: {color}")
-        print(">>> DEBUG carrito:", request.session['carrito'])  # 👈 Aquí ves todo el diccionario
-    return redirect('store:ver_carrito')
+    request.session["carrito"] = carrito
+    request.session.modified = True
 
+    print("✅ AGREGADO CORRECTAMENTE:", carrito)
+
+    return redirect("store:ver_carrito")
+
+
+
+# ============================================================
+# 🛒 Vista: vaciar carrito
+# ============================================================
 def vaciar_carrito(request):
-    """Limpia el carrito de la sesión."""
+    """
+    Limpia el carrito de la sesión.
+    """
     request.session['carrito'] = {}
     messages.info(request, "Tu carrito fue vaciado.")
     return redirect('store:ver_carrito')
 
-# 📋 Vista para mostrar el carrito
-def ver_carrito(request):
-    items = _items_carrito(request)  # Usamos la función auxiliar
 
-    subtotal = sum(i['subtotal'] for i in items)
-    descuento_total = sum(
-        (i['precio_original'] - i['precio_unitario']) * i['cantidad']
-        for i in items if i['discount'] > 0
-    )
-    base_imponible = subtotal - descuento_total
-    iva = base_imponible * Decimal("0.19")
-    total = base_imponible + iva
-    total_cantidad = sum(i['cantidad'] for i in items)
+# ============================================================
+# 📋 Vista: ver carrito
+# ============================================================
+# ============================================================
+# 📋 Vista: ver carrito
+# ============================================================
+def ver_carrito(request):
+    carrito = request.session.get('carrito', {})
+
+    items = []
+    subtotal = 0
+
+    for item in carrito.values():
+        total_item = item['precio'] * item['cantidad']
+        subtotal += total_item
+
+        items.append({
+            **item,  # incluye producto_id
+            'total_item': total_item
+        })
 
     context = {
         'items': items,
         'subtotal': subtotal,
-        'descuento': descuento_total,
-        'iva': iva,
-        'total': total,
-        'total_cantidad': total_cantidad,
+        'total_items': sum(i['cantidad'] for i in items)
     }
+
     return render(request, 'store/carrito.html', context)
 
+
+
+# ============================================================
+# 🏬 Vista: tienda principal (store.html)
+# ============================================================
 def store(request):
     """
-    Listado de productos:
-    - Productos destacados (con imagen válida)
-    - Filtros: categoría, búsqueda
-    - Ordenamiento: nombre, precio, precio desc, reciente
-    - Banner dinámico desde admin
+    Vista principal de la tienda:
+    - Muestra banners dinámicos desde admin.
+    - Muestra productos destacados en carrusel.
+    - Permite filtros por categoría, búsqueda y ordenamiento.
     """
 
-    # Productos destacados para carrusel
-    # Banner dinámico
-    banner = Banner.objects.first()
-
-    # Destacados para carrusel
+    # 🎯 Banners dinámicos
     banners = Banner.objects.all()
+
+    # ⭐ Productos destacados (máx. 10 con imagen válida)
     productos_destacados = Product.objects.filter(
         destacado=True,
         is_available=True
     ).exclude(image__isnull=True).exclude(image='')[:10]
 
+    # 📦 Productos disponibles
     productos = Product.objects.filter(is_available=True)
     categoria_actual = None
 
+    # 📂 Filtro por categoría
     category_slug = request.GET.get('category')
     if category_slug and category_slug != 'all':
         categoria_actual = get_object_or_404(Category, slug=category_slug)
         productos = productos.filter(category=categoria_actual)
 
-    # Filtro por búsqueda (validación extra para evitar errores con espacios o símbolos)
+    # 🔎 Filtro por búsqueda
     search_query = request.GET.get('q', '').strip()
-    search_query = request.GET.get('q')
     if search_query:
         productos = productos.filter(
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query)
         )
 
+    # 📊 Ordenamiento
     order = request.GET.get('order')
     if order == 'name':
         productos = productos.order_by('name')
@@ -184,7 +236,7 @@ def store(request):
     elif order == 'recent':
         productos = productos.order_by('-date_register')
 
-    # Lista de categorías para el menú
+    # 📂 Lista de categorías para menú
     categorias = Category.objects.all()
 
     context = {
@@ -193,24 +245,42 @@ def store(request):
         'productos': productos,
         'categorias': categorias,
         'categoria_actual': categoria_actual,
-        'search_query': search_query,  # útil para mantener el texto en el input
-        'order': order,  # útil para mantener el orden seleccionado
+        'search_query': search_query,
+        'order': order,
     }
     return render(request, 'store/store.html', context)
 
+
+
+
+
+# ============================================================
+# 📂 Vista: productos por categoría
+# ============================================================
 def productos_por_categoria(request, category_slug):
-    """Listado de productos filtrado por una categoría específica."""
+    """
+    Muestra listado de productos filtrado por una categoría específica.
+    Se usa en el menú de categorías y en la vista store.html.
+    """
     categoria = get_object_or_404(Category, slug=category_slug)
     productos = Product.objects.filter(category=categoria, is_available=True)
+
     context = {
         'categoria': categoria,
         'productos': productos,
     }
     return render(request, 'store/productos_por_categoria.html', context)
 
-# 🧾 Vista de checkout
+
+# ============================================================
+# 🧾 Vista: checkout
+# ============================================================
 def checkout(request):
-    items = _items_carrito(request)  # Reutilizamos la función auxiliar
+    """
+    Muestra el resumen del carrito antes de confirmar la compra.
+    Calcula subtotal, descuento, IVA y total.
+    """
+    items = _items_carrito(request)
 
     subtotal = sum(i['subtotal'] for i in items)
     descuento_total = sum(
@@ -232,22 +302,27 @@ def checkout(request):
     }
     return render(request, 'store/checkout.html', context)
 
-from .views import _items_carrito  # 👈 reutilizamos la función auxiliar
 
-# 🧾 Generar factura a partir del carrito
+# ============================================================
+# 🧾 Vista: generar factura
+# ============================================================
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
-    # 🚦 Validar método
+    """
+    Genera una factura a partir del carrito:
+    - Valida método de pago.
+    - Crea factura y detalles.
+    - Reduce stock de productos.
+    - Envía correo con PDF adjunto.
+    """
     if request.method != "POST":
         return redirect("store:checkout")
 
-    # 🚦 Validar método de pago
     metodo_pago = request.POST.get("metodo_pago")
     if not metodo_pago:
         messages.error(request, "Debes seleccionar un método de pago.")
         return redirect("store:checkout")
 
-    # 🛒 Obtener ítems del carrito
     items = _items_carrito(request)
     if not items:
         messages.error(request, "Tu carrito está vacío.")
@@ -271,32 +346,30 @@ def generar_factura(request):
         estado_pago="Pendiente"
     )
 
-    # 🧾 Crear detalles de factura (líneas de productos)
+    # 🧾 Crear detalles de factura
     for i in items:
         producto = i["producto"]
-
-        # ⚠️ Validar talla y color solo si las listas existen
         talla = i.get("talla", "")
         color = i.get("color", "")
 
+        # Validar variantes
         if producto.talla_list and talla and talla not in producto.talla_list:
             talla = ""
         if producto.color_list and color and color not in producto.color_list:
             color = ""
 
-        # ⚠️ Reducir stock
+        # Reducir stock
         if producto.stock < i["cantidad"]:
             messages.warning(request, f"Stock insuficiente para {producto.name}.")
             continue
         producto.stock -= i["cantidad"]
         producto.save()
 
-        # Crear detalle
         DetalleFactura.objects.create(
             factura=factura,
             producto=producto,
             cantidad=i["cantidad"],
-            subtotal=i["subtotal"],  # subtotal de la línea
+            subtotal=i["subtotal"],
             talla=talla,
             color=color
         )
@@ -305,7 +378,7 @@ def generar_factura(request):
     request.session["carrito"] = {}
     request.session["factura_id"] = factura.id
 
-    # 📧 Enviar correo con factura y PDF adjunto
+    # 📧 Enviar correo con factura
     try:
         enviar_factura_por_correo(factura, request.user, {
             "factura": factura,
@@ -323,7 +396,7 @@ def generar_factura(request):
     if metodo_pago == "banco":
         return redirect("store:pago_banco")
 
-    # 🧾 Mostrar factura directamente si es contraentrega
+    # Mostrar factura directamente si es contraentrega
     context = {
         "factura": factura,
         "items": items,
@@ -335,37 +408,53 @@ def generar_factura(request):
     }
     return render(request, "store/factura_detalle.html", context)
 
-# ✅ Vista protegida: solo el dueño puede ver su factura
+
+# ============================================================
+# 🧾 Vista: ver factura
+# ============================================================
 @login_required(login_url='/accounts/login/')
 def ver_factura(request, factura_id):
+    """
+    Permite al usuario autenticado ver una factura específica.
+    Protegida: solo el dueño puede acceder.
+    """
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
 
     contexto = {
         "factura": factura,
-        "items": factura.detalles.all(),  # ✅ usar el related_name correcto
+        "items": factura.detalles.all(),  # ✅ usar related_name
         "subtotal": factura.total - factura.total * Decimal('0.19'),
         "iva": factura.total * Decimal('0.19'),
         "descuento": Decimal('0.00'),
         "total_final": factura.total,
         "estado_pago": factura.estado_pago,
     }
-
     return render(request, "store/factura_pdf.html", contexto)
 
-# ✅ Vista protegida: historial de facturas del usuario autenticado
+
+# ============================================================
+# 🧾 Vista: historial de facturas
+# ============================================================
 @login_required(login_url='/accounts/login/')
 def mis_facturas(request):
-    # 🔍 Filtrar facturas del usuario actual
+    """
+    Muestra todas las facturas del usuario autenticado.
+    """
     facturas = Factura.objects.filter(usuario=request.user).order_by('-fecha')
-    # 📦 Renderizar plantilla con listado
     return render(request, 'store/mis_facturas.html', {'facturas': facturas})
 
-# 📄 Generar factura en PDF y devolverla como respuesta HTTP
+
+# ============================================================
+# 📄 Vista: generar factura en PDF
+# ============================================================
 def generar_factura_pdf(request, factura_id):
+    """
+    Genera un PDF de la factura usando ReportLab y lo devuelve como respuesta HTTP.
+    """
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
     detalles = DetalleFactura.objects.filter(factura=factura)
 
-    # 🧮 Recalcular subtotal, descuento, IVA
+    # 🧮 Recalcular totales
     subtotal = sum(d.subtotal for d in detalles)
     descuento = sum(
         (d.producto.cost - d.producto.final_price) * d.cantidad
@@ -375,31 +464,26 @@ def generar_factura_pdf(request, factura_id):
     iva = base_imponible * Decimal("0.19")
     total = base_imponible + iva
 
-    # 🧾 Generar PDF con ReportLab
+    # 🧾 Generar PDF
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     elements = []
 
-    # Encabezado
     elements.append(Paragraph(f"Factura #{factura.id}", styles['Title']))
     elements.append(Spacer(1, 12))
 
-    # Tabla de productos con talla, color y precios
+    # Tabla de productos
     data = [["Producto", "Talla", "Color", "Cantidad", "Precio original", "Precio unitario", "Subtotal"]]
     for d in detalles:
-        precio_original = d.producto.cost
-        precio_unitario = d.producto.final_price
-        subtotal_linea = d.total
-
         data.append([
-            d.producto.nombre,
-            getattr(d, "talla", ""),   # si tienes campo talla
-            getattr(d, "color", ""),   # si tienes campo color
+            d.producto.name,
+            getattr(d, "talla", ""),
+            getattr(d, "color", ""),
             d.cantidad,
-            f"${precio_original:.2f}",
-            f"${precio_unitario:.2f}",
-            f"${subtotal_linea:.2f}",
+            f"${d.producto.cost:.2f}",
+            f"${d.producto.final_price:.2f}",
+            f"${d.subtotal:.2f}",
         ])
 
     table = Table(data, hAlign='LEFT')
@@ -428,18 +512,37 @@ def generar_factura_pdf(request, factura_id):
     response.write(pdf)
     return response
 
+
+
+
+
+
+
+
+
+
+# ============================================================
+# 🏦 Vista: simulación de pago por banco
+# ============================================================
 def simular_pago_banco(request):
     """
     Pantalla de simulación de pago por banco.
     En un flujo real, aquí se validaría el callback de la pasarela de pagos.
     """
     if request.method == "POST":
+        # En un entorno real, aquí se procesaría la respuesta de la pasarela
         return redirect('store:generar_factura')
     return render(request, "store/simular_pago_banco.html")
 
+
+# ============================================================
+# 🔐 Vista: login personalizado
+# ============================================================
 def login_view(request):
     """
     Vista de login con soporte para mostrar mensaje de acceso requerido y next.
+    - 'mostrar_acceso' se usa para indicar si el usuario intentó acceder a una vista protegida.
+    - 'next_url' guarda la URL a la que debe redirigirse tras el login.
     """
     mostrar_acceso = request.session.pop('mostrar_acceso_requerido', False)
     next_url = request.GET.get('next', '')
@@ -448,15 +551,35 @@ def login_view(request):
         'next': next_url
     })
 
+
+# ============================================================
+# 🔢 Funciones auxiliares de formato numérico
+# ============================================================
 def formato_numero(valor):
+    """
+    Formatea un número con dos decimales y separador de miles estilo latino.
+    Ejemplo: 12345.67 → "12.345,67"
+    """
     return f"{valor:,.2f}".replace(",", ".").replace(".", ",", 1)
 
-# Función auxiliar para formatear números con separador de miles
+
 def formatear_numero(valor):
+    """
+    Formatea un número entero con separador de miles.
+    Ejemplo: 12345 → "12.345"
+    """
     return f"{valor:,.0f}".replace(",", ".")
 
+
+# ============================================================
 # 📧 Generar y enviar factura por correo con PDF adjunto
+# ============================================================
 def enviar_factura_por_correo(factura, usuario, contexto=None):
+    """
+    Genera un PDF de la factura y lo envía por correo al usuario.
+    - Usa ReportLab para construir el PDF.
+    - Adjunta el PDF al correo junto con una plantilla HTML.
+    """
     # Si no se pasa contexto, calcular totales básicos
     if contexto is None:
         subtotal = factura.total / Decimal('1.19')
@@ -554,8 +677,27 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     email.send()
 
 
+# ============================================================
+# 👁️ Vista: vista rápida de producto
+# ============================================================
 @login_required(login_url='/accounts/login/')
 def vista_rapida(request, id):
+    """
+    Muestra un panel de vista rápida de producto.
+    - Si ?modo=carrito → usa plantilla directa para agregar al carrito.
+    - Si no → usa plantilla estándar de vista rápida.
+    """
+    producto = get_object_or_404(Product, id=id)
+    modo = request.GET.get('modo')  # lee ?modo=carrito si existe
+
+    context = {
+        'producto': producto,
+        'talla': producto.talla_list,
+        'color': producto.color_list,
+    }
+
+    template = 'store/vista_rapida_directa.html' if modo == 'carrito' else 'store/vista_rapida.html'
+    return render(request, template, context)
     producto = get_object_or_404(Product, id=id)
     modo = request.GET.get('modo')  # lee ?modo=carrito si existe
 
@@ -571,11 +713,20 @@ def vista_rapida(request, id):
     return render(request, template, context)
 
 
+
+
+
+
+# ============================================================
+# 🧾 Vista: ver factura específica
+# ============================================================
 def ver_factura(request, factura_id):
-    # 🔍 Buscar la factura del usuario actual
+    """
+    Permite al usuario autenticado ver una factura específica.
+    Protegida: solo el dueño puede acceder.
+    """
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
 
-    # 📦 Preparar contexto con los datos de la factura
     contexto = {
         "factura": factura,
         "items": factura.detalles.all(),  # ✅ usar el related_name correcto
@@ -585,14 +736,17 @@ def ver_factura(request, factura_id):
         "total_final": factura.total,
         "estado_pago": factura.estado_pago,
     }
-
-    # 🖥️ Renderizar plantilla PDF/HTML
     return render(request, "store/factura_pdf.html", contexto)
 
 
-# ✅ Vista 'pre-Wompi': prepara datos y muestra el formulario que luego redirigirá al checkout de Wompi
+# ============================================================
+# 🏦 Vista: widget de pago bancario (pre-Wompi)
+# ============================================================
 def pago_banco_widget(request):
-    # 🧾 Obtener factura desde la sesión
+    """
+    Prepara datos y muestra el formulario que luego redirige al checkout de Wompi.
+    Simula la selección de banco y redirige a confirmación de pago.
+    """
     factura_id = request.session.get("factura_id")
     if not factura_id:
         messages.error(request, "No hay factura en sesión.")
@@ -603,22 +757,21 @@ def pago_banco_widget(request):
         messages.error(request, "La factura no existe.")
         return redirect("store:ver_carrito")
 
-    # 🏦 Capturar banco seleccionado si se envió por POST
+    # 🏦 Capturar banco seleccionado
     if request.method == "POST":
         banco = request.POST.get("banco")
         request.session["banco_seleccionado"] = banco
         print("🏦 Banco seleccionado:", banco)
 
-        # ✅ Guardar banco en la factura
         factura.banco = banco
         factura.save()
 
-        # ✅ Redirigir directamente a confirmación simulada
+        # Redirigir a confirmación simulada
         redirect_url = reverse("store:confirmacion_pago")
         redirect_url += f"?status=APPROVED&reference={factura.id}"
         return redirect(redirect_url)
 
-    # 💳 Preparar contexto inicial para el widget de pago
+    # 💳 Contexto inicial para widget de pago
     context = {
         "public_key": getattr(settings, "WOMPI_PUBLIC_KEY", "pub_test_simulada"),
         "amount": int(factura.total * 100),  # centavos
@@ -626,11 +779,12 @@ def pago_banco_widget(request):
         "reference": str(factura.id),
         "redirect_url": request.build_absolute_uri("/store/confirmacion-pago/"),
     }
-
     return render(request, "store/pago_banco_widget.html", context)
-from django.utils.timezone import localtime
 
 
+# ============================================================
+# ✅ Vista: confirmación de pago
+# ============================================================
 def confirmacion_pago(request):
     """
     Confirmación provisional:
@@ -643,27 +797,22 @@ def confirmacion_pago(request):
     factura = Factura.objects.filter(id=referencia).first() if referencia else None
 
     if factura:
-        # ✅ Usar el campo correcto del modelo: estado_pago
         factura.estado_pago = "Pagado" if estado == "APPROVED" else "Fallido"
         fecha_local = localtime(factura.fecha)  # ✅ Hora local Colombia
         factura.save()
 
-        # ✅ Recuperar detalles de factura
         items = factura.detalles.all()
 
         # 🧮 Calcular totales
         subtotal = sum(d.subtotal for d in items)
         iva = sum(
             d.subtotal * Decimal('0.19')
-            for d in items
-            if not d.producto.is_tax_exempt
+            for d in items if not d.producto.is_tax_exempt
         )
         descuento = sum(
             (d.producto.cost - d.producto.final_price) * d.cantidad
-            for d in items
-            if d.producto.discount > 0
+            for d in items if d.producto.discount > 0
         )
-        # ✅ Total final incluye descuento y IVA
         total_final = subtotal - descuento + iva
 
         contexto = {
@@ -674,35 +823,48 @@ def confirmacion_pago(request):
             "descuento": descuento,
             "total_final": total_final,
             "estado_pago": factura.estado_pago,
-            "fecha_local": fecha_local,  # ✅ hora local para el PDF
+            "fecha_local": fecha_local,
         }
         return render(request, "store/factura.html", contexto)
 
-    # ⚠️ Si no hay factura válida, mostrar mensaje genérico
+    # ⚠️ Si no hay factura válida
     context = {"estado": estado, "referencia": referencia}
     return render(request, "store/confirmacion_pago.html", context)
 
-# 🧾 Vista para mostrar detalle de un producto
-def detalle_producto(request, slug):
-    # Buscar el producto por su slug
-    producto = get_object_or_404(Product, slug=slug)
-    print("Usando plantilla: detalle_producto.html")  # Debug en consola
 
-    # Contexto que se pasa a la plantilla
+# ============================================================
+# 🛍️ Vista: detalle de producto
+# ============================================================
+def detalle_producto(request, slug):
+    """
+    Muestra detalle completo de un producto:
+    - Imagen, descripción, variantes (colores, tallas).
+    - Video asociado si existe.
+    """
+    producto = get_object_or_404(Product, slug=slug)
+    print("Usando plantilla: detalle_producto.html")  # Debug
+
     context = {
         'producto': producto,
-        # Usamos directamente las propiedades del modelo
-        'colors': producto.colors_list,
+        'colors': producto.color_list,  # ✅ usar propiedad del modelo
         'video_file': producto.video_file,
         'video_url': producto.video_url,
     }
     return render(request, 'store/detalle_producto.html', context)
 
+
+# ============================================================
+# 🔄 Vista: actualizar cantidad en carrito
+# ============================================================
 def actualizar_cantidad(request, product_id):
+    """
+    Actualiza la cantidad de un producto en el carrito:
+    - accion=sumar → incrementa cantidad.
+    - accion=restar → decrementa cantidad (mínimo 1).
+    """
     carrito = request.session.get('carrito', {})
     accion = request.POST.get('accion')
 
-    # Buscar la clave correcta que contiene el product_id
     clave_encontrada = None
     for key, item in carrito.items():
         if isinstance(item, dict) and item.get('producto_id') == product_id:
@@ -726,10 +888,19 @@ def actualizar_cantidad(request, product_id):
 
     return redirect('store:ver_carrito')
 
-# 🌐 Vista informativa de "Nosotros"
+
+# ============================================================
+# 🌐 Vistas informativas
+# ============================================================
 def nosotros(request):
+    """
+    Página informativa 'Nosotros'.
+    """
     return render(request, 'store/nosotros.html')
 
 
 def contacto(request):
+    """
+    Página de contacto.
+    """
     return render(request, 'store/contacto.html')

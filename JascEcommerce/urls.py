@@ -17,7 +17,6 @@ urlpatterns = [
 
     # Apps principales
     path('store/', include('store.urls')),
-    path('categorias/', include('categorias.urls')),
     path('pedidos/', include('pedidos.urls')),
     path('home/', include('home.urls')),  # opcional
 ]

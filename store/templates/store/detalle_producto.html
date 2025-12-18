@@ -1,137 +1,105 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{{ producto.name }} | JascShop{% endblock %}
 
 {% block content %}
 <div class="container my-5">
   <div class="row g-4">
 
-    <!-- 🖼️ Imagen del producto -->
-    <div class="col-md-6 text-center">
-      <img src="{{ producto.image.url }}" alt="{{ producto.name }}" class="img-fluid rounded shadow mb-3">
+    <!-- 🖼 IMÁGENES -->
+    <div class="col-md-6">
 
-      <!-- 🎥 Video del producto (opcional) -->
-      {% if video_file %}
-        <video width="100%" height="280" controls class="rounded shadow mb-3">
-          <source src="{{ video_file.url }}" type="video/mp4">
-          Tu navegador no soporta video HTML5.
-        </video>
-      {% elif video_url %}
-        <iframe width="100%" height="280" src="{{ video_url }}" frameborder="0" allowfullscreen class="rounded shadow mb-3"></iframe>
-      {% endif %}
+      <div class="imagen-principal mb-3 text-center">
+        <img id="imagen-principal"
+             src="{{ producto.image.url }}"
+             class="img-fluid rounded shadow">
+      </div>
+
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        {% if producto.image %}
+          <img src="{{ producto.image.url }}"
+               class="miniatura activa"
+               data-url="{{ producto.image.url }}">
+        {% endif %}
+
+        {% for img in producto.images.all %}
+          <img src="{{ img.image.url }}"
+               class="miniatura"
+               data-url="{{ img.image.url }}">
+        {% endfor %}
+      </div>
     </div>
 
-    <!-- 📊 Información del producto -->
+    <!-- 📄 INFO -->
     <div class="col-md-6">
       <h2 class="fw-bold">{{ producto.name }}</h2>
       <p class="text-muted">{{ producto.description }}</p>
 
-      <!-- 💰 Precio y descuento -->
       {% if producto.discount > 0 %}
-        <p class="fs-4 text-danger fw-bold mb-1">${{ producto.final_price|floatformat:0 }}</p>
+        <p class="fs-4 text-danger fw-bold">${{ producto.final_price|floatformat:0 }}</p>
         <p class="text-muted text-decoration-line-through">${{ producto.cost|floatformat:0 }}</p>
-        <span class="badge bg-success">-{{ producto.discount }}%</span>
       {% else %}
         <p class="fs-4 fw-bold">${{ producto.cost|floatformat:0 }}</p>
       {% endif %}
 
-      <!-- 📦 Stock y disponibilidad -->
-      {% if producto.is_available and producto.stock > 0 %}
-        <p class="text-success">Disponible ({{ producto.stock }} en stock)</p>
-      {% else %}
-        <p class="text-danger">No disponible</p>
-      {% endif %}
-
-      <!-- 🛒 Formulario de compra -->
-      <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}">
+      <form method="POST"
+            action="{% url 'store:agregar_al_carrito' producto.id %}"
+            id="form-add-cart">
         {% csrf_token %}
 
-        <!-- 🎨 Selector de tallas -->
+        <!-- ================= TALLAS ================= -->
         {% if producto.talla_list %}
-          <div class="mb-3">
-            <label class="form-label fw-bold">Tallas:</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for talla in producto.talla_list %}
-                <label class="option-chip">
-                  <input type="radio" name="selected_size" value="{{ talla }}" required>
-                  <span>{{ talla }}</span>
-                </label>
-              {% endfor %}
-            </div>
+        <div class="mb-3">
+          <label class="fw-bold">Tallas:</label>
+          <div class="d-flex gap-2 flex-wrap">
+            {% for talla in producto.talla_list %}
+            <label class="option-chip size-chip">
+              <input type="radio"
+                     name="selected_size"
+                     value="{{ talla }}"
+                     class="visually-hidden">
+              <span>{{ talla }}</span>
+            </label>
+            {% endfor %}
           </div>
-        {% endif %}
-
-        <!-- 🎨 Selector de colores -->
-        {% if colors %}
-          <div class="mb-3">
-            <label class="form-label fw-bold">Colores:</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for color in colors %}
-                <label class="option-chip">
-                  <input type="radio" name="selected_color" value="{{ color }}" {% if colors %}required{% endif %}>
-                  <span>{{ color }}</span>
-                </label>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-
-        <!-- 📦 Cantidad -->
-        <div class="mb-3" style="max-width: 220px;">
-          <label for="cantidad" class="form-label d-block">Cantidad:</label>
-          <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-outline-secondary qty-btn" data-action="decrease">-</button>
-            <input type="number" id="cantidad" name="cantidad" class="form-control text-center"
-                   value="1" min="1" max="{{ producto.stock|default:1 }}" required style="width: 80px;">
-            <button type="button" class="btn btn-outline-secondary qty-btn" data-action="increase">+</button>
-          </div>
-          <small class="text-muted d-block mt-1">Stock disponible: {{ producto.stock }}</small>
         </div>
+        {% endif %}
 
-        <!-- ✅ Botón de envío -->
-        <button type="submit" class="btn btn-primary mt-2"
-                {% if not producto.is_available or producto.stock <= 0 %}disabled{% endif %}>
+        <!-- ================= COLORES ================= -->
+        {% if producto.colors_list %}
+        <div class="mb-3">
+          <label class="fw-bold">Colores:</label>
+          <div class="d-flex gap-2 flex-wrap">
+            {% for color in producto.colors_list %}
+            <label class="option-chip color-chip">
+              <input type="radio"
+                     name="selected_color"
+                     value="{{ color }}"
+                     class="visually-hidden">
+              <span>{{ color }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- HIDDEN -->
+        <input type="hidden" name="selected_size_hidden">
+        <input type="hidden" name="selected_color_hidden">
+        <input type="hidden" name="cantidad" value="1">
+
+        <button type="submit"
+                class="btn btn-primary mt-3"
+                disabled>
           <i class="bi bi-cart-plus"></i> Agregar al carrito
         </button>
       </form>
-
-      {% if not producto.is_available or producto.stock <= 0 %}
-        <p class="text-danger mt-2">Producto no disponible o sin stock.</p>
-      {% endif %}
     </div>
+
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  console.log("[DEBUG] Cargando selector de cantidad en detalle_producto.html");
-
-  const cantidadInput = document.getElementById('cantidad');
-  const qtyButtons = document.querySelectorAll('.qty-btn');
-
-  if (!cantidadInput) return;
-
-  const min = parseInt(cantidadInput.min || '1', 10);
-  const max = parseInt(cantidadInput.max || '999999', 10);
-
-  qtyButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.action;
-      let value = parseInt(cantidadInput.value || '1', 10);
-      if (action === 'decrease') value = Math.max(min, value - 1);
-      if (action === 'increase') value = Math.min(max, value + 1);
-      cantidadInput.value = value;
-    });
-  });
-
-  cantidadInput.addEventListener('input', () => {
-    let raw = cantidadInput.value;
-    let value = raw.replace(/\D/g, '');
-    if (value === '') value = String(min);
-    value = Math.max(min, Math.min(max, parseInt(value, 10)));
-    cantidadInput.value = value;
-  });
-});
-</script>
+<script src="{% static 'js/store.js' %}"></script>
 {% endblock %}

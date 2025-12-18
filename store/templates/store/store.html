@@ -4,30 +4,35 @@
 {% block title %}Nuestra Tienda - JascShop{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
-  <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
-  <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
+<link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
+<link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
+<link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
 {% endblock %}
 
 {% block banner_full %}
 <div class="full-bleed">
   <div class="bannerSwiper swiper">
     <div class="swiper-wrapper">
+
       {% for banner in banners %}
-        <div class="swiper-slide">
-          <div class="banner-bg"
-               style="background-image: url('{% if banner.image %}{{ banner.image.url }}{% else %}{% static 'imgs/default-banner.jpg' %}{% endif %}');">
-          </div>
-          <div class="banner-caption">
-            <h2>{{ banner.title }}</h2>
-            <p>{{ banner.subtitle }}</p>
-            <a href="#productos" class="btn btn-primary btn-lg mt-3">
-              <i class="bi bi-bag"></i> Ver productos
-            </a>
-          </div>
+      <div class="swiper-slide">
+        <div class="banner-bg"
+             style="background-image: url('{% if banner.image %}{{ banner.image.url }}{% else %}{% static 'imgs/default-banner.jpg' %}{% endif %}');">
         </div>
+
+        <div class="banner-caption">
+          <h2>{{ banner.title }}</h2>
+          <p>{{ banner.subtitle }}</p>
+          <a href="#productos" class="btn btn-primary btn-lg mt-3">
+            <i class="bi bi-bag"></i> Ver productos
+          </a>
+        </div>
+      </div>
       {% endfor %}
+
     </div>
+
+    <!-- CONTROLES -->
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
     <div class="swiper-pagination"></div>
@@ -39,103 +44,103 @@
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- Buscador y filtros -->
-<form method="get" id="filterForm" class="search-form d-flex gap-2 mb-4">
+    <!-- 🔎 Buscador y filtros -->
+    <form method="get" id="filterForm" class="search-form d-flex gap-2 mb-4">
 
-  <!-- 🔎 Buscador -->
-  <input type="text" name="q" placeholder="Buscar productos..."
-         value="{{ search_query }}" class="form-control">
+      <input type="text" name="q" placeholder="Buscar productos..."
+             value="{{ search_query }}" class="form-control">
 
-  <!-- 📂 Categorías -->
-  <select name="category" class="form-select">
-    <option value="all">Todas las categorías</option>
-    {% for cat in categorias %}
-      <option value="{{ cat.slug }}" {% if categoria_actual and categoria_actual.slug == cat.slug %}selected{% endif %}>
-        {{ cat.name }}
-      </option>
-    {% endfor %}
-  </select>
+      <select name="category" class="form-select">
+        <option value="all">Todas las categorías</option>
+        {% for cat in categorias %}
+          <option value="{{ cat.slug }}"
+            {% if categoria_actual and categoria_actual.slug == cat.slug %}selected{% endif %}>
+            {{ cat.name }}
+          </option>
+        {% endfor %}
+      </select>
 
-  <!-- 📊 Ordenamiento -->
-  <select name="order" class="form-select">
-    <option value="">Ordenar por...</option>
-    <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
-    <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ascendente</option>
-    <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
-    <option value="recent" {% if order == 'recent' %}selected{% endif %}>Más recientes</option>
-  </select>
+      <select name="order" class="form-select">
+        <option value="">Ordenar por...</option>
+        <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
+        <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ascendente</option>
+        <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
+        <option value="recent" {% if order == 'recent' %}selected{% endif %}>Más recientes</option>
+      </select>
 
-  <button type="submit" class="btn btn-primary">Filtrar</button>
-</form>
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+    </form>
 
-    <!-- Productos destacados -->
+    <!-- ⭐ PRODUCTOS DESTACADOS -->
     <div class="swiper mySwiper">
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
-          <div class="swiper-slide">
-            {% if producto.image %}
-              <img src="{{ producto.image.url }}" alt="{{ producto.name }}">
-            {% else %}
-              <img src="{% static 'imgs/default-product.jpg' %}" alt="Sin imagen">
-            {% endif %}
-          </div>
+        <div class="swiper-slide">
+          <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+               alt="{{ producto.name }}">
+        </div>
         {% endfor %}
       </div>
+
       <div class="swiper-button-prev"></div>
       <div class="swiper-button-next"></div>
     </div>
 
-    <!-- 🔹 Grid de productos -->
+    <!-- 🛍 GRID DE PRODUCTOS -->
     <div class="products-grid" id="productos">
       {% for product in productos %}
-        <article class="product-card">
+      <article class="product-card">
 
-          <!-- 🖼 Imagen protagonista -->
-          <div class="product-image-wrapper">
-            {% if product.image %}
-              <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-            {% else %}
-              <img src="{% static 'imgs/default-product.jpg' %}" alt="Sin imagen" class="product-img">
-            {% endif %}
-            <a href="#" class="quick-view" data-id="{{ product.id }}" title="Vista rápida">
-              <i class="bi bi-eye"></i>
-            </a>
+        <div class="product-image-wrapper">
+          <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+               alt="{{ product.name }}"
+               class="product-img">
+
+          <button type="button"
+                  class="quick-view"
+                  data-id="{{ product.id }}"
+                  title="Vista rápida">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+
+        <div class="product-content">
+          <h3 class="product-title text-truncate">{{ product.name }}</h3>
+          <p class="product-description text-muted">
+            {{ product.description|truncatewords:12 }}
+          </p>
+
+          {% if product.discount > 0 %}
+            <p class="text-danger fw-bold">${{ product.final_price|floatformat:0 }}</p>
+            <p class="text-muted text-decoration-line-through">${{ product.cost|floatformat:0 }}</p>
+            <span class="badge bg-success">-{{ product.discount }}%</span>
+          {% else %}
+            <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+          {% endif %}
+
+          <div class="d-flex gap-2 mt-2">
+            <button type="button"
+                    class="btn-cart-icon abrir-modal"
+                    data-id="{{ product.id }}"
+                    title="Agregar al carrito">
+              <i class="bi bi-cart-plus"></i>
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm quick-view"
+                    data-id="{{ product.id }}">
+              <i class="bi bi-eye"></i> Ver más
+            </button>
           </div>
+        </div>
 
-          <!-- 📄 Contenido del producto -->
-          <div class="product-content">
-            <h3 class="product-title text-truncate">{{ product.name }}</h3>
-            <p class="product-description text-muted">{{ product.description|truncatewords:12 }}</p>
-
-            <!-- 💲 Precio y descuento -->
-            {% if product.discount > 0 %}
-              <p class="text-danger fw-bold">${{ product.final_price|floatformat:0 }}</p>
-              <p class="text-muted text-decoration-line-through">${{ product.cost|floatformat:0 }}</p>
-              <span class="badge bg-success">-{{ product.discount }}%</span>
-            {% else %}
-              <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
-            {% endif %}
-
-            <!-- 🛒 Acciones -->
-            <div class="d-flex gap-2 mt-2">
-              <button type="button"
-                      class="btn-cart-icon abrir-modal"
-                      data-id="{{ product.id }}"
-                      title="Agregar al carrito">
-                <i class="bi bi-cart-plus"></i>
-              </button>
-              <button type="button" class="btn btn-outline-primary btn-sm quick-view" data-id="{{ product.id }}">
-                <i class="bi bi-eye"></i> Ver más
-              </button>
-            </div>
-          </div>
-        </article>
+      </article>
       {% endfor %}
     </div>
 
-    <!-- Modal vista rápida -->
+    <!-- 🧠 MODAL VISTA RÁPIDA -->
     <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
-      <button class="cerrar-panel">&times;</button>
+      <button class="cerrar-panel" type="button">&times;</button>
       <div id="contenidoProducto" class="panel-contenido"></div>
     </div>
 
@@ -144,148 +149,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  // ============================
-  // 🎞️ Swiper banners
-  // ============================
-  new Swiper(".bannerSwiper", {
-    loop: true,
-    autoplay: { delay: 5000 },
-    pagination: { el: ".bannerSwiper .swiper-pagination", clickable: true },
-    navigation: {
-      nextEl: ".bannerSwiper .swiper-button-next",
-      prevEl: ".bannerSwiper .swiper-button-prev"
-    }
-  });
-
-  // ============================
-  // ⭐ Swiper destacados
-  // ============================
-  new Swiper(".mySwiper", {
-    slidesPerView: 4,
-    spaceBetween: 20,
-    loop: true,
-    autoplay: { delay: 3000 },
-    navigation: {
-      nextEl: ".mySwiper .swiper-button-next",
-      prevEl: ".mySwiper .swiper-button-prev"
-    }
-  });
-
-  // ============================
-  // 👁 Vista rápida normal (botón "Ver más")
-  // ============================
-  document.querySelectorAll('.quick-view').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const id = this.dataset.id;
-      fetch(`/store/vista-rapida/${id}/`)
-        .then(res => res.text())
-        .then(html => {
-          const cont = document.getElementById('contenidoProducto');
-          cont.innerHTML = html;
-          const panel = document.getElementById('vistaRapidaPanel');
-          panel.classList.remove('hidden');
-          panel.classList.add('visible');
-
-          // Estado inicial seguro
-          const img = cont.querySelector('#imagen-principal');
-          const vc  = cont.querySelector('#video-contenedor');
-          const vf  = cont.querySelector('#video-file');
-          const ifr = cont.querySelector('#video-frame');
-
-          if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
-          if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
-          if (vf)  { try { vf.pause(); } catch(e){} }
-          if (ifr) { ifr.src = ''; }
-        });
-    });
-  });
-
-  // ============================
-  // 🛒 Vista rápida directa (carrito)
-  // ============================
-  document.querySelectorAll('.abrir-modal').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const id = this.dataset.id;
-      fetch(`/store/vista-rapida/${id}/?modo=carrito`)
-        .then(res => res.text())
-        .then(html => {
-          const cont = document.getElementById('contenidoProducto');
-          cont.innerHTML = html;
-          const panel = document.getElementById('vistaRapidaPanel');
-          panel.classList.remove('hidden');
-          panel.classList.add('visible');
-
-          // Estado inicial seguro
-          const img = cont.querySelector('#imagen-principal');
-          const vc  = cont.querySelector('#video-contenedor');
-          const vf  = cont.querySelector('#video-file');
-          const ifr = cont.querySelector('#video-frame');
-
-          if (img) { img.classList.add('visible'); img.classList.remove('hidden'); }
-          if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
-          if (vf)  { try { vf.pause(); } catch(e){} }
-          if (ifr) { ifr.src = ''; }
-        });
-    });
-  });
-
-  // ============================
-  // ❌ Cerrar panel
-  // ============================
-  const closeBtn = document.querySelector('.cerrar-panel');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      const panel = document.getElementById('vistaRapidaPanel');
-      panel.classList.remove('visible');
-      panel.classList.add('hidden');
-    });
-  }
-});
-
-/* ============================
-   🌐 Funciones globales usadas por el HTML inyectado
-   ============================ */
-window.mostrarVideo = function(url, esArchivo) {
-  const cont = document.getElementById('contenidoProducto');
-  const img = cont.querySelector("#imagen-principal");
-  const vc  = cont.querySelector("#video-contenedor");
-  const vf  = cont.querySelector("#video-file");
-  const vs  = cont.querySelector("#video-source");
-  const ifr = cont.querySelector("#video-frame");
-
-  if (img) { img.classList.add('hidden'); img.classList.remove('visible'); }
-  if (vc)  { vc.classList.add('visible'); vc.classList.remove('hidden'); }
-
-  if (esArchivo) {
-    if (ifr) { ifr.src = ''; ifr.classList.add('hidden'); }
-    if (vf && vs) {
-      vs.src = url;
-      vf.classList.add('visible');
-      vf.classList.remove('hidden');
-      vf.load();
-      vf.onloadeddata = function() { try { vf.play(); } catch(e){} };
-    }
-  } else {
-    if (vf) { try { vf.pause(); } catch(e){} vf.classList.add('hidden'); }
-    if (ifr) { ifr.src = url; ifr.classList.add('visible'); ifr.classList.remove('hidden'); }
-  }
-};
-
-window.mostrarImagen = function(url) {
-  const cont = document.getElementById('contenidoProducto');
-  const img = cont.querySelector("#imagen-principal");
-  const vc  = cont.querySelector("#video-contenedor");
-  const vf  = cont.querySelector("#video-file");
-  const ifr = cont.querySelector("#video-frame");
-
-  if (img) { img.src = url; img.classList.add('visible'); img.classList.remove('hidden'); }
-  if (vc)  { vc.classList.add('hidden'); vc.classList.remove('visible'); }
-  if (vf)  { try { vf.pause(); } catch(e){} vf.classList.add('hidden'); }
-  if (ifr) { ifr.src = ''; ifr.classList.add('hidden'); }
-};
-</script>
+<!-- 🔥 VERSIONADO PARA EVITAR CACHE -->
+<script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 {% endblock %}

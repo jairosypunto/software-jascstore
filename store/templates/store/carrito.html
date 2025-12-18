@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load custom_filters %}
 
 {% block title %}Carrito - JascShop{% endblock %}
 
@@ -9,15 +8,12 @@
   <h1>Tu carrito de compras</h1>
 
   {% if items %}
-    <!-- 📋 Lista de productos en el carrito -->
     <ul class="list-group mb-3">
       {% for it in items %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <div>
-            <!-- 🏷️ Nombre del producto -->
-            <strong>{{ it.producto.name }}</strong>
+            <strong>{{ it.nombre }}</strong>
 
-            <!-- 🎨 Variantes: talla y color -->
             {% if it.talla or it.color %}
               <div class="small text-muted">
                 {% if it.talla %}Talla: {{ it.talla }}{% endif %}
@@ -26,65 +22,52 @@
               </div>
             {% endif %}
 
-            <!-- 💰 Precio unitario y descuento -->
             <div class="small text-muted">
-              Precio unitario: ${{ it.precio_unitario|floatformat:0 }}
-              {% if it.discount %}
-                <span class="strike">Antes: ${{ it.precio_original|floatformat:0 }}</span>
-              {% endif %}
+              Precio unitario: ${{ it.precio|floatformat:0 }}
             </div>
           </div>
 
-          <!-- 🔢 Control de cantidad y subtotal -->
           <div class="text-end">
-            <form method="POST" action="{% url 'store:actualizar_cantidad' it.producto.id %}" class="d-flex align-items-center gap-2 quantity-control">
+            <form method="POST"
+                  action="{% url 'store:actualizar_cantidad' it.producto_id %}"
+                  class="d-flex align-items-center gap-2">
               {% csrf_token %}
-              <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm qty-btn">–</button>
-              <input type="text" name="cantidad" value="{{ it.cantidad }}" class="form-control text-center" style="width: 60px;" readonly>
-              <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm qty-btn">+</button>
+              <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm">–</button>
+              <input type="text" value="{{ it.cantidad }}" class="form-control text-center" style="width:60px" readonly>
+              <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm">+</button>
             </form>
+
             <div class="mt-2">
-              Subtotal: <strong>${{ it.subtotal|floatformat:0 }}</strong>
+              Subtotal:
+              <strong>${{ it.total_item|floatformat:0 }}</strong>
             </div>
           </div>
         </li>
       {% endfor %}
 
-      <!-- 📊 Totales -->
-      <li class="list-group-item d-flex justify-content-between">
-        <strong>Subtotal</strong>
-        <strong>${{ subtotal|floatformat:0 }}</strong>
+      <li class="list-group-item d-flex justify-content-between fw-bold">
+        <span>Total</span>
+        <span>${{ subtotal|floatformat:0 }}</span>
       </li>
-      <li class="list-group-item d-flex justify-content-between">
-        <strong>Descuento</strong>
-        <strong>-${{ descuento|floatformat:0 }}</strong>
-      </li>
-      <li class="list-group-item d-flex justify-content-between">
-        <strong>IVA (19%)</strong>
-        <strong>${{ iva|floatformat:0 }}</strong>
-      </li>
-      <li class="list-group-item d-flex justify-content-between bg-light fw-bold">
-        <span>Total a pagar</span>
-        <span>${{ total|floatformat:0 }}</span>
-      </li>
+
       <li class="list-group-item d-flex justify-content-between">
         <strong>Total de productos</strong>
-        <strong>{{ total_cantidad }} unidades</strong>
+        <strong>{{ total_items }}</strong>
       </li>
     </ul>
 
-    <!-- 🔗 Acciones finales -->
     <div class="d-flex gap-2">
       <a href="{% url 'store:store' %}" class="btn btn-secondary">Continuar comprando</a>
+
       <form method="post" action="{% url 'store:vaciar_carrito' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-outline-danger">Vaciar carrito</button>
       </form>
+
       <a href="{% url 'store:checkout' %}" class="btn btn-primary">Ir a pagar</a>
     </div>
 
   {% else %}
-    <!-- 🛒 Carrito vacío -->
     <p>Tu carrito está vacío.</p>
     <a class="btn btn-primary" href="{% url 'store:store' %}">Ir a la tienda</a>
   {% endif %}

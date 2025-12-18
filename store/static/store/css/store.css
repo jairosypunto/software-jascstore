@@ -173,6 +173,35 @@
   transform: scale(1.2);
 }
 
+/* =============================
+   🎥 VIDEO EN GALERÍA
+============================= */
+.video-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  border: 2px solid #ddd;
+}
+
+.video-thumb:hover {
+  border-color: #ff4d00;
+}
+
+.imagen-principal video {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background: #000;
+}
+
+
 /* =========================
    📱 RESPONSIVE GLOBAL
    ========================= */
