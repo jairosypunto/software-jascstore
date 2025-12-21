@@ -1,23 +1,28 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}Nuestra Tienda - JascShop{% endblock %}
 
 {% block extra_css %}
+<!-- 🎨 ESTILOS DE LA TIENDA -->
 <link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
 {% endblock %}
 
 {% block banner_full %}
+<!-- ==================================================
+     🎯 BANNER PRINCIPAL (Swiper)
+================================================== -->
 <div class="full-bleed">
-  <div class="bannerSwiper swiper">
+  <div class="swiper bannerSwiper">
     <div class="swiper-wrapper">
 
       {% for banner in banners %}
       <div class="swiper-slide">
         <div class="banner-bg"
-             style="background-image: url('{% if banner.image %}{{ banner.image.url }}{% else %}{% static 'imgs/default-banner.jpg' %}{% endif %}');">
+             style="background-image:url('{% if banner.image %}{{ banner.image.url }}{% else %}{% static 'imgs/default-banner.jpg' %}{% endif %}')">
         </div>
 
         <div class="banner-caption">
@@ -32,7 +37,7 @@
 
     </div>
 
-    <!-- CONTROLES -->
+    <!-- Controles Swiper -->
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
     <div class="swiper-pagination"></div>
@@ -44,104 +49,153 @@
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- 🔎 Buscador y filtros -->
-    <form method="get" id="filterForm" class="search-form d-flex gap-2 mb-4">
+    <!-- ==================================================
+         🔎 FILTROS / BÚSQUEDA
+    ================================================== -->
+    <form method="get" class="search-form d-flex gap-2 mb-4">
 
-      <input type="text" name="q" placeholder="Buscar productos..."
-             value="{{ search_query }}" class="form-control">
+      <input type="text"
+             name="q"
+             value="{{ search_query }}"
+             placeholder="Buscar productos..."
+             class="form-control">
 
       <select name="category" class="form-select">
         <option value="all">Todas las categorías</option>
         {% for cat in categorias %}
-          <option value="{{ cat.slug }}"
-            {% if categoria_actual and categoria_actual.slug == cat.slug %}selected{% endif %}>
-            {{ cat.name }}
-          </option>
+        <option value="{{ cat.slug }}"
+          {% if categoria_actual and categoria_actual.slug == cat.slug %}selected{% endif %}>
+          {{ cat.name }}
+        </option>
         {% endfor %}
       </select>
 
       <select name="order" class="form-select">
         <option value="">Ordenar por...</option>
         <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
-        <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ascendente</option>
-        <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
-        <option value="recent" {% if order == 'recent' %}selected{% endif %}>Más recientes</option>
+        <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ↑</option>
+        <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio ↓</option>
+        <option value="recent" {% if order == 'recent' %}selected{% endif %}>Recientes</option>
       </select>
 
-      <button type="submit" class="btn btn-primary">Filtrar</button>
+      <button class="btn btn-primary">Filtrar</button>
     </form>
 
-    <!-- ⭐ PRODUCTOS DESTACADOS -->
-    <div class="swiper mySwiper">
+    <!-- ==================================================
+         ⭐ PRODUCTOS DESTACADOS (Swiper)
+    ================================================== -->
+    <h2 class="section-title">⭐ Productos destacados</h2>
+
+    <div class="swiper mySwiper destacados-swiper">
       <div class="swiper-wrapper">
+
         {% for producto in productos_destacados %}
         <div class="swiper-slide">
-          <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-               alt="{{ producto.name }}">
+          <div class="destacado-card">
+
+            <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+                 alt="{{ producto.name }}">
+
+            <div class="destacado-info">
+              <h4>{{ producto.name }}</h4>
+              <span>${{ producto.final_price|floatformat:2|localize }}</span>
+            </div>
+
+          </div>
         </div>
         {% endfor %}
+
       </div>
 
+      <!-- Controles Swiper -->
       <div class="swiper-button-prev"></div>
       <div class="swiper-button-next"></div>
     </div>
-
-    <!-- 🛍 GRID DE PRODUCTOS -->
+    
+    <!-- ==================================================
+         🛍 GRID DE PRODUCTOS (CATÁLOGO)
+    ================================================== -->
     <div class="products-grid" id="productos">
+
       {% for product in productos %}
       <article class="product-card">
 
-        <div class="product-image-wrapper">
-          <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-               alt="{{ product.name }}"
-               class="product-img">
+        <!-- 📸 IMAGEN (con soporte hover de video) -->
+        <div class="product-image-wrapper"
+             {% if product.video_file %}
+             data-video-src="{{ product.video_file.url }}"
+             {% if product.video_thumb %}data-video-poster="{{ product.video_thumb.url }}"{% endif %}
+             {% elif product.video_url %}
+             data-video-src="{{ product.video_url }}"
+             {% if product.video_thumb %}data-video-poster="{{ product.video_thumb.url }}"{% endif %}
+             {% endif %}>
 
+          <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+               class="product-img"
+               alt="{{ product.name }}">
+
+          <!-- 👁 VISTA RÁPIDA (hover) -->
           <button type="button"
-                  class="quick-view"
+                  class="quick-view temu-quick-view"
                   data-id="{{ product.id }}"
                   title="Vista rápida">
             <i class="bi bi-eye"></i>
           </button>
+
+          <!-- 🛒 AGREGAR AL CARRITO (acción directa) -->
+          <button type="button"
+                  class="temu-cart abrir-modal"
+                  data-id="{{ product.id }}"
+                  title="Agregar al carrito">
+            <i class="bi bi-cart-plus"></i>
+          </button>
+
+          {% if product.discount > 0 %}
+            <span class="badge badge-descuento">-{{ product.discount }}%</span>
+          {% endif %}
         </div>
 
+        <!-- ℹ️ INFO -->
         <div class="product-content">
           <h3 class="product-title text-truncate">{{ product.name }}</h3>
-          <p class="product-description text-muted">
+          <p class="product-description">
             {{ product.description|truncatewords:12 }}
           </p>
 
           {% if product.discount > 0 %}
-            <p class="text-danger fw-bold">${{ product.final_price|floatformat:0 }}</p>
-            <p class="text-muted text-decoration-line-through">${{ product.cost|floatformat:0 }}</p>
-            <span class="badge bg-success">-{{ product.discount }}%</span>
+            <p class="text-danger fw-bold">
+              ${{ product.final_price|floatformat:2|localize }}
+            </p>
+            <small class="text-decoration-line-through">
+              ${{ product.cost|floatformat:2|localize }}
+            </small>
           {% else %}
-            <span class="price fw-bold">${{ product.cost|floatformat:0 }}</span>
+            <span class="fw-bold">
+              ${{ product.cost|floatformat:2|localize }}
+            </span>
           {% endif %}
-
-          <div class="d-flex gap-2 mt-2">
-            <button type="button"
-                    class="btn-cart-icon abrir-modal"
-                    data-id="{{ product.id }}"
-                    title="Agregar al carrito">
-              <i class="bi bi-cart-plus"></i>
-            </button>
-
-            <button type="button"
-                    class="btn btn-outline-primary btn-sm quick-view"
-                    data-id="{{ product.id }}">
-              <i class="bi bi-eye"></i> Ver más
-            </button>
-          </div>
         </div>
 
       </article>
       {% endfor %}
     </div>
 
-    <!-- 🧠 MODAL VISTA RÁPIDA -->
+    <!-- ==================================================
+         🧠 MODAL VISTA RÁPIDA / CARRITO (ÚNICO)
+    ================================================== -->
+
+    <!-- Overlay oscuro -->
+    <div class="vista-rapida-overlay hidden"></div>
+
+    <!-- Panel modal -->
     <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
-      <button class="cerrar-panel" type="button">&times;</button>
-      <div id="contenidoProducto" class="panel-contenido"></div>
+
+      <!-- Botón cerrar -->
+      <button type="button" class="cerrar-panel" title="Cerrar">&times;</button>
+
+      <!-- CONTENIDO DINÁMICO -->
+      <div id="contenidoProducto"></div>
+
     </div>
 
   </div>
@@ -149,6 +203,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- 🔥 VERSIONADO PARA EVITAR CACHE -->
+<!-- 🧠 LÓGICA DE TIENDA -->
 <script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 {% endblock %}

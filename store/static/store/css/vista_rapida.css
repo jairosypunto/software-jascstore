@@ -222,3 +222,19 @@
     width: 100%;
   }
 }
+
+/* ✅ Animación de entrada suave */
+@keyframes zoomFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translate(-50%, -50%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(-50%, -50%);
+  }
+}
+
+.vista-rapida-panel.visible {
+  animation: zoomFadeIn 0.3s ease-out;
+}

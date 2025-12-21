@@ -1,56 +1,14 @@
 {% load static humanize %}
 
-<div class="vista-rapida-contenido">
+<div class="vista-rapida-contenido" data-mode="quick">
 
-  <!-- =====================================================
-       📸 GALERÍA DEL PRODUCTO (IMÁGENES + VIDEO)
-  ====================================================== -->
+  <!-- ❌ CERRAR -->
+  <button class="cerrar-panel" aria-label="Cerrar">✕</button>
+
+  <!-- =========================
+       📸 GALERÍA
+  ========================== -->
   <div class="galeria-producto">
-
-    <!-- MINIATURAS (izquierda) -->
-    <div class="miniaturas">
-      {% if producto.video_file %}
-        <div class="miniatura video-thumb"
-            data-type="video"
-            data-src="{{ producto.video_file.url }}"
-            {% if producto.video_thumb %}
-              style="background-image:url('{{ producto.video_thumb.url }}')"
-            {% endif %}>
-          <span class="play-icon">▶</span>
-        </div>
-      {% endif %}
-
-
-
-
-      <!-- Imagen principal -->
-      {% if producto.image %}
-        <img src="{{ producto.image.url }}"
-             class="miniatura activa"
-             data-type="image"
-             data-src="{{ producto.image.url }}"
-             alt="Imagen principal">
-      {% endif %}
-
-      <!-- Imágenes adicionales -->
-      {% for img in producto.images.all %}
-        <img src="{{ img.image.url }}"
-             class="miniatura"
-             data-type="image"
-             data-src="{{ img.image.url }}"
-             alt="Imagen adicional">
-      {% endfor %}
-
-      <!-- Video del producto -->
-      {% if producto.video %}
-        <div class="miniatura video-thumb"
-             data-type="video"
-             data-src="{{ producto.video.url }}">
-          ▶
-        </div>
-      {% endif %}
-
-    </div>
 
     <!-- VISOR PRINCIPAL -->
     <div class="imagen-principal" id="visor-principal">
@@ -59,19 +17,61 @@
              class="big-image"
              alt="{{ producto.name }}">
       {% else %}
-        <img src="{% static 'icons/no-image.png' %}" class="big-image">
+        <img src="{% static 'icons/no-image.png' %}"
+             class="big-image"
+             alt="Sin imagen">
       {% endif %}
     </div>
 
+    <!-- MINIATURAS -->
+    <div class="miniaturas-horizontal">
+
+      {% if producto.image %}
+        <div class="miniatura activa"
+             data-type="image"
+             data-src="{{ producto.image.url }}">
+          <img src="{{ producto.image.url }}" alt="Imagen principal">
+        </div>
+      {% endif %}
+
+      {% for img in producto.images.all %}
+        <div class="miniatura"
+             data-type="image"
+             data-src="{{ img.image.url }}">
+          <img src="{{ img.image.url }}" alt="Imagen extra">
+        </div>
+      {% endfor %}
+
+      {% if producto.video_file or producto.video_url %}
+        <div class="miniatura video-thumb"
+             data-type="video"
+             data-src="{% if producto.video_file %}{{ producto.video_file.url }}{% else %}{{ producto.video_url }}{% endif %}"
+             data-poster="{% if producto.video_thumb and producto.video_thumb.url %}{{ producto.video_thumb.url }}{% else %}{% static 'imgs/video-placeholder.jpg' %}{% endif %}">
+          {% if producto.video_thumb and producto.video_thumb.url %}
+            <img src="{{ producto.video_thumb.url }}" alt="Video">
+          {% else %}
+            <img src="{% static 'imgs/video-placeholder.jpg' %}" alt="Video">
+          {% endif %}
+        </div>
+      {% endif %}
+
+    </div>
   </div>
 
-  <!-- =====================================================
-       ℹ️ INFORMACIÓN DEL PRODUCTO
-  ====================================================== -->
+  <!-- =========================
+       ℹ️ INFO + CARRITO
+  ========================== -->
   <div class="info-producto">
 
     <h3 class="titulo">{{ producto.name }}</h3>
     <p class="descripcion">{{ producto.description }}</p>
+
+    <!-- Simulación de reseñas y ventas -->
+    <div class="reseñas-ventas mb-2">
+      <span class="estrella">★★★★★</span>
+      <span class="texto-reseñas">1.2K reseñas</span>
+      <span class="texto-ventas">| 3.5K+ ventas</span>
+    </div>
 
     <!-- PRECIOS -->
     {% if producto.discount > 0 %}
@@ -88,40 +88,37 @@
 
     <!-- TALLAS -->
     {% if producto.talla_list %}
-    <div class="bloque-opciones">
-      <label class="label-opcion">Tallas</label>
-      <div class="opciones">
-        {% for talla in producto.talla_list %}
-        <label class="option-chip size-chip">
-          <input type="radio" class="visually-hidden" value="{{ talla }}">
-          <span>{{ talla }}</span>
-        </label>
-        {% endfor %}
+      <div class="bloque-opciones">
+        <label class="label-opcion">Tallas</label>
+        <div class="opciones">
+          {% for talla in producto.talla_list %}
+            <button type="button" class="option-chip size-chip">
+              {{ talla }}
+            </button>
+          {% endfor %}
+        </div>
       </div>
-    </div>
     {% endif %}
 
     <!-- COLORES -->
-    {% if producto.colors_list %}
-    <div class="bloque-opciones">
-      <label class="label-opcion">Colores</label>
-      <div class="opciones">
-        {% for color in producto.colors_list %}
-        <label class="option-chip color-chip">
-          <input type="radio" class="visually-hidden" value="{{ color }}">
-          <span>{{ color }}</span>
-        </label>
-        {% endfor %}
+    {% if producto.color_list %}
+      <div class="bloque-opciones">
+        <label class="label-opcion">Colores</label>
+        <div class="opciones">
+          {% for color in producto.color_list %}
+            <button type="button" class="option-chip color-chip">
+              {{ color }}
+            </button>
+          {% endfor %}
+        </div>
       </div>
-    </div>
     {% endif %}
 
-    <!-- FORMULARIO CARRITO -->
+    <!-- FORM CARRITO -->
     <form method="POST"
           action="{% url 'store:agregar_al_carrito' producto.id %}"
           id="form-add-cart">
       {% csrf_token %}
-
       <input type="hidden" name="selected_size_hidden">
       <input type="hidden" name="selected_color_hidden">
       <input type="hidden" name="cantidad" value="1">

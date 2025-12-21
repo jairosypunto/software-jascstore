@@ -61,15 +61,23 @@
 
 /* Texto sobre el banner */
 .banner-caption {
-  position: relative;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* centra vertical */
+  align-items: center;       /* centra horizontal */
   z-index: 2;
   text-align: center;
   color: white;
-  padding-top: 120px;
+  padding: 0 20px;           /* margen lateral */
 }
 
 .banner-caption h2 {
   font-size: 2.5rem;
+  margin-bottom: 10px;
 }
 
 .banner-caption p {

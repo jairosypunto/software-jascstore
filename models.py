@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings   # Para vincular la factura al usuario autenticado
-from categorias.models import Category
 
 # 🛍️ Modelo de Producto
 class Product(models.Model):
@@ -24,9 +23,6 @@ class Product(models.Model):
 
     # Estado de disponibilidad (True = se puede vender)
     is_available = models.BooleanField(default=True)
-
-    # Relación con categoría (ej: Ropa, Electrónica, etc.)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     # Fechas de registro y actualización automática
     date_register = models.DateTimeField(auto_now_add=True)

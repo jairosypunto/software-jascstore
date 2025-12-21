@@ -48,6 +48,10 @@ class ProductAdmin(admin.ModelAdmin):
         ("Video", {
             "fields": ("video_url", "video_file")
         }),
+        ("Portada de video", {
+            "fields": ("video_thumb",)
+        }),
+
         ("Fechas", {
             "fields": ("date_register", "date_update")
         }),

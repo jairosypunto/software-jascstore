@@ -1,169 +1,424 @@
-/* =====================================================
-   🔥 STORE.JS – JascEcommerce (FINAL PRO)
-===================================================== */
-
 console.log("🔥 STORE.JS CARGADO");
 
+/* =====================================================
+   INIT
+===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
-  initSwipers();
-
-  /* =============================
-     ABRIR VISTA RÁPIDA
-  ============================= */
-  document.body.addEventListener("click", e => {
-    const btn = e.target.closest(".quick-view, .abrir-modal");
-    if (!btn) return;
-
-    e.preventDefault();
-
-    const panel = document.getElementById("vistaRapidaPanel");
-    const cont  = document.getElementById("contenidoProducto");
-    const id    = btn.dataset.id;
-
-    if (!panel || !cont || !id) return;
-
-    panel.classList.remove("hidden");
-    cont.innerHTML = `<p class="text-center py-4">Cargando producto...</p>`;
-
-    fetch(`/store/vista-rapida/${id}/`)
-      .then(res => res.text())
-      .then(html => {
-        cont.innerHTML = html;
-        initVistaRapida(); // 🔥 CLAVE
-      });
-  });
-
-  /* =============================
-     CERRAR MODAL
-  ============================= */
-  document.body.addEventListener("click", e => {
-    if (e.target.classList.contains("cerrar-panel")) {
-      document.getElementById("vistaRapidaPanel")?.classList.add("hidden");
-    }
-  });
+  initEventosGlobales();
+  initSliders();
+  initHoverVideoEnGrid(); // 🆕 Hover video en tarjetas de productos
 });
 
 /* =====================================================
-   🌀 SWIPERS
+   EVENTOS GLOBALES
 ===================================================== */
-function initSwipers() {
-  if (document.querySelector(".bannerSwiper")) {
-    new Swiper(".bannerSwiper", {
-      loop: true,
-      autoplay: { delay: 4000 },
-      pagination: { el: ".swiper-pagination", clickable: true }
-    });
-  }
+function initEventosGlobales() {
 
-  if (document.querySelector(".mySwiper")) {
-    new Swiper(".mySwiper", {
-      slidesPerView: 4,
-      spaceBetween: 20,
-      loop: true,
-      observer: true,
-      observeParents: true,
-      breakpoints: {
-        0: { slidesPerView: 2 },
-        768: { slidesPerView: 3 },
-        1024: { slidesPerView: 4 }
+  document.body.addEventListener("click", (e) => {
+
+    /* ===== ABRIR VISTA RÁPIDA ===== */
+    const btnQuick = e.target.closest(".quick-view");
+    if (btnQuick) {
+      e.preventDefault();
+      const id = btnQuick.dataset.id;
+      if (!id) {
+        console.warn("⚠️ Botón sin data-id");
+        return;
       }
-    });
-  }
+      abrirVistaRapida(id);
+      return;
+    }
+
+    /* ===== AGREGAR AL CARRITO DIRECTO (desde grid) ===== */
+    const btnCart = e.target.closest(".temu-cart");
+    if (btnCart) {
+      e.preventDefault();
+      const id = btnCart.dataset.id;
+      if (!id) {
+        console.warn("⚠️ Botón carrito sin data-id");
+        return;
+      }
+      agregarAlCarritoDirecto(id);
+      return;
+    }
+
+    /* ===== CERRAR MODAL ===== */
+    if (e.target.classList.contains("cerrar-panel")) {
+      cerrarVistaRapida();
+    }
+  });
 }
 
 /* =====================================================
-   🧠 VISTA RÁPIDA (GALERÍA + VARIANTES)
+   ABRIR VISTA RÁPIDA
+===================================================== */
+function abrirVistaRapida(id) {
+  const panel = document.getElementById("vistaRapidaPanel");
+  const cont  = document.getElementById("contenidoProducto");
+
+  panel.classList.remove("hidden");
+  panel.classList.add("visible");
+  document.body.style.overflow = "hidden";
+
+  cont.innerHTML = "<p>Cargando producto...</p>";
+
+  fetch(`/store/vista-rapida/${id}/`)
+    .then(res => res.text())
+    .then(html => {
+      cont.innerHTML = html;
+      setTimeout(initVistaRapida, 0); // 🔥 inicializar lógica interna
+    })
+    .catch(err => {
+      console.error("❌ Error cargando vista rápida", err);
+      cont.innerHTML = "<p>Error cargando producto</p>";
+    });
+}
+
+/* =====================================================
+   CERRAR VISTA RÁPIDA
+===================================================== */
+function cerrarVistaRapida() {
+  const panel = document.getElementById("vistaRapidaPanel");
+  const cont  = document.getElementById("contenidoProducto");
+
+  panel.classList.remove("visible");
+  panel.classList.add("hidden");
+
+  document.body.style.overflow = "";
+  cont.innerHTML = "";
+
+  console.log("❌ Vista rápida cerrada");
+}
+
+/* =====================================================
+   LÓGICA VISTA RÁPIDA (IMÁGENES + VIDEO + CARRITO)
 ===================================================== */
 function initVistaRapida() {
-  console.log("✅ initVistaRapida");
-
   const cont = document.getElementById("contenidoProducto");
   if (!cont) return;
 
-  /* =============================
-     GALERÍA (IMÁGENES / VIDEO)
-  ============================= */
-  const visor = cont.querySelector(".imagen-principal");
+  const visor = cont.querySelector("#visor-principal");
   const minis = cont.querySelectorAll(".miniatura");
 
+  console.log(`📸 Miniaturas encontradas: ${minis.length}`);
+
+  if (!visor || minis.length === 0) {
+    console.warn("⚠️ No hay visor o miniaturas");
+    return;
+  }
+
+  function activarMiniatura(mini) {
+    minis.forEach(m => m.classList.remove("activa"));
+    mini.classList.add("activa");
+    visor.innerHTML = "";
+
+    const type   = mini.dataset.type;
+    const src    = mini.dataset.src;
+    const poster = mini.dataset.poster || "";
+
+    if (!src) {
+      console.warn("⚠️ Miniatura sin data-src");
+      return;
+    }
+
+    if (type === "image") {
+      const img = document.createElement("img");
+      img.src = src;
+      img.className = "big-image";
+      img.loading = "eager";
+      img.alt = "Imagen del producto";
+      visor.appendChild(img);
+    }
+
+    if (type === "video") {
+      const video = document.createElement("video");
+      video.src = src;
+      if (poster) video.poster = poster;
+      video.controls = true;
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.playsInline = true;
+      video.className = "big-image";
+      visor.appendChild(video);
+      video.play().catch(() => {
+        console.warn("⚠️ Autoplay bloqueado");
+      });
+    }
+  }
+
   minis.forEach(mini => {
-    mini.addEventListener("click", () => {
-
-      minis.forEach(m => m.classList.remove("activa"));
-      mini.classList.add("activa");
-
-      visor.innerHTML = "";
-
-      const type = mini.dataset.type || "image";
-      const src  = mini.dataset.src;
-
-      if (type === "image") {
-        const img = document.createElement("img");
-        img.src = src;
-        img.className = "big-image";
-        visor.appendChild(img);
-      }
-
-      if (type === "video") {
-        const video = document.createElement("video");
-        video.src = src;
-        video.controls = true;
-        video.autoplay = true;
-        video.className = "big-image";
-        visor.appendChild(video);
-      }
-    });
+    mini.addEventListener("mouseover", () => activarMiniatura(mini));
+    mini.addEventListener("click", () => activarMiniatura(mini));
   });
+  activarMiniatura(minis[0]); // 🔥 primera miniatura activa
 
-  /* =============================
-     FORM CARRITO
-  ============================= */
+  /* =================================================
+     TALLAS Y COLORES
+  ================================================= */
   const form = cont.querySelector("#form-add-cart");
-  const btn  = form.querySelector("button");
+  if (!form) return;
 
-  const hiddenTalla = cont.querySelector('[name="selected_size_hidden"]');
-  const hiddenColor = cont.querySelector('[name="selected_color_hidden"]');
+  const btnAgregar = form.querySelector(".btn-agregar");
+  const btnComprar = form.querySelector(".btn-comprar");
 
-  const sizeChips  = cont.querySelectorAll(".size-chip");
-  const colorChips = cont.querySelectorAll(".color-chip");
+  const tallaHidden = form.querySelector('[name="selected_size_hidden"]');
+  const colorHidden = form.querySelector('[name="selected_color_hidden"]');
 
-  let tallaOK = sizeChips.length === 0;   // ✔ Si no hay tallas → OK
-  let colorOK = colorChips.length === 0;  // ✔ Si no hay colores → OK
+  const tallas  = cont.querySelectorAll(".size-chip");
+  const colores = cont.querySelectorAll(".color-chip");
 
-  validar(); // 🔥 Evaluar al cargar
+  console.log(`🎨 Tallas: ${tallas.length} | Colores: ${colores.length}`);
 
-  /* =============================
-     TALLAS
-  ============================= */
-  sizeChips.forEach(chip => {
-    chip.addEventListener("click", () => {
-      sizeChips.forEach(c => c.classList.remove("seleccionado"));
-      chip.classList.add("seleccionado");
+  let tallaOK = tallas.length === 0;
+  let colorOK = colores.length === 0;
 
-      hiddenTalla.value = chip.innerText.trim();
+  function validar() {
+    if (btnAgregar) btnAgregar.disabled = !(tallaOK && colorOK);
+    if (btnComprar) btnComprar.disabled = !(tallaOK && colorOK);
+  }
+
+  tallas.forEach(t => {
+    t.addEventListener("click", () => {
+      tallas.forEach(x => x.classList.remove("seleccionado"));
+      t.classList.add("seleccionado");
+      if (tallaHidden) tallaHidden.value = t.innerText.trim();
       tallaOK = true;
       validar();
     });
   });
 
-  /* =============================
-     COLORES
-  ============================= */
-  colorChips.forEach(chip => {
-    chip.addEventListener("click", () => {
-      colorChips.forEach(c => c.classList.remove("seleccionado"));
-      chip.classList.add("seleccionado");
-
-      hiddenColor.value = chip.innerText.trim();
+  colores.forEach(c => {
+    c.addEventListener("click", () => {
+      colores.forEach(x => x.classList.remove("seleccionado"));
+      c.classList.add("seleccionado");
+      if (colorHidden) colorHidden.value = c.innerText.trim();
       colorOK = true;
       validar();
     });
   });
 
-  /* =============================
-     VALIDACIÓN FINAL
-  ============================= */
-  function validar() {
-    btn.disabled = !(tallaOK && colorOK);
+  validar();
+
+  /* =================================================
+     BOTÓN COMPRAR AHORA
+  ================================================= */
+  if (btnComprar) {
+    btnComprar.addEventListener("click", () => {
+      if (!(tallaOK && colorOK)) {
+        alert("Selecciona talla y color antes de comprar");
+        return;
+      }
+      // Redirigir a checkout directo
+      window.location.href = `/store/checkout/${form.dataset.productId || ""}`;
+    });
   }
+}
+
+/* =====================================================
+   AGREGAR AL CARRITO DIRECTO (desde grid)
+===================================================== */
+function agregarAlCarritoDirecto(id) {
+  fetch(`/store/agregar-al-carrito/${id}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCSRFToken() }
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("🛒 Producto agregado:", data);
+      mostrarToast("Producto agregado al carrito ✅");
+      actualizarContadorCarrito(data.cart_count);
+    })
+    .catch(err => {
+      console.error("❌ Error agregando al carrito", err);
+    });
+}
+
+/* =====================================================
+   UTILIDADES
+===================================================== */
+function getCSRFToken() {
+  const cookie = document.cookie.split(";").find(c => c.trim().startsWith("csrftoken="));
+  return cookie ? cookie.split("=")[1] : "";
+}
+
+function mostrarToast(msg) {
+  const toast = document.createElement("div");
+  toast.className = "toast-carrito";
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add("visible"), 50);
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    toast.remove();
+  }, 3000);
+}
+
+function actualizarContadorCarrito(count) {
+  const badge = document.querySelector(".cart-count");
+  if (badge) badge.innerText = count;
+}
+
+/* =====================================================
+   HOVER VIDEO EN GRID DE PRODUCTOS (tipo Temu)
+===================================================== */
+function initHoverVideoEnGrid() {
+  const cards = document.querySelectorAll(".product-card .product-image-wrapper");
+  if (!cards.length) return;
+
+  cards.forEach(wrapper => {
+    const img = wrapper.querySelector("img.product-img");
+    if (!img) return;
+
+    const videoSrc = wrapper.dataset.videoSrc;
+    const videoPoster = wrapper.dataset.videoPoster;
+    if (!videoSrc) return;
+
+    let videoEl = null;
+
+    function activarVideo() {
+      if (videoEl) return; // evitar múltiples instancias
+
+      videoEl = document.createElement("video");
+      videoEl.src = videoSrc;
+      if (videoPoster) videoEl.poster = videoPoster;
+      videoEl.autoplay = true;
+      videoEl.muted = true;
+      videoEl.loop = true;
+      videoEl.playsInline = true;
+      videoEl.className = "product-video";
+
+      // estilos similares a la imagen
+      videoEl.style.width = "100%";
+      videoEl.style.height = "100%";
+      videoEl.style.objectFit = "cover";
+      videoEl.style.borderRadius = getComputedStyle(img).borderRadius;
+
+      wrapper.appendChild(videoEl);
+
+      videoEl.play().catch(() => {
+        console.warn("⚠️ Autoplay bloqueado en grid");
+      });
+    }
+
+    function desactivarVideo() {
+      if (!videoEl) return;
+      try {
+        videoEl.pause();
+      } catch (e) {}
+      videoEl.remove();
+      videoEl = null;
+    }
+
+    // Hover en desktop, focus/blur para accesibilidad
+    wrapper.addEventListener("mouseenter", activarVideo);
+    wrapper.addEventListener("mouseleave", desactivarVideo);
+    wrapper.addEventListener("focusin", activarVideo);
+    wrapper.addEventListener("focusout", desactivarVideo);
+  });
+}
+
+/* =====================================================
+   SLIDERS (SWIPER)
+===================================================== */
+function initSliders() {
+
+  if (typeof Swiper === "undefined") {
+    console.warn("⚠️ Swiper no cargado");
+    return;
+  }
+
+  // Banner principal
+  new Swiper(".bannerSwiper", {
+    loop: true,
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false // ✅ sigue moviéndose aunque el usuario haga click o swipe
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true
+    },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev"
+    }
+  });
+
+  // Productos destacados
+  new Swiper(".destacados-swiper", {
+    slidesPerView: 1.2,
+    spaceBetween: 15,
+    breakpoints: {
+      768: { slidesPerView: 3 },
+      1200: { slidesPerView: 5 }
+    },
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false // ✅ se mueve solo y no se detiene
+    },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev"
+    }
+  });
+
+  console.log("🎞 Sliders inicializados");
+}  
+
+/* =====================================================
+   HOVER VIDEO EN GRID DE PRODUCTOS (tipo Temu)
+===================================================== */
+function initHoverVideoEnGrid() {
+  const cards = document.querySelectorAll(".product-card .product-image-wrapper");
+  if (!cards.length) return;
+
+  cards.forEach(wrapper => {
+    const img = wrapper.querySelector("img.product-img");
+    if (!img) return;
+
+    const videoSrc = wrapper.dataset.videoSrc;
+    const videoPoster = wrapper.dataset.videoPoster;
+    if (!videoSrc) return; // solo si el producto tiene video
+
+    let videoEl = null;
+
+    function activarVideo() {
+      if (videoEl) return; // evitar múltiples instancias
+
+      videoEl = document.createElement("video");
+      videoEl.src = videoSrc;
+      if (videoPoster) videoEl.poster = videoPoster;
+      videoEl.autoplay = true;
+      videoEl.muted = true;
+      videoEl.loop = true;
+      videoEl.playsInline = true;
+      videoEl.className = "product-video";
+
+      // estilos similares a la imagen
+      videoEl.style.width = "100%";
+      videoEl.style.height = "100%";
+      videoEl.style.objectFit = "cover";
+      videoEl.style.borderRadius = getComputedStyle(img).borderRadius;
+
+      wrapper.appendChild(videoEl);
+
+      videoEl.play().catch(() => {
+        console.warn("⚠️ Autoplay bloqueado en grid");
+      });
+    }
+
+    function desactivarVideo() {
+      if (!videoEl) return;
+      try { videoEl.pause(); } catch(e) {}
+      videoEl.remove();
+      videoEl = null;
+    }
+
+    // Hover en desktop, focus/blur para accesibilidad
+    wrapper.addEventListener("mouseenter", activarVideo);
+    wrapper.addEventListener("mouseleave", desactivarVideo);
+    wrapper.addEventListener("focusin", activarVideo);
+    wrapper.addEventListener("focusout", desactivarVideo);
+  });
 }

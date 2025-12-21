@@ -680,37 +680,28 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
 # ============================================================
 # 👁️ Vista: vista rápida de producto
 # ============================================================
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render
+from .models import Product
+
+
 @login_required(login_url='/accounts/login/')
 def vista_rapida(request, id):
     """
-    Muestra un panel de vista rápida de producto.
-    - Si ?modo=carrito → usa plantilla directa para agregar al carrito.
-    - Si no → usa plantilla estándar de vista rápida.
+    Vista rápida de producto (modal único tipo TEMU).
+    - Usa UNA sola plantilla: store/vista_rapida.html
+    - Maneja galería, video, tallas, colores y carrito
     """
+
     producto = get_object_or_404(Product, id=id)
-    modo = request.GET.get('modo')  # lee ?modo=carrito si existe
 
     context = {
         'producto': producto,
-        'talla': producto.talla_list,
-        'color': producto.color_list,
+        # NO necesitas pasar talla/color aparte
+        # ya vienen desde producto.talla_list y producto.colors_list
     }
 
-    template = 'store/vista_rapida_directa.html' if modo == 'carrito' else 'store/vista_rapida.html'
-    return render(request, template, context)
-    producto = get_object_or_404(Product, id=id)
-    modo = request.GET.get('modo')  # lee ?modo=carrito si existe
-
-    # Contexto común para ambas plantillas
-    context = {
-        'producto': producto,
-        'talla': producto.talla_list,
-        'color': producto.color_list,
-    }
-
-    # Selección de plantilla según el modo
-    template = 'store/vista_rapida_directa.html' if modo == 'carrito' else 'store/vista_rapida.html'
-    return render(request, template, context)
+    return render(request, 'store/vista_rapida.html', context)
 
 
 
