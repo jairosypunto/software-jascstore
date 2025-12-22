@@ -18,8 +18,8 @@ def confirmar_pago(request):
             messages.error(request, "Tu carrito está vacío.")
             return redirect('carrito')
 
-        # ✅ Calcular el total solo si el carrito tiene contenido válido
-        total = calcular_total(carrito)
+        # ✅ Calcular el total desde los precios ya con descuento
+        total = calcular_total(carrito)  # debe usar precio_unitario (final_price)
         print("Total calculado:", total)  # 🧪 Depuración visual
 
         # ✅ Crear el pedido en la base de datos
@@ -31,12 +31,14 @@ def confirmar_pago(request):
             is_confirmed=True
         )
 
+        # ✅ Guardar el pedido en sesión si lo necesitas para redirección
+        request.session['pedido_id'] = order.id
+
         messages.success(request, "Pedido confirmado correctamente.")
         return redirect('factura', order_id=order.id)
 
     # ✅ Renderizar el formulario si no es POST
     return render(request, 'confirmar_pago.html')
-
 
 @login_required
 def factura(request, order_id):

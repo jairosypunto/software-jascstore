@@ -90,7 +90,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for item in factura.detalles.all %}
+      {% for item in items %}
       <tr>
         <td class="col-producto">
           {{ item.producto.name }}
@@ -105,7 +105,7 @@
         </td>
         <td class="col-cantidad">{{ item.cantidad }}</td>
         <td class="col-unitario">
-          ${{ item.producto.final_price|floatformat:0|intcomma }}
+          ${{ item.precio_unitario|floatformat:0|intcomma }}
         </td>
         <td class="col-subtotal">
           ${{ item.subtotal|floatformat:0|intcomma }}
@@ -116,7 +116,7 @@
   </table>
 
   <!-- 🏷️ Resumen de descuentos por producto -->
-  {% for item in factura.detalles.all %}
+  {% for item in items %}
     {% if item.producto.discount > 0 %}
       <div class="resumen-descuento">
         <strong>{{ item.producto.name }}</strong>: Antes ${{ item.producto.cost|floatformat:0|intcomma }}
@@ -128,7 +128,6 @@
   <!-- 💰 Totales -->
   <div class="text-right" style="margin-top: 20px;">
     <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
-    <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
     <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
     <p><strong>Total pagado:</strong> <span class="text-success">${{ total_final|floatformat:0|intcomma }}</span></p>
     <p class="text-muted">El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.</p>

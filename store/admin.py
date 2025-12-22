@@ -109,3 +109,9 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")  # Mostrar nombre y slug
     search_fields = ("name",)        # Búsqueda por nombre
     prepopulated_fields = {"slug": ("name",)}  # Slug autogenerado desde el nombre
+    
+from .models import Configuracion
+
+@admin.register(Configuracion)
+class ConfiguracionAdmin(admin.ModelAdmin):
+    list_display = ("iva_activo",)

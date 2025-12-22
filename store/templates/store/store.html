@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
+<link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}">
 {% endblock %}
 
 {% block banner_full %}
@@ -134,22 +135,22 @@
                class="product-img"
                alt="{{ product.name }}">
 
-          <!-- 👁 VISTA RÁPIDA (hover) -->
+          <!-- 👁 VISTA RÁPIDA (abre modal) -->
           <button type="button"
-                  class="quick-view temu-quick-view"
+                  class="quick-view jasc-quick-view"
                   data-id="{{ product.id }}"
                   title="Vista rápida">
             <i class="bi bi-eye"></i>
           </button>
 
-          <!-- 🛒 AGREGAR AL CARRITO (acción directa) -->
-          <button type="button"
-                  class="temu-cart abrir-modal"
-                  data-id="{{ product.id }}"
-                  title="Agregar al carrito">
-            <i class="bi bi-cart-plus"></i>
-          </button>
-
+<!-- 🛒 AGREGAR AL CARRITO DIRECTO (sin modal) -->
+<button type="button"
+        class="jasc-cart"
+        data-id="{{ product.id }}"
+        data-has-variants="{% if product.has_variants %}true{% else %}false{% endif %}"
+        title="Agregar al carrito">
+  <i class="bi bi-cart-plus"></i>
+</button>
           {% if product.discount > 0 %}
             <span class="badge badge-descuento">-{{ product.discount }}%</span>
           {% endif %}
@@ -181,21 +182,25 @@
     </div>
 
     <!-- ==================================================
-         🧠 MODAL VISTA RÁPIDA / CARRITO (ÚNICO)
+         🧠 MODAL VISTA RÁPIDA
     ================================================== -->
 
     <!-- Overlay oscuro -->
     <div class="vista-rapida-overlay hidden"></div>
 
     <!-- Panel modal -->
-    <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
-
+    <div id="vistaRapidaPanel" class="vista-rapida-panel hidden" role="dialog" aria-modal="true" aria-label="Vista rápida">
       <!-- Botón cerrar -->
-      <button type="button" class="cerrar-panel" title="Cerrar">&times;</button>
-
-      <!-- CONTENIDO DINÁMICO -->
+      <button type="button" class="cerrar-panel" title="Cerrar" aria-label="Cerrar">&times;</button>
+      <!-- CONTENIDO DINÁMICO (carga vista_rapida.html) -->
       <div id="contenidoProducto"></div>
+    </div>
 
+    <!-- 🛒 MODAL SELECCIÓN DE VARIANTES -->
+    <div class="carrito-overlay hidden"></div>
+    <div id="carritoModal" class="carrito-panel hidden" role="dialog" aria-modal="true" aria-label="Seleccionar opciones">
+      <button type="button" class="cerrar-carrito" title="Cerrar">&times;</button>
+      <div id="contenidoCarrito"></div>
     </div>
 
   </div>

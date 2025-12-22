@@ -1,6 +1,6 @@
 /* =========================================================
    🛍️ JASC ECOMMERCE – VISTA RÁPIDA & VISTA DIRECTA
-   Estilo Temu · CSS FINAL ESTABLE
+   Estilo Jasc · CSS FINAL PROFESIONAL
 ========================================================= */
 
 /* ================= RESET LOCAL ================= */
@@ -31,7 +31,6 @@
   display: flex;
   gap: 12px;
 }
-
 
 /* MINIATURAS IZQUIERDA */
 .miniaturas {
@@ -174,23 +173,25 @@
 }
 
 /* =================================================
-   🛒 BOTÓN AGREGAR
+   🛒 BOTONES DE ACCIÓN
 ================================================= */
 .btn-agregar {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
   border: none;
-  background: #ff4d00;
+  background: linear-gradient(to right, #ff4d00, #ff8000);
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all .25s ease;
+  margin-top: 12px;
 }
 
 .btn-agregar:hover {
-  background: #e84300;
+  transform: scale(1.03);
+  background: linear-gradient(to right, #e84300, #ff6a00);
 }
 
 .btn-agregar:disabled {
@@ -199,11 +200,100 @@
   color: #999;
 }
 
+/* ⚡ BOTÓN COMPRAR AHORA */
+.btn-comprar {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #ff6a00;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .25s ease;
+  margin-top: 16px;
+}
+
+.btn-comprar:hover {
+  transform: scale(1.04);
+  background: #e65c00;
+}
+
+/* =================================================
+   🎭 MODAL PANEL & OVERLAY
+================================================= */
+.vista-rapida-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.vista-rapida-overlay.visible {
+  opacity: 1;
+}
+
+.vista-rapida-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 1000;
+  max-width: 980px;
+  width: 95%;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+.vista-rapida-panel.visible {
+  opacity: 1;
+  animation: zoomFadeIn 0.3s ease-out;
+}
+
+/* Botón cerrar */
+.cerrar-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #666;
+  transition: color .2s ease;
+}
+
+.cerrar-panel:hover {
+  color: #ff4d00;
+}
+ 
+/* =================================================
+   ✅ TRANSICIONES SUAVES 
+================================================= */
+#vistaRapidaPanel {
+  transition: opacity 0.3s ease;
+}
+#vistaRapidaPanel.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+#vistaRapidaPanel.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* =================================================
    📱 RESPONSIVE
 ================================================= */
 @media (max-width: 768px) {
-
   .vista-rapida-contenido {
     flex-direction: column;
     max-width: 100%;
@@ -221,6 +311,13 @@
   .imagen-principal {
     width: 100%;
   }
+
+  .vista-rapida-panel {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    max-width: 100%;
+  }
 }
 
 /* ✅ Animación de entrada suave */
@@ -233,8 +330,4 @@
     opacity: 1;
     transform: scale(1) translate(-50%, -50%);
   }
-}
-
-.vista-rapida-panel.visible {
-  animation: zoomFadeIn 0.3s ease-out;
 }

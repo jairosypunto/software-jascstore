@@ -99,50 +99,118 @@ def _items_carrito(request):
     return items
 
 
-# ============================================================
-# 🛒 Vista: agregar producto al carrito
-# ============================================================
-def agregar_al_carrito(request, product_id):
-    print("🔥 ENTRÓ A agregar_al_carrito")
+from decimal import Decimal
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+from store.models import Product
+from store.utils.totales import calcular_totales
 
+
+# ============================================================
+# 🛒 Agregar al carrito
+# ============================================================
+@require_POST
+def agregar_al_carrito(request, product_id):
     producto = get_object_or_404(Product, id=product_id)
 
-    if request.method != "POST":
-        return redirect("store:store")
-
-    # 📥 Datos
     cantidad = max(1, int(request.POST.get("cantidad", 1)))
-    talla = request.POST.get("selected_size_hidden", "").strip()
-    color = request.POST.get("selected_color_hidden", "").strip()
-
-    # ❌ Validación real
-    if producto.talla_list and not talla:
-        print("❌ ERROR: talla no enviada")
-        return redirect("store:store")
+    talla = request.POST.get("selected_size_hidden") or ""
+    color = request.POST.get("selected_color_hidden") or ""
 
     carrito = request.session.get("carrito", {})
-    item_key = f"{product_id}|{talla}|{color}"
+    item_key = f"{product_id}|{talla}|{color}" if talla or color else str(product_id)
 
     if item_key in carrito:
         carrito[item_key]["cantidad"] += cantidad
     else:
+        # ✅ Guardar precio como string para usar Decimal luego
+        precio = producto.final_price
+        if precio is None:
+            return JsonResponse({"error": "Producto sin precio"}, status=400)
+
         carrito[item_key] = {
             "producto_id": product_id,
             "nombre": producto.name,
-            "precio": float(producto.final_price),
+            "precio": str(precio),   # 🔒 blindado contra floats
             "cantidad": cantidad,
-            "talla": talla,
-            "color": color,
+            "talla": talla if talla else None,
+            "color": color if color else None,
         }
 
     request.session["carrito"] = carrito
     request.session.modified = True
 
-    print("✅ AGREGADO CORRECTAMENTE:", carrito)
+    # ✅ Si no es AJAX, redirigir al carrito HTML
+    if not request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return redirect("store:ver_carrito")
 
-    return redirect("store:ver_carrito")
+    # ✅ Si es AJAX, devolver JSON
+    return JsonResponse({
+        "status": "ok",
+        "producto": producto.name,
+        "cantidad": carrito[item_key]["cantidad"],
+        "cart_count": sum(i["cantidad"] for i in carrito.values())
+    })
 
 
+# ============================================================
+# 📋 Ver carrito
+# ============================================================
+from decimal import Decimal
+from store.utils.totales import calcular_totales
+
+def ver_carrito(request):
+    carrito = request.session.get('carrito', {})
+
+    items = []
+    subtotal = Decimal("0")
+
+    for item in carrito.values():
+        try:
+            precio = Decimal(str(item['precio']))
+        except Exception:
+            precio = Decimal("0")
+
+        cantidad = Decimal(str(item['cantidad']))
+        total_item = precio * cantidad
+        subtotal += total_item
+
+        items.append({
+            **item,
+            'precio': precio,
+            'cantidad': cantidad,
+            'total_item': total_item
+        })
+
+    # ✅ Simular factura para reutilizar calcular_totales
+    class DetalleFake:
+        def __init__(self, producto, cantidad):
+            self.producto = producto
+            self.cantidad = cantidad
+
+    class ProductoFake:
+        def __init__(self, cost, final_price):
+            self.cost = cost
+            self.final_price = final_price
+
+    factura_fake = type("FacturaFake", (), {"detalles": []})()
+    factura_fake.detalles = [
+        DetalleFake(ProductoFake(it['precio'], it['precio']), it['cantidad'])
+        for it in items
+    ]
+
+    # ✅ Calcular totales (sin IVA)
+    totales = calcular_totales(factura_fake)
+
+    context = {
+        'items': items,
+        'subtotal': totales['subtotal'],
+        'descuento': totales['ahorro_total'],
+        'total_final': totales['total_final'],
+        'total_items': sum(i['cantidad'] for i in items)
+    }
+    return render(request, 'store/carrito.html', context)
 
 # ============================================================
 # 🛒 Vista: vaciar carrito
@@ -155,35 +223,9 @@ def vaciar_carrito(request):
     messages.info(request, "Tu carrito fue vaciado.")
     return redirect('store:ver_carrito')
 
-
 # ============================================================
-# 📋 Vista: ver carrito
+# 📋 Vista: ver carrito (actualizada)
 # ============================================================
-# ============================================================
-# 📋 Vista: ver carrito
-# ============================================================
-def ver_carrito(request):
-    carrito = request.session.get('carrito', {})
-
-    items = []
-    subtotal = 0
-
-    for item in carrito.values():
-        total_item = item['precio'] * item['cantidad']
-        subtotal += total_item
-
-        items.append({
-            **item,  # incluye producto_id
-            'total_item': total_item
-        })
-
-    context = {
-        'items': items,
-        'subtotal': subtotal,
-        'total_items': sum(i['cantidad'] for i in items)
-    }
-
-    return render(request, 'store/carrito.html', context)
 
 
 
@@ -276,32 +318,41 @@ def productos_por_categoria(request, category_slug):
 # 🧾 Vista: checkout
 # ============================================================
 def checkout(request):
-    """
-    Muestra el resumen del carrito antes de confirmar la compra.
-    Calcula subtotal, descuento, IVA y total.
-    """
     items = _items_carrito(request)
 
+    # 🔹 Subtotal: suma de todos los subtotales ya con precio final (final_price)
     subtotal = sum(i['subtotal'] for i in items)
+
+    # 🔹 Ahorro total: diferencia entre precio original y precio unitario aplicado
+    #     Se usa solo para mostrar el ahorro, no se resta otra vez
     descuento_total = sum(
         (i['precio_original'] - i['precio_unitario']) * i['cantidad']
         for i in items if i['discount'] > 0
     )
-    base_imponible = subtotal - descuento_total
-    iva = base_imponible * Decimal("0.19")
+
+    # ✅ No duplicamos descuento, ya está aplicado en precio_unitario
+    base_imponible = subtotal
+
+    # ✅ Solo aplicamos IVA si está activo en settings
+    iva = Decimal("0.00")
+    if getattr(settings, "IVA_ACTIVO", False):
+        iva = base_imponible * Decimal("0.19")
+
+    # 🔹 Total final: subtotal + IVA (sin volver a restar descuento)
     total = base_imponible + iva
+
+    # 🔹 Cantidad total de artículos en el carrito
     total_cantidad = sum(i['cantidad'] for i in items)
 
     context = {
         'items': items,
         'subtotal': subtotal,
         'iva': iva,
-        'descuento': descuento_total,
+        'descuento': descuento_total,  # solo informativo
         'total': total,
         'total_cantidad': total_cantidad,
     }
     return render(request, 'store/checkout.html', context)
-
 
 # ============================================================
 # 🧾 Vista: generar factura
@@ -329,13 +380,21 @@ def generar_factura(request):
         return redirect("store:ver_carrito")
 
     # 🧮 Cálculos globales
-    subtotal = sum(i["subtotal"] for i in items)
+    subtotal = sum(i["subtotal"] for i in items)  # ya con final_price
     descuento = sum(
         (i["precio_original"] - i["precio_unitario"]) * i["cantidad"]
         for i in items if i["discount"] > 0
     )
-    base_imponible = subtotal - descuento
-    iva = base_imponible * Decimal("0.19")
+
+    # ✅ No duplicamos descuento, ya está aplicado en precio_unitario
+    base_imponible = subtotal
+
+    # ✅ Solo aplicamos IVA si está activo en settings
+    iva = Decimal("0.00")
+    if getattr(settings, "IVA_ACTIVO", False):
+        iva = base_imponible * Decimal("0.19")
+
+    # 🔹 Total final: subtotal + IVA
     total_final = base_imponible + iva
 
     # 🧾 Crear factura principal
@@ -369,7 +428,7 @@ def generar_factura(request):
             factura=factura,
             producto=producto,
             cantidad=i["cantidad"],
-            subtotal=i["subtotal"],
+            subtotal=i["subtotal"],  # ya con final_price
             talla=talla,
             color=color
         )
@@ -383,7 +442,7 @@ def generar_factura(request):
         enviar_factura_por_correo(factura, request.user, {
             "factura": factura,
             "subtotal": subtotal,
-            "descuento": descuento,
+            "descuento": descuento,  # solo informativo
             "iva": iva,
             "total_final": total_final,
             "fecha_local": factura.fecha,
@@ -407,7 +466,6 @@ def generar_factura(request):
         "estado_pago": factura.estado_pago,
     }
     return render(request, "store/factura_detalle.html", context)
-
 
 # ============================================================
 # 🧾 Vista: ver factura
@@ -513,14 +571,6 @@ def generar_factura_pdf(request, factura_id):
     return response
 
 
-
-
-
-
-
-
-
-
 # ============================================================
 # 🏦 Vista: simulación de pago por banco
 # ============================================================
@@ -570,17 +620,12 @@ def formatear_numero(valor):
     """
     return f"{valor:,.0f}".replace(",", ".")
 
-
 # ============================================================
 # 📧 Generar y enviar factura por correo con PDF adjunto
 # ============================================================
+
 def enviar_factura_por_correo(factura, usuario, contexto=None):
-    """
-    Genera un PDF de la factura y lo envía por correo al usuario.
-    - Usa ReportLab para construir el PDF.
-    - Adjunta el PDF al correo junto con una plantilla HTML.
-    """
-    # Si no se pasa contexto, calcular totales básicos
+    """Genera un PDF de la factura y lo envía por correo al usuario."""
     if contexto is None:
         subtotal = factura.total / Decimal('1.19')
         iva = factura.total - subtotal
@@ -594,17 +639,15 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
             "fecha_local": factura.fecha,
         }
 
-    # Asunto y cuerpo del correo
     asunto = f"Factura #{factura.id} - JascShop"
     mensaje = render_to_string('emails/factura.html', contexto)
 
-    # Buffer para PDF
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
     estilos = getSampleStyleSheet()
 
-    # Encabezado de la factura
+    # Encabezado
     elementos.append(Paragraph(f"<b>Factura #{factura.id} - JascShop</b>", estilos['Title']))
     elementos.append(Spacer(1, 12))
     elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
@@ -621,11 +664,17 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     for item in factura.detalles.all():
         precio_final = item.subtotal / item.cantidad
         precio_original = Decimal(item.producto.cost)
-        texto_precio = f"${formatear_numero(precio_final)}"
-        if item.producto.discount > 0:
-            texto_precio += f" (antes ${formatear_numero(precio_original)})"
 
-        # 👇 Incluir talla y color en el nombre del producto
+        # ✅ Formato visual en dos líneas
+        if item.producto.discount > 0:
+            texto_precio = (
+                f"<font color='#888'><strike>${formatear_numero(precio_original)}</strike></font><br/>"
+                f"<b>${formatear_numero(precio_final)}</b>"
+            )
+        else:
+            texto_precio = f"<b>${formatear_numero(precio_final)}</b>"
+
+        # ✅ Variantes en el nombre del producto
         nombre_producto = item.producto.name
         if item.talla or item.color:
             variantes = []
@@ -638,7 +687,7 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
         datos.append([
             nombre_producto,
             str(item.cantidad),
-            texto_precio,
+            Paragraph(texto_precio, estilos['Normal']),
             f"${formatear_numero(item.subtotal)}"
         ])
 
@@ -661,11 +710,9 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     elementos.append(Paragraph(f"<b>Descuento:</b> ${formatear_numero(contexto['descuento'])}", estilos['Normal']))
     elementos.append(Paragraph(f"<b>Total pagado:</b> ${formatear_numero(contexto['total_final'])}", estilos['Normal']))
 
-    # Construir PDF
     doc.build(elementos)
     buffer.seek(0)
 
-    # Crear y enviar correo con PDF adjunto
     email = EmailMessage(
         asunto,
         mensaje,
@@ -680,15 +727,10 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
 # ============================================================
 # 👁️ Vista: vista rápida de producto
 # ============================================================
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
-from .models import Product
-
-
 @login_required(login_url='/accounts/login/')
 def vista_rapida(request, id):
     """
-    Vista rápida de producto (modal único tipo TEMU).
+    Vista rápida de producto (modal único tipo JASC).
     - Usa UNA sola plantilla: store/vista_rapida.html
     - Maneja galería, video, tallas, colores y carrito
     """
@@ -702,11 +744,6 @@ def vista_rapida(request, id):
     }
 
     return render(request, 'store/vista_rapida.html', context)
-
-
-
-
-
 
 # ============================================================
 # 🧾 Vista: ver factura específica
@@ -728,7 +765,6 @@ def ver_factura(request, factura_id):
         "estado_pago": factura.estado_pago,
     }
     return render(request, "store/factura_pdf.html", contexto)
-
 
 # ============================================================
 # 🏦 Vista: widget de pago bancario (pre-Wompi)
@@ -765,23 +801,20 @@ def pago_banco_widget(request):
     # 💳 Contexto inicial para widget de pago
     context = {
         "public_key": getattr(settings, "WOMPI_PUBLIC_KEY", "pub_test_simulada"),
-        "amount": int(factura.total * 100),  # centavos
+        "amount": int(factura.total),  # ✅ sin multiplicar
         "currency": "COP",
         "reference": str(factura.id),
         "redirect_url": request.build_absolute_uri("/store/confirmacion-pago/"),
     }
     return render(request, "store/pago_banco_widget.html", context)
 
-
 # ============================================================
 # ✅ Vista: confirmación de pago
 # ============================================================
+from store.utils.totales import calcular_totales
+from django.utils.timezone import localtime
+
 def confirmacion_pago(request):
-    """
-    Confirmación provisional:
-    - Cuando conectes Wompi: usa ?id=<transaction_id> y consulta la transacción.
-    - Por ahora, acepta ?status=<APPROVED|DECLINED> & reference=<id_factura>.
-    """
     estado = request.GET.get("status", "SIMULADO")
     referencia = request.GET.get("reference")
 
@@ -789,30 +822,24 @@ def confirmacion_pago(request):
 
     if factura:
         factura.estado_pago = "Pagado" if estado == "APPROVED" else "Fallido"
-        fecha_local = localtime(factura.fecha)  # ✅ Hora local Colombia
         factura.save()
 
+        fecha_local = localtime(factura.fecha)
         items = factura.detalles.all()
 
-        # 🧮 Calcular totales
-        subtotal = sum(d.subtotal for d in items)
-        iva = sum(
-            d.subtotal * Decimal('0.19')
-            for d in items if not d.producto.is_tax_exempt
-        )
-        descuento = sum(
-            (d.producto.cost - d.producto.final_price) * d.cantidad
-            for d in items if d.producto.discount > 0
-        )
-        total_final = subtotal - descuento + iva
+        # ✅ Añadir precio_unitario dinámico para mostrar en factura
+        for item in items:
+            item.precio_unitario = item.producto.final_price
+
+        # ✅ Calcular totales sin IVA
+        totales = calcular_totales(factura)
 
         contexto = {
             "factura": factura,
             "items": items,
-            "subtotal": subtotal,
-            "iva": iva,
-            "descuento": descuento,
-            "total_final": total_final,
+            "subtotal": totales["subtotal"],
+            "descuento": totales["ahorro_total"],
+            "total_final": totales["total_final"],
             "estado_pago": factura.estado_pago,
             "fecha_local": fecha_local,
         }
@@ -821,7 +848,6 @@ def confirmacion_pago(request):
     # ⚠️ Si no hay factura válida
     context = {"estado": estado, "referencia": referencia}
     return render(request, "store/confirmacion_pago.html", context)
-
 
 # ============================================================
 # 🛍️ Vista: detalle de producto
@@ -842,7 +868,6 @@ def detalle_producto(request, slug):
         'video_url': producto.video_url,
     }
     return render(request, 'store/detalle_producto.html', context)
-
 
 # ============================================================
 # 🔄 Vista: actualizar cantidad en carrito

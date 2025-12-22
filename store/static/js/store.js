@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
    EVENTOS GLOBALES
 ===================================================== */
 function initEventosGlobales() {
-
   document.body.addEventListener("click", (e) => {
 
     /* ===== ABRIR VISTA RÁPIDA ===== */
@@ -29,16 +28,20 @@ function initEventosGlobales() {
       return;
     }
 
-    /* ===== AGREGAR AL CARRITO DIRECTO (desde grid) ===== */
-    const btnCart = e.target.closest(".temu-cart");
+    /* ===== AGREGAR AL CARRITO DESDE GRID ===== */
+    const btnCart = e.target.closest(".jasc-cart");
     if (btnCart) {
       e.preventDefault();
       const id = btnCart.dataset.id;
+
       if (!id) {
         console.warn("⚠️ Botón carrito sin data-id");
         return;
       }
-      agregarAlCarritoDirecto(id);
+
+      // ✅ Siempre abrir vista rápida como Temu
+      console.log("🛍️ Abriendo vista rápida desde botón de carrito");
+      abrirVistaRapida(id);
       return;
     }
 
@@ -66,7 +69,7 @@ function abrirVistaRapida(id) {
     .then(res => res.text())
     .then(html => {
       cont.innerHTML = html;
-      setTimeout(initVistaRapida, 0); // 🔥 inicializar lógica interna
+      setTimeout(initVistaRapida, 0);
     })
     .catch(err => {
       console.error("❌ Error cargando vista rápida", err);
@@ -151,7 +154,7 @@ function initVistaRapida() {
     mini.addEventListener("mouseover", () => activarMiniatura(mini));
     mini.addEventListener("click", () => activarMiniatura(mini));
   });
-  activarMiniatura(minis[0]); // 🔥 primera miniatura activa
+  activarMiniatura(minis[0]);
 
   /* =================================================
      TALLAS Y COLORES
@@ -209,28 +212,36 @@ function initVistaRapida() {
         alert("Selecciona talla y color antes de comprar");
         return;
       }
-      // Redirigir a checkout directo
       window.location.href = `/store/checkout/${form.dataset.productId || ""}`;
     });
   }
 }
 
 /* =====================================================
-   AGREGAR AL CARRITO DIRECTO (desde grid)
+   🛒 JascEcommerce – Agregar al carrito desde grid
 ===================================================== */
 function agregarAlCarritoDirecto(id) {
-  fetch(`/store/agregar-al-carrito/${id}/`, {
+  console.log("➡️ [JascEcommerce] Intentando agregar producto con ID:", id);
+
+  fetch(`/store/agregar/${id}/`, {
     method: "POST",
     headers: { "X-CSRFToken": getCSRFToken() }
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
+      return res.json();
+    })
     .then(data => {
-      console.log("🛒 Producto agregado:", data);
-      mostrarToast("Producto agregado al carrito ✅");
+      console.log("🛒 [JascEcommerce] Producto agregado:", data);
+      mostrarToast("Producto agregado al carrito en JascEcommerce ✅");
       actualizarContadorCarrito(data.cart_count);
+
+      // ✅ Redirigir al carrito después de agregar
+      window.location.href = "/store/ver-carrito/";
     })
     .catch(err => {
-      console.error("❌ Error agregando al carrito", err);
+      console.error("❌ [JascEcommerce] Error agregando al carrito", err);
+      mostrarToast("Error al agregar producto en JascEcommerce ❌");
     });
 }
 
@@ -260,114 +271,7 @@ function actualizarContadorCarrito(count) {
 }
 
 /* =====================================================
-   HOVER VIDEO EN GRID DE PRODUCTOS (tipo Temu)
-===================================================== */
-function initHoverVideoEnGrid() {
-  const cards = document.querySelectorAll(".product-card .product-image-wrapper");
-  if (!cards.length) return;
-
-  cards.forEach(wrapper => {
-    const img = wrapper.querySelector("img.product-img");
-    if (!img) return;
-
-    const videoSrc = wrapper.dataset.videoSrc;
-    const videoPoster = wrapper.dataset.videoPoster;
-    if (!videoSrc) return;
-
-    let videoEl = null;
-
-    function activarVideo() {
-      if (videoEl) return; // evitar múltiples instancias
-
-      videoEl = document.createElement("video");
-      videoEl.src = videoSrc;
-      if (videoPoster) videoEl.poster = videoPoster;
-      videoEl.autoplay = true;
-      videoEl.muted = true;
-      videoEl.loop = true;
-      videoEl.playsInline = true;
-      videoEl.className = "product-video";
-
-      // estilos similares a la imagen
-      videoEl.style.width = "100%";
-      videoEl.style.height = "100%";
-      videoEl.style.objectFit = "cover";
-      videoEl.style.borderRadius = getComputedStyle(img).borderRadius;
-
-      wrapper.appendChild(videoEl);
-
-      videoEl.play().catch(() => {
-        console.warn("⚠️ Autoplay bloqueado en grid");
-      });
-    }
-
-    function desactivarVideo() {
-      if (!videoEl) return;
-      try {
-        videoEl.pause();
-      } catch (e) {}
-      videoEl.remove();
-      videoEl = null;
-    }
-
-    // Hover en desktop, focus/blur para accesibilidad
-    wrapper.addEventListener("mouseenter", activarVideo);
-    wrapper.addEventListener("mouseleave", desactivarVideo);
-    wrapper.addEventListener("focusin", activarVideo);
-    wrapper.addEventListener("focusout", desactivarVideo);
-  });
-}
-
-/* =====================================================
-   SLIDERS (SWIPER)
-===================================================== */
-function initSliders() {
-
-  if (typeof Swiper === "undefined") {
-    console.warn("⚠️ Swiper no cargado");
-    return;
-  }
-
-  // Banner principal
-  new Swiper(".bannerSwiper", {
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false // ✅ sigue moviéndose aunque el usuario haga click o swipe
-    },
-    pagination: {
-      el: ".swiper-pagination",
-      clickable: true
-    },
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev"
-    }
-  });
-
-  // Productos destacados
-  new Swiper(".destacados-swiper", {
-    slidesPerView: 1.2,
-    spaceBetween: 15,
-    breakpoints: {
-      768: { slidesPerView: 3 },
-      1200: { slidesPerView: 5 }
-    },
-    autoplay: {
-      delay: 4000,
-      disableOnInteraction: false // ✅ se mueve solo y no se detiene
-    },
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev"
-    }
-  });
-
-  console.log("🎞 Sliders inicializados");
-}  
-
-/* =====================================================
-   HOVER VIDEO EN GRID DE PRODUCTOS (tipo Temu)
+   HOVER VIDEO EN GRID DE PRODUCTOS
 ===================================================== */
 function initHoverVideoEnGrid() {
   const cards = document.querySelectorAll(".product-card .product-image-wrapper");
@@ -421,4 +325,51 @@ function initHoverVideoEnGrid() {
     wrapper.addEventListener("focusin", activarVideo);
     wrapper.addEventListener("focusout", desactivarVideo);
   });
+}
+
+/* =====================================================
+   SLIDERS (SWIPER)
+===================================================== */
+function initSliders() {
+  if (typeof Swiper === "undefined") {
+    console.warn("⚠️ Swiper no cargado");
+    return;
+  }
+
+  // Banner principal
+  new Swiper(".bannerSwiper", {
+    loop: true,
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false // ✅ sigue moviéndose aunque el usuario haga click o swipe
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true
+    },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev"
+    }
+  });
+
+  // Productos destacados
+  new Swiper(".destacados-swiper", {
+    slidesPerView: 1.2,
+    spaceBetween: 15,
+    breakpoints: {
+      768: { slidesPerView: 3 },
+      1200: { slidesPerView: 5 }
+    },
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false // ✅ se mueve solo y no se detiene
+    },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev"
+    }
+  });
+
+  console.log("🎞 Sliders inicializados");
 }

@@ -76,13 +76,13 @@
     <!-- PRECIOS -->
     {% if producto.discount > 0 %}
       <div class="precio">
-        <span class="precio-final">${{ producto.final_price|intcomma }}</span>
-        <span class="precio-original">${{ producto.cost|intcomma }}</span>
+        <span class="precio-final">${{ producto.final_price|floatformat:0|intcomma }}</span>
+        <span class="precio-original">${{ producto.cost|floatformat:0|intcomma }}</span>
         <span class="badge-descuento">-{{ producto.discount }}%</span>
       </div>
     {% else %}
       <div class="precio">
-        <span class="precio-final">${{ producto.cost|intcomma }}</span>
+        <span class="precio-final">${{ producto.cost|floatformat:0|intcomma }}</span>
       </div>
     {% endif %}
 

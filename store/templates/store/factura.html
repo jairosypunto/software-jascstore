@@ -42,32 +42,38 @@
         </tr>
       </thead>
       <tbody>
-        {% for item in factura.detalles.all %}
+        {% for item in items %}
         <tr>
-     <td>
-        <strong>{{ item.producto.name }}</strong>
+          <td>
+            <strong>{{ item.producto.name }}</strong>
+            {% if item.talla or item.color %}
+              <div class="text-muted small">
+                {% if item.talla %}Talla: {{ item.talla }}{% endif %}
+                {% if item.talla and item.color %} | {% endif %}
+                {% if item.color %}Color: {{ item.color }}{% endif %}
+              </div>
+            {% endif %}
+          </td>
 
-        {% if item.talla or item.color %}
-          <div class="text-muted small">
-            {% if item.talla %}Talla: {{ item.talla }}{% endif %}
-            {% if item.talla and item.color %} | {% endif %}
-            {% if item.color %}Color: {{ item.color }}{% endif %}
-          </div>
-        {% endif %}
-      </td>
-
+          <td style="text-align:center;">{{ item.cantidad }}</td>
+          <td>${{ item.precio_unitario|floatformat:0|intcomma }}</td>
           <td style="text-align:right; white-space: nowrap;">${{ item.subtotal|floatformat:0|intcomma }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-
     <div class="text-end mt-4">
       <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
-      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
       <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
-      <h5 class="mt-3">💵 Total pagado: <span class="text-success fw-bold">${{ total_final|floatformat:0|intcomma }}</span></h5>
-      <p class="text-muted">El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.</p>
+      <h5 class="mt-3">
+        💵 Total pagado: 
+        <span class="text-success fw-bold">
+          ${{ total_final|floatformat:0|intcomma }}
+        </span>
+      </h5>
+      <p class="text-muted">
+        El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.
+      </p>
     </div>
   </div>
 

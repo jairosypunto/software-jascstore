@@ -41,7 +41,7 @@
 }
 
 /* =====================================================
-   🛍 TARJETA DE PRODUCTO (TEMU STYLE)
+   🛍 TARJETA DE PRODUCTO (JASC STYLE)
 ===================================================== */
 .product-card {
   position: relative;
@@ -80,7 +80,7 @@
 /* =====================================================
    👁 VISTA RÁPIDA (HOVER)
 ===================================================== */
-.temu-quick-view {
+.jasc-quick-view {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -100,14 +100,14 @@
   cursor: pointer;
 }
 
-.product-card:hover .temu-quick-view {
+.product-card:hover .jasc-quick-view {
   opacity: 1;
 }
 
 /* =====================================================
    🛒 BOTÓN CARRITO (VISIBLE SIEMPRE)
 ===================================================== */
-.temu-cart {
+.jasc-cart {
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -126,7 +126,7 @@
   transition: transform .2s ease, box-shadow .2s ease;
 }
 
-.temu-cart:hover {
+.jasc-cart:hover {
   transform: scale(1.1);
   box-shadow: var(--shadow-lg); /* 🆕 efecto más fuerte al hover */
 }
@@ -440,4 +440,40 @@
 .vista-rapida-panel .btn-comprar:active {
   transform: scale(0.97);
   filter: brightness(0.9);
+}
+
+/* =====================================================
+   🛒 TOAST CARRITO – Aviso flotante
+   Se muestra al agregar producto directo al carrito
+===================================================== */
+.toast-carrito {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #222;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 2000;
+}
+
+/* Estado visible */
+.toast-carrito.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Variantes de color (opcional) */
+.toast-carrito.success {
+  background: #10b981; /* verde éxito */
+}
+
+.toast-carrito.error {
+  background: #ef4444; /* rojo error */
 }

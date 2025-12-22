@@ -6,7 +6,13 @@ from decimal import Decimal
 # El modelo Category antes vivía en la app `categorias`.
 # Ahora está consolidado en `store` para simplificar el proyecto y evitar dependencias rotas.
 # El campo Product.category apunta directamente a store.Category.
+from django.db import models
 
+class Configuracion(models.Model):
+    iva_activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "Configuración general"
 
 # 📂 Modelo de Categoría
 class Category(models.Model):
@@ -58,7 +64,7 @@ class Product(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
 
-    # 👕 Variantes
+    # 👕 Variantes (listas separadas por comas)
     talla = models.CharField(
         max_length=200,
         blank=True,
@@ -77,6 +83,11 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def has_variants(self):
+        """Devuelve True si el producto tiene tallas o colores configurados."""
+        return bool(self.talla_list or self.color_list)
 
     @property
     def final_price(self):
@@ -100,7 +111,6 @@ class Product(models.Model):
     def color_list(self):
         """Devuelve lista de colores separadas por comas."""
         return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
-
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):

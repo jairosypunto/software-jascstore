@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Carrito - JascShop{% endblock %}
 
@@ -23,7 +24,7 @@
             {% endif %}
 
             <div class="small text-muted">
-              Precio unitario: ${{ it.precio|floatformat:0 }}
+              Precio unitario: ${{ it.precio|floatformat:0|intcomma }}
             </div>
           </div>
 
@@ -39,15 +40,34 @@
 
             <div class="mt-2">
               Subtotal:
-              <strong>${{ it.total_item|floatformat:0 }}</strong>
+              <strong>${{ it.total_item|floatformat:0|intcomma }}</strong>
             </div>
           </div>
         </li>
       {% endfor %}
 
+      <li class="list-group-item d-flex justify-content-between">
+        <span>Subtotal</span>
+        <span>${{ subtotal|floatformat:0|intcomma }}</span>
+      </li>
+
+      {% if iva > 0 %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>IVA</span>
+        <span>${{ iva|floatformat:0|intcomma }}</span>
+      </li>
+      {% endif %}
+
+      {% if descuento > 0 %}
+      <li class="list-group-item d-flex justify-content-between text-success">
+        <span>Descuento</span>
+        <span>-${{ descuento|floatformat:0|intcomma }}</span>
+      </li>
+      {% endif %}
+
       <li class="list-group-item d-flex justify-content-between fw-bold">
-        <span>Total</span>
-        <span>${{ subtotal|floatformat:0 }}</span>
+        <span>Total a pagar</span>
+        <span>${{ total_final|floatformat:0|intcomma }}</span>
       </li>
 
       <li class="list-group-item d-flex justify-content-between">

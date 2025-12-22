@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Checkout{% endblock %}
 
@@ -49,18 +50,18 @@
           <!-- 💰 Precio unitario y descuento -->
           <td>
             {% if item.producto.discount > 0 %}
-              ${{ item.producto.final_price|floatformat:0 }}
+              ${{ item.producto.final_price|floatformat:0|intcomma }}
               <small class="text-muted d-block">
-                <span class="text-decoration-line-through">${{ item.producto.cost|floatformat:0 }}</span>
+                <span class="text-decoration-line-through">${{ item.producto.cost|floatformat:0|intcomma }}</span>
                 (-{{ item.producto.discount }}%)
               </small>
             {% else %}
-              ${{ item.producto.cost|floatformat:0 }}
+              ${{ item.producto.cost|floatformat:0|intcomma }}
             {% endif %}
           </td>
 
           <!-- 📊 Subtotal -->
-          <td>${{ item.subtotal|floatformat:0 }}</td>
+          <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -68,10 +69,10 @@
 
     <!-- 📊 Totales y confirmación -->
     <div class="text-end">
-      <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0 }}</p>
-      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0 }}</p>
-      <p><strong>Descuento:</strong> -${{ descuento|floatformat:0 }}</p>
-      <h4>Total: <span class="text-success">${{ total|floatformat:0 }}</span></h4>
+      <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
+      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
+      <p><strong>Descuento:</strong> -${{ descuento|floatformat:0|intcomma }}</p>
+      <h4>Total: <span class="text-success">${{ total|floatformat:0|intcomma }}</span></h4>
 
       <!-- 🏦 Formulario de confirmación -->
       <form method="POST" action="{% url 'store:generar_factura' %}" class="mt-3">
