@@ -331,3 +331,39 @@
     transform: scale(1) translate(-50%, -50%);
   }
 }
+
+
+/* ==================================================
+   🛒 Estilos del modal de carrito
+================================================== */
+.carrito-galeria {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.carrito-galeria .imagen-principal img {
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.miniaturas-abajo {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.miniaturas-abajo .miniatura {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.miniaturas-abajo .miniatura:hover {
+  transform: scale(1.1);
+  border-color: #27ae60;
+}

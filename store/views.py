@@ -110,6 +110,8 @@ from store.utils.totales import calcular_totales
 # ============================================================
 # 🛒 Agregar al carrito
 # ============================================================
+
+
 @require_POST
 def agregar_al_carrito(request, product_id):
     producto = get_object_or_404(Product, id=product_id)
@@ -124,7 +126,6 @@ def agregar_al_carrito(request, product_id):
     if item_key in carrito:
         carrito[item_key]["cantidad"] += cantidad
     else:
-        # ✅ Guardar precio como string para usar Decimal luego
         precio = producto.final_price
         if precio is None:
             return JsonResponse({"error": "Producto sin precio"}, status=400)
@@ -132,7 +133,7 @@ def agregar_al_carrito(request, product_id):
         carrito[item_key] = {
             "producto_id": product_id,
             "nombre": producto.name,
-            "precio": str(precio),   # 🔒 blindado contra floats
+            "precio": str(precio),
             "cantidad": cantidad,
             "talla": talla if talla else None,
             "color": color if color else None,
@@ -141,17 +142,17 @@ def agregar_al_carrito(request, product_id):
     request.session["carrito"] = carrito
     request.session.modified = True
 
-    # ✅ Si no es AJAX, redirigir al carrito HTML
-    if not request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return redirect("store:ver_carrito")
+    # ✅ Detectar AJAX correctamente
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({
+            "status": "ok",
+            "producto": producto.name,
+            "cantidad": carrito[item_key]["cantidad"],
+            "cart_count": sum(i["cantidad"] for i in carrito.values())
+        })
 
-    # ✅ Si es AJAX, devolver JSON
-    return JsonResponse({
-        "status": "ok",
-        "producto": producto.name,
-        "cantidad": carrito[item_key]["cantidad"],
-        "cart_count": sum(i["cantidad"] for i in carrito.values())
-    })
+    # ✅ Si no es AJAX, redirigir al carrito HTML
+    return redirect("store:ver_carrito")
 
 
 # ============================================================
@@ -227,7 +228,18 @@ def vaciar_carrito(request):
 # 📋 Vista: ver carrito (actualizada)
 # ============================================================
 
-
+# ============================================================
+# 🛒 Vista: modal de carrito (contenido dinámico)
+# ============================================================
+def carrito_modal(request, product_id):
+    """
+    Devuelve el fragmento HTML para el modal de carrito.
+    Se usa en store.js con fetch() al hacer clic en el ícono 🛒.
+    """
+    producto = get_object_or_404(Product, id=product_id)
+    return render(request, 'store/vista_carrito.html', {
+        'producto': producto
+    })
 
 # ============================================================
 # 🏬 Vista: tienda principal (store.html)
@@ -292,10 +304,6 @@ def store(request):
     }
     return render(request, 'store/store.html', context)
 
-
-
-
-
 # ============================================================
 # 📂 Vista: productos por categoría
 # ============================================================
@@ -312,7 +320,6 @@ def productos_por_categoria(request, category_slug):
         'productos': productos,
     }
     return render(request, 'store/productos_por_categoria.html', context)
-
 
 # ============================================================
 # 🧾 Vista: checkout
@@ -570,7 +577,6 @@ def generar_factura_pdf(request, factura_id):
     response.write(pdf)
     return response
 
-
 # ============================================================
 # 🏦 Vista: simulación de pago por banco
 # ============================================================
@@ -583,7 +589,6 @@ def simular_pago_banco(request):
         # En un entorno real, aquí se procesaría la respuesta de la pasarela
         return redirect('store:generar_factura')
     return render(request, "store/simular_pago_banco.html")
-
 
 # ============================================================
 # 🔐 Vista: login personalizado

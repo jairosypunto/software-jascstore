@@ -19,13 +19,11 @@
 <div class="full-bleed">
   <div class="swiper bannerSwiper">
     <div class="swiper-wrapper">
-
       {% for banner in banners %}
       <div class="swiper-slide">
         <div class="banner-bg"
              style="background-image:url('{% if banner.image %}{{ banner.image.url }}{% else %}{% static 'imgs/default-banner.jpg' %}{% endif %}')">
         </div>
-
         <div class="banner-caption">
           <h2>{{ banner.title }}</h2>
           <p>{{ banner.subtitle }}</p>
@@ -35,9 +33,7 @@
         </div>
       </div>
       {% endfor %}
-
     </div>
-
     <!-- Controles Swiper -->
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
@@ -54,13 +50,11 @@
          🔎 FILTROS / BÚSQUEDA
     ================================================== -->
     <form method="get" class="search-form d-flex gap-2 mb-4">
-
       <input type="text"
              name="q"
              value="{{ search_query }}"
              placeholder="Buscar productos..."
              class="form-control">
-
       <select name="category" class="form-select">
         <option value="all">Todas las categorías</option>
         {% for cat in categorias %}
@@ -70,7 +64,6 @@
         </option>
         {% endfor %}
       </select>
-
       <select name="order" class="form-select">
         <option value="">Ordenar por...</option>
         <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
@@ -78,7 +71,6 @@
         <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio ↓</option>
         <option value="recent" {% if order == 'recent' %}selected{% endif %}>Recientes</option>
       </select>
-
       <button class="btn btn-primary">Filtrar</button>
     </form>
 
@@ -86,28 +78,21 @@
          ⭐ PRODUCTOS DESTACADOS (Swiper)
     ================================================== -->
     <h2 class="section-title">⭐ Productos destacados</h2>
-
     <div class="swiper mySwiper destacados-swiper">
       <div class="swiper-wrapper">
-
         {% for producto in productos_destacados %}
         <div class="swiper-slide">
           <div class="destacado-card">
-
             <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
                  alt="{{ producto.name }}">
-
             <div class="destacado-info">
               <h4>{{ producto.name }}</h4>
               <span>${{ producto.final_price|floatformat:2|localize }}</span>
             </div>
-
           </div>
         </div>
         {% endfor %}
-
       </div>
-
       <!-- Controles Swiper -->
       <div class="swiper-button-prev"></div>
       <div class="swiper-button-next"></div>
@@ -117,10 +102,8 @@
          🛍 GRID DE PRODUCTOS (CATÁLOGO)
     ================================================== -->
     <div class="products-grid" id="productos">
-
       {% for product in productos %}
       <article class="product-card">
-
         <!-- 📸 IMAGEN (con soporte hover de video) -->
         <div class="product-image-wrapper"
              {% if product.video_file %}
@@ -130,39 +113,34 @@
              data-video-src="{{ product.video_url }}"
              {% if product.video_thumb %}data-video-poster="{{ product.video_thumb.url }}"{% endif %}
              {% endif %}>
-
           <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
                class="product-img"
                alt="{{ product.name }}">
-
-          <!-- 👁 VISTA RÁPIDA (abre modal) -->
+          <!-- 👁 VISTA RÁPIDA -->
           <button type="button"
                   class="quick-view jasc-quick-view"
                   data-id="{{ product.id }}"
                   title="Vista rápida">
             <i class="bi bi-eye"></i>
           </button>
-
-<!-- 🛒 AGREGAR AL CARRITO DIRECTO (sin modal) -->
-<button type="button"
-        class="jasc-cart"
-        data-id="{{ product.id }}"
-        data-has-variants="{% if product.has_variants %}true{% else %}false{% endif %}"
-        title="Agregar al carrito">
-  <i class="bi bi-cart-plus"></i>
-</button>
+          <!-- 🛒 AGREGAR AL CARRITO -->
+          <button type="button"
+                  class="jasc-cart"
+                  data-id="{{ product.id }}"
+                  data-has-variants="{% if product.has_variants %}true{% else %}false{% endif %}"
+                  title="Agregar al carrito">
+            <i class="bi bi-cart-plus"></i>
+          </button>
           {% if product.discount > 0 %}
             <span class="badge badge-descuento">-{{ product.discount }}%</span>
           {% endif %}
         </div>
-
         <!-- ℹ️ INFO -->
         <div class="product-content">
           <h3 class="product-title text-truncate">{{ product.name }}</h3>
           <p class="product-description">
             {{ product.description|truncatewords:12 }}
           </p>
-
           {% if product.discount > 0 %}
             <p class="text-danger fw-bold">
               ${{ product.final_price|floatformat:2|localize }}
@@ -176,7 +154,6 @@
             </span>
           {% endif %}
         </div>
-
       </article>
       {% endfor %}
     </div>
@@ -184,22 +161,19 @@
     <!-- ==================================================
          🧠 MODAL VISTA RÁPIDA
     ================================================== -->
-
-    <!-- Overlay oscuro -->
     <div class="vista-rapida-overlay hidden"></div>
-
-    <!-- Panel modal -->
     <div id="vistaRapidaPanel" class="vista-rapida-panel hidden" role="dialog" aria-modal="true" aria-label="Vista rápida">
-      <!-- Botón cerrar -->
       <button type="button" class="cerrar-panel" title="Cerrar" aria-label="Cerrar">&times;</button>
-      <!-- CONTENIDO DINÁMICO (carga vista_rapida.html) -->
       <div id="contenidoProducto"></div>
     </div>
 
-    <!-- 🛒 MODAL SELECCIÓN DE VARIANTES -->
+    <!-- ==================================================
+         🛒 MODAL DE CARRITO
+    ================================================== -->
     <div class="carrito-overlay hidden"></div>
     <div id="carritoModal" class="carrito-panel hidden" role="dialog" aria-modal="true" aria-label="Seleccionar opciones">
       <button type="button" class="cerrar-carrito" title="Cerrar">&times;</button>
+      <!-- Aquí se inyecta vista_carrito.html -->
       <div id="contenidoCarrito"></div>
     </div>
 

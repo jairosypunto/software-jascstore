@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initEventosGlobales();
   initSliders();
   initHoverVideoEnGrid(); // 🆕 Hover video en tarjetas de productos
+  inicializarCarritoModal(); // 🛒 inicializa el modal de carrito
 });
 
 /* =====================================================
@@ -21,33 +22,36 @@ function initEventosGlobales() {
       e.preventDefault();
       const id = btnQuick.dataset.id;
       if (!id) {
-        console.warn("⚠️ Botón sin data-id");
+        console.warn("⚠️ Botón sin data-id en vista rápida");
         return;
       }
-      abrirVistaRapida(id);
+      console.log("👁 Abriendo vista rápida");
+      abrirVistaRapida(id);   // carga vista_rapida.html en #vistaRapidaPanel
       return;
     }
 
-    /* ===== AGREGAR AL CARRITO DESDE GRID ===== */
+    /* ===== ABRIR MODAL DE CARRITO ===== */
     const btnCart = e.target.closest(".jasc-cart");
     if (btnCart) {
       e.preventDefault();
       const id = btnCart.dataset.id;
-
       if (!id) {
         console.warn("⚠️ Botón carrito sin data-id");
         return;
       }
-
-      // ✅ Siempre abrir vista rápida como Temu
-      console.log("🛍️ Abriendo vista rápida desde botón de carrito");
-      abrirVistaRapida(id);
+      console.log("🛒 Abriendo modal de carrito");
+      abrirCarritoModal(id);  // carga vista_carrito.html en #carritoModal
       return;
     }
 
-    /* ===== CERRAR MODAL ===== */
+    /* ===== CERRAR MODAL VISTA RÁPIDA ===== */
     if (e.target.classList.contains("cerrar-panel")) {
       cerrarVistaRapida();
+    }
+
+    /* ===== CERRAR MODAL CARRITO ===== */
+    if (e.target.classList.contains("cerrar-carrito")) {
+      cerrarCarritoModal();
     }
   });
 }
@@ -218,31 +222,44 @@ function initVistaRapida() {
 }
 
 /* =====================================================
-   🛒 JascEcommerce – Agregar al carrito desde grid
+   MODAL DE CARRITO
 ===================================================== */
-function agregarAlCarritoDirecto(id) {
-  console.log("➡️ [JascEcommerce] Intentando agregar producto con ID:", id);
+function abrirCarritoModal(id) {
+  const modal   = document.getElementById("carritoModal");
+  const cont    = document.getElementById("contenidoCarrito");
+  const overlay = document.querySelector(".carrito-overlay");
 
-  fetch(`/store/agregar/${id}/`, {
-    method: "POST",
-    headers: { "X-CSRFToken": getCSRFToken() }
-  })
+  modal.classList.remove("hidden");
+  overlay.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+
+  cont.innerHTML = "<p>Cargando opciones...</p>";
+
+  fetch(`/store/carrito/${id}/`)
     .then(res => {
+      console.log("📡 Respuesta fetch:", res.status, res.statusText);
       if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
-      return res.json();
+      return res.text();
     })
-    .then(data => {
-      console.log("🛒 [JascEcommerce] Producto agregado:", data);
-      mostrarToast("Producto agregado al carrito en JascEcommerce ✅");
-      actualizarContadorCarrito(data.cart_count);
-
-      // ✅ Redirigir al carrito después de agregar
-      window.location.href = "/store/ver-carrito/";
+    .then(html => {
+      console.log("✅ HTML recibido:", html.substring(0, 100)); // muestra primeros 100 caracteres
+      cont.innerHTML = html;
     })
     .catch(err => {
-      console.error("❌ [JascEcommerce] Error agregando al carrito", err);
-      mostrarToast("Error al agregar producto en JascEcommerce ❌");
+      console.error("❌ Error cargando modal carrito", err);
+      cont.innerHTML = "<p>Error cargando opciones</p>";
     });
+}
+
+function cerrarCarritoModal() {
+  const modal   = document.getElementById("carritoModal");
+  const overlay = document.querySelector(".carrito-overlay");
+  const cont    = document.getElementById("contenidoCarrito");
+
+  modal.classList.add("hidden");
+  overlay.classList.add("hidden");
+  document.body.style.overflow = "";
+  cont.innerHTML = "";
 }
 
 /* =====================================================
@@ -269,6 +286,42 @@ function actualizarContadorCarrito(count) {
   const badge = document.querySelector(".cart-count");
   if (badge) badge.innerText = count;
 }
+
+/* =====================================================
+   EVENTO: AGREGAR DESDE MODAL DE CARRITO
+===================================================== */
+document.addEventListener("click", (e) => {
+  const btnAdd = e.target.closest("#agregarDesdeModal, .btn-agregar");
+  if (btnAdd) {
+    const id = btnAdd.dataset.id;
+    const talla = document.getElementById("selectTalla")?.value || "";
+    const color = document.getElementById("selectColor")?.value || "";
+
+    const formData = new FormData();
+    formData.append("cantidad", 1);
+    formData.append("selected_size_hidden", talla);
+    formData.append("selected_color_hidden", color);
+
+    fetch(`/store/agregar/${id}/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCSRFToken(),
+        "X-Requested-With": "XMLHttpRequest"   // 👈 fuerza JSON
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      mostrarToast("Producto agregado al carrito ✅");
+      actualizarContadorCarrito(data.cart_count);
+      cerrarCarritoModal(); // si es modal
+    })
+    .catch(err => {
+      console.error("❌ Error agregando producto", err);
+      mostrarToast("Error al agregar producto ❌");
+    });
+  }
+});
 
 /* =====================================================
    HOVER VIDEO EN GRID DE PRODUCTOS
@@ -341,7 +394,7 @@ function initSliders() {
     loop: true,
     autoplay: {
       delay: 5000,
-      disableOnInteraction: false // ✅ sigue moviéndose aunque el usuario haga click o swipe
+      disableOnInteraction: false
     },
     pagination: {
       el: ".swiper-pagination",
@@ -363,7 +416,7 @@ function initSliders() {
     },
     autoplay: {
       delay: 4000,
-      disableOnInteraction: false // ✅ se mueve solo y no se detiene
+      disableOnInteraction: false
     },
     navigation: {
       nextEl: ".swiper-button-next",
@@ -372,4 +425,64 @@ function initSliders() {
   });
 
   console.log("🎞 Sliders inicializados");
+}
+
+/* =====================================================
+   MODAL DE CARRITO (Inicialización)
+===================================================== */
+function inicializarCarritoModal() {
+  // Abrir modal de carrito
+  document.querySelectorAll(".jasc-cart").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const modal = document.getElementById("carritoModal");
+      const overlay = document.querySelector(".carrito-overlay");
+
+      modal.classList.remove("hidden");
+      overlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      const productId = btn.dataset.id;
+      fetch(`/store/carrito/${productId}/`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById("contenidoCarrito").innerHTML = html;
+        });
+    });
+  });
+
+  // Cerrar modal de carrito
+  document.querySelector(".cerrar-carrito").addEventListener("click", () => {
+    const modal = document.getElementById("carritoModal");
+    const overlay = document.querySelector(".carrito-overlay");
+
+    modal.classList.add("hidden");
+    overlay.classList.add("hidden");
+    document.body.style.overflow = "auto";
+  });
+}
+
+function mostrarImagenCarrito(imageUrl) {
+  const contenedor = document.getElementById("imagenPrincipalCarrito");
+
+  if (contenedor.tagName.toLowerCase() === "video") {
+    contenedor.outerHTML = `
+      <img src="${imageUrl}"
+           alt="Producto"
+           class="img-fluid rounded shadow-sm"
+           id="imagenPrincipalCarrito">
+    `;
+  } else {
+    contenedor.src = imageUrl;
+  }
+}
+
+function mostrarVideoCarrito(videoUrl, posterUrl) {
+  const contenedor = document.getElementById("imagenPrincipalCarrito");
+
+  contenedor.outerHTML = `
+    <video controls autoplay width="100%" poster="${posterUrl}" class="img-fluid rounded shadow-sm" id="imagenPrincipalCarrito">
+      <source src="${videoUrl}" type="video/mp4">
+      Tu navegador no soporta video.
+    </video>
+  `;
 }

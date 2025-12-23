@@ -1,0 +1,69 @@
+{% load static %}
+
+<!-- ==================================================
+     🛒 MODAL DE CARRITO (contenido dinámico)
+================================================== -->
+<div class="carrito-galeria p-3">
+
+  <!-- 🖼 Imagen principal -->
+  <div class="imagen-principal text-center mb-3">
+    <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+         alt="{{ producto.name }}"
+         class="img-fluid rounded shadow-sm"
+         id="imagenPrincipalCarrito">
+  </div>
+
+  <!-- 🖼 Miniaturas debajo -->
+  {% if producto.images.all %}
+  <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
+    {% for img in producto.images.all %}
+      <img src="{{ img.image.url }}"
+           class="miniatura rounded border"
+           alt="Miniatura {{ forloop.counter }}"
+           style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;"
+           onclick="mostrarImagenCarrito('{{ img.image.url }}')">
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 🎥 Miniatura de video -->
+  {% if producto.video_file or producto.video_url %}
+  <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
+    <div class="miniatura video-thumb"
+         style="width: 60px; height: 60px; cursor: pointer;"
+         onclick="mostrarVideoCarrito('{% if producto.video_file %}{{ producto.video_file.url }}{% else %}{{ producto.video_url }}{% endif %}', '{% if producto.video_thumb %}{{ producto.video_thumb.url }}{% else %}{% static 'imgs/video-placeholder.jpg' %}{% endif %}')">
+      <img src="{% if producto.video_thumb %}{{ producto.video_thumb.url }}{% else %}{% static 'imgs/video-placeholder.jpg' %}{% endif %}"
+           alt="Video"
+           style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 🎯 Variantes: talla y color -->
+  <div class="variantes mb-3">
+    {% if producto.talla_list %}
+      <label for="selectTalla" class="form-label fw-bold">Talla:</label>
+      <select id="selectTalla" name="talla" class="form-select">
+        {% for talla in producto.talla_list %}
+          <option value="{{ talla }}">{{ talla }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+
+    {% if producto.color_list %}
+      <label for="selectColor" class="form-label fw-bold mt-2">Color:</label>
+      <select id="selectColor" name="color" class="form-select">
+        {% for color in producto.color_list %}
+          <option value="{{ color }}">{{ color }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+  </div>
+
+  <!-- 🛒 Botón agregar al carrito -->
+  <button id="agregarDesdeModal"
+          data-id="{{ producto.id }}"
+          class="btn btn-success w-100 py-2 fw-bold">
+    🛒 Agregar al carrito
+  </button>
+</div>

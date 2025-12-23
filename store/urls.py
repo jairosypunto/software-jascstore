@@ -16,6 +16,9 @@ urlpatterns = [
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('vaciar/', views.vaciar_carrito, name='vaciar_carrito'),
     path('carrito/actualizar/<int:product_id>/', views.actualizar_cantidad, name='actualizar_cantidad'),
+    
+    # 🛒 Modal de carrito (contenido dinámico)
+    path('carrito/<int:product_id>/', views.carrito_modal, name='carrito_modal'),
 
     # 💳 Pago
     path('checkout/', views.checkout, name='checkout'),
