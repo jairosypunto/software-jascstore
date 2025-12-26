@@ -127,10 +127,17 @@ class Factura(models.Model):
     transaccion_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID de transacción del banco/proveedor")
     banco = models.CharField(max_length=100, blank=True, null=True, help_text="Banco usado en el pago si aplica")
 
+    # 🚚 Datos de envío
+    nombre = models.CharField(max_length=150, blank=True, null=True, help_text="Nombre completo del cliente")
+    email = models.EmailField(blank=True, null=True, help_text="Correo electrónico del cliente")
+    telefono = models.CharField(max_length=30, blank=True, null=True, help_text="Teléfono de contacto")
+    direccion = models.CharField(max_length=255, blank=True, null=True, help_text="Dirección de entrega")
+    ciudad = models.CharField(max_length=120, blank=True, null=True, help_text="Ciudad de entrega")
+    departamento = models.CharField(max_length=120, blank=True, null=True, help_text="Departamento de entrega")
+
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
-
-
+    
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
     """Detalle de cada producto dentro de una factura."""

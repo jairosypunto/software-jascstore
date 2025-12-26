@@ -13,10 +13,11 @@
           Estás a punto de realizar el pago por banco. Selecciona tu entidad y confirma para continuar.
         </p>
 
-        <!-- ✅ Formulario que envía banco y método de pago a generar_factura -->
-        <form method="POST" action="{% url 'store:generar_factura' %}">
+        <!-- ✅ Formulario que redirige a confirmacion_pago -->
+        <form method="GET" action="{% url 'store:confirmacion_pago' %}">
+          <input type="hidden" name="status" value="APPROVED">
+          <input type="hidden" name="reference" value="{{ request.session.factura_id }}">
           {% csrf_token %}
-          <input type="hidden" name="metodo_pago" value="banco">  <!-- ✅ método explícito -->
 
           <div class="mb-4">
             <label for="banco" class="form-label fw-bold">🏦 Selecciona tu banco:</label>

@@ -1,12 +1,22 @@
 {% load humanize %}
 
 <!-- 🧾 Encabezado de la factura -->
-<h2>Factura #{{ factura.id }}</h2>
-<p>Hola {{ factura.usuario.email }}, gracias por tu compra.</p>
+<h2 style="color:#2c3e50;">Factura #{{ factura.id }}</h2>
+<p>Hola {{ factura.nombre|default:factura.usuario.username }}, gracias por tu compra.</p>
+
+<!-- 📦 Datos de envío -->
+<h3 style="color:#27ae60;">📦 Datos de envío</h3>
+<p><strong>Nombre:</strong> {{ factura.nombre }}</p>
+<p><strong>Email:</strong> {{ factura.email }}</p>
+<p><strong>Teléfono:</strong> {{ factura.telefono }}</p>
+<p><strong>Dirección:</strong> {{ factura.direccion }}</p>
+<p><strong>Ciudad:</strong> {{ factura.ciudad }}</p>
+<p><strong>Departamento:</strong> {{ factura.departamento }}</p>
 
 <!-- 💰 Totales principales -->
+<h3 style="color:#2980b9;">💰 Totales</h3>
 <p><strong>Total pagado:</strong> ${{ total_final|intcomma }}</p>
-<p><strong>Fecha de compra:</strong> {{ factura.fecha }}</p>
+<p><strong>Fecha de compra:</strong> {{ factura.fecha|date:"d/m/Y H:i" }}</p>
 <p><strong>Estado del pago:</strong> {{ factura.estado_pago }}</p>
 <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
 
@@ -15,9 +25,9 @@
   <p><strong>Banco utilizado:</strong> {{ factura.banco }}</p>
 {% endif %}
 
-<!-- 📦 Detalles del pedido -->
-<h3>🧾 Detalles del pedido:</h3>
-<table style="width:100%; border-collapse: collapse;" border="1" cellpadding="6" cellspacing="0">
+<!-- 🛍 Detalles del pedido -->
+<h3 style="color:#8e44ad;">🛍 Detalles del pedido:</h3>
+<table style="width:100%; border-collapse: collapse; font-size:13px;" border="1" cellpadding="6" cellspacing="0">
   <thead>
     <tr style="background-color:#f2f2f2;">
       <th style="text-align:left; padding:8px;">Producto</th>
@@ -30,7 +40,6 @@
     <tr>
       <td style="padding:8px;">
         {{ item.producto.name }}
-        <!-- 🎨 Variantes: talla y color -->
         {% if item.talla or item.color %}
           <div style="font-size:11px; color:#555;">
             {% if item.talla %}Talla: {{ item.talla }}{% endif %}
@@ -58,6 +67,6 @@
 
 <!-- 📌 Nota final -->
 <p style="margin-top:20px; font-size:13px; color:#555;">
-  Esta factura ha sido generada electrónicamente por JascEcommerce y es válida sin firma.  
+  Esta factura ha sido generada electrónicamente por <strong>JascEcommerce</strong> y es válida sin firma.<br>
   Gracias por confiar en nosotros. Esperamos que disfrutes tu compra.
 </p>

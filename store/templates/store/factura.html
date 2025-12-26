@@ -11,9 +11,20 @@
   <div id="factura">
     <h2 class="mb-4">🧾 Confirmación de pago – Factura #{{ factura.id }}</h2>
 
+    <!-- 📦 Datos del cliente y envío -->
     <div class="mb-3">
-      <p><strong>Cliente:</strong> {{ factura.usuario.first_name|default:factura.usuario.username }}</p>
-      <p><strong>Email:</strong> {{ factura.usuario.email }}</p>
+      <h5 class="fw-bold">📦 Datos de envío</h5>
+      <p><strong>Nombre:</strong> {{ factura.nombre }}</p>
+      <p><strong>Email:</strong> {{ factura.email }}</p>
+      <p><strong>Teléfono:</strong> {{ factura.telefono }}</p>
+      <p><strong>Dirección:</strong> {{ factura.direccion }}</p>
+      <p><strong>Ciudad:</strong> {{ factura.ciudad }}</p>
+      <p><strong>Departamento:</strong> {{ factura.departamento }}</p>
+    </div>
+
+    <!-- 💳 Datos de pago -->
+    <div class="mb-3">
+      <h5 class="fw-bold">💳 Información de pago</h5>
       <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
       <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
       <p><strong>Estado del pago:</strong>
@@ -31,6 +42,7 @@
       {% endif %}
     </div>
 
+    <!-- 🛍 Detalles del pedido -->
     <h4>🛍 Detalles del pedido:</h4>
     <table class="table table-bordered mt-3" style="table-layout: fixed;">
       <thead class="table-light">
@@ -54,7 +66,6 @@
               </div>
             {% endif %}
           </td>
-
           <td style="text-align:center;">{{ item.cantidad }}</td>
           <td>${{ item.precio_unitario|floatformat:0|intcomma }}</td>
           <td style="text-align:right; white-space: nowrap;">${{ item.subtotal|floatformat:0|intcomma }}</td>
@@ -62,11 +73,13 @@
         {% endfor %}
       </tbody>
     </table>
+
+    <!-- Totales -->
     <div class="text-end mt-4">
       <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
       <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
       <h5 class="mt-3">
-        💵 Total pagado: 
+        💵 Total pagado:
         <span class="text-success fw-bold">
           ${{ total_final|floatformat:0|intcomma }}
         </span>

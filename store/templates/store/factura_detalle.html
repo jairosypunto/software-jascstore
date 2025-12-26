@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-5">
@@ -12,24 +13,28 @@
     </span>
   </div>
 
-  <!-- 👤 Datos del cliente -->
+  <!-- 📦 Datos del cliente y envío -->
   <div class="mb-4">
-    <h5>Cliente</h5>
-    <p>{{ factura.usuario.get_full_name|default:factura.usuario.username }}</p>
-    <p>Email: {{ factura.usuario.email }}</p>
+    <h5>📦 Datos de envío</h5>
+    <p><strong>Nombre:</strong> {{ factura.nombre }}</p>
+    <p><strong>Email:</strong> {{ factura.email }}</p>
+    <p><strong>Teléfono:</strong> {{ factura.telefono }}</p>
+    <p><strong>Dirección:</strong> {{ factura.direccion }}</p>
+    <p><strong>Ciudad:</strong> {{ factura.ciudad }}</p>
+    <p><strong>Departamento:</strong> {{ factura.departamento }}</p>
   </div>
 
   <!-- 💳 Método de pago -->
   <div class="mb-4">
-    <h5>Pago</h5>
+    <h5>💳 Pago</h5>
     <p><strong>Método:</strong> {{ factura.metodo_pago }}</p>
     {% if factura.banco %}
       <p><strong>Banco:</strong> {{ factura.banco }}</p>
     {% endif %}
   </div>
 
-  <!-- 📦 Tabla de productos -->
-  <h5>Detalle de productos</h5>
+  <!-- 🛍 Detalle de productos -->
+  <h5>🛍 Detalle de productos</h5>
   <table class="table table-bordered table-hover">
     <thead class="table-dark">
       <tr>
@@ -40,11 +45,11 @@
       </tr>
     </thead>
     <tbody>
-      {% for item in items %}
+      {% if items %}
+        {% for item in items %}
         <tr>
           <td>
             {{ item.producto.name }}
-            <!-- 🎨 Variantes: talla y color -->
             {% if item.talla or item.color %}
               <div class="small text-muted">
                 {% if item.talla %}Talla: {{ item.talla }}{% endif %}
@@ -54,14 +59,29 @@
             {% endif %}
           </td>
           <td>{{ item.cantidad }}</td>
-          <td>${{ item.precio_unitario|floatformat:0 }}</td>
-          <td>${{ item.subtotal|floatformat:0 }}</td>
+          <td>${{ item.precio_unitario|floatformat:0|intcomma }}</td>
+          <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
         </tr>
-      {% empty %}
+        {% endfor %}
+      {% else %}
+        {% for det in factura.detalles.all %}
         <tr>
-          <td colspan="4" class="text-center text-muted">No hay productos en esta factura.</td>
+          <td>
+            {{ det.producto.name }}
+            {% if det.talla or det.color %}
+              <div class="small text-muted">
+                {% if det.talla %}Talla: {{ det.talla }}{% endif %}
+                {% if det.talla and det.color %} | {% endif %}
+                {% if det.color %}Color: {{ det.color }}{% endif %}
+              </div>
+            {% endif %}
+          </td>
+          <td>{{ det.cantidad }}</td>
+          <td>${{ det.producto.final_price|floatformat:0|intcomma }}</td>
+          <td>${{ det.subtotal|floatformat:0|intcomma }}</td>
         </tr>
-      {% endfor %}
+        {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 
@@ -71,19 +91,19 @@
       <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between">
           <span>Subtotal</span>
-          <strong>${{ subtotal|floatformat:0 }}</strong>
+          <strong>${{ subtotal|floatformat:0|intcomma }}</strong>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>IVA (19%)</span>
-          <strong>${{ iva|floatformat:0 }}</strong>
+          <strong>${{ iva|floatformat:0|intcomma }}</strong>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Descuento</span>
-          <strong>-${{ descuento|floatformat:0 }}</strong>
+          <strong>-${{ descuento|floatformat:0|intcomma }}</strong>
         </li>
         <li class="list-group-item d-flex justify-content-between bg-light">
           <span>Total</span>
-          <strong class="text-primary">${{ total_final|floatformat:0 }}</strong>
+          <strong class="text-primary">${{ total_final|floatformat:0|intcomma }}</strong>
         </li>
       </ul>
     </div>
@@ -92,7 +112,6 @@
   <!-- 🔗 Acciones -->
   <div class="mt-4 d-flex gap-2">
     <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-secondary">← Volver a mis facturas</a>
-    <!-- 📄 Botón para descargar PDF -->
     <a href="{% url 'store:generar_factura_pdf' factura.id %}" class="btn btn-primary">Descargar PDF</a>
   </div>
 

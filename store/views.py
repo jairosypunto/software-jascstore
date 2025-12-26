@@ -324,45 +324,38 @@ def productos_por_categoria(request, category_slug):
 # ============================================================
 # 🧾 Vista: checkout
 # ============================================================
+# store/views.py
+from .forms import CheckoutForm
+
 def checkout(request):
     items = _items_carrito(request)
-
-    # 🔹 Subtotal: suma de todos los subtotales ya con precio final (final_price)
     subtotal = sum(i['subtotal'] for i in items)
-
-    # 🔹 Ahorro total: diferencia entre precio original y precio unitario aplicado
-    #     Se usa solo para mostrar el ahorro, no se resta otra vez
     descuento_total = sum(
         (i['precio_original'] - i['precio_unitario']) * i['cantidad']
         for i in items if i['discount'] > 0
     )
-
-    # ✅ No duplicamos descuento, ya está aplicado en precio_unitario
     base_imponible = subtotal
-
-    # ✅ Solo aplicamos IVA si está activo en settings
     iva = Decimal("0.00")
     if getattr(settings, "IVA_ACTIVO", False):
         iva = base_imponible * Decimal("0.19")
-
-    # 🔹 Total final: subtotal + IVA (sin volver a restar descuento)
     total = base_imponible + iva
-
-    # 🔹 Cantidad total de artículos en el carrito
     total_cantidad = sum(i['cantidad'] for i in items)
+
+    form = CheckoutForm()
 
     context = {
         'items': items,
         'subtotal': subtotal,
         'iva': iva,
-        'descuento': descuento_total,  # solo informativo
+        'descuento': descuento_total,
         'total': total,
         'total_cantidad': total_cantidad,
+        'form': form,
     }
     return render(request, 'store/checkout.html', context)
 
 # ============================================================
-# 🧾 Vista: generar factura
+# 🧾 Vista: generar factura (actualizada con datos de envío)
 # ============================================================
 @login_required(login_url='/accounts/login/')
 def generar_factura(request):
@@ -371,6 +364,7 @@ def generar_factura(request):
     - Valida método de pago.
     - Crea factura y detalles.
     - Reduce stock de productos.
+    - Guarda datos de envío.
     - Envía correo con PDF adjunto.
     """
     if request.method != "POST":
@@ -386,45 +380,53 @@ def generar_factura(request):
         messages.error(request, "Tu carrito está vacío.")
         return redirect("store:ver_carrito")
 
-    # 🧮 Cálculos globales
-    subtotal = sum(i["subtotal"] for i in items)  # ya con final_price
+    subtotal = sum(i["subtotal"] for i in items)
     descuento = sum(
         (i["precio_original"] - i["precio_unitario"]) * i["cantidad"]
         for i in items if i["discount"] > 0
     )
 
-    # ✅ No duplicamos descuento, ya está aplicado en precio_unitario
     base_imponible = subtotal
-
-    # ✅ Solo aplicamos IVA si está activo en settings
     iva = Decimal("0.00")
     if getattr(settings, "IVA_ACTIVO", False):
         iva = base_imponible * Decimal("0.19")
 
-    # 🔹 Total final: subtotal + IVA
     total_final = base_imponible + iva
+
+    # ✅ Datos de envío
+    nombre = request.POST.get("nombre")
+    email = request.POST.get("email")
+    telefono = request.POST.get("telefono")
+    direccion = request.POST.get("direccion")
+    ciudad = request.POST.get("ciudad")
+    departamento = request.POST.get("departamento")
 
     # 🧾 Crear factura principal
     factura = Factura.objects.create(
         usuario=request.user,
         total=total_final,
         metodo_pago=metodo_pago,
-        estado_pago="Pendiente"
+        estado_pago="Pendiente",
+        banco="Banco de prueba" if metodo_pago == "banco" else None,
+        nombre=nombre,
+        email=email,
+        telefono=telefono,
+        direccion=direccion,
+        ciudad=ciudad,
+        departamento=departamento
     )
 
-    # 🧾 Crear detalles de factura
+    # 🧾 Crear detalles
     for i in items:
         producto = i["producto"]
         talla = i.get("talla", "")
         color = i.get("color", "")
 
-        # Validar variantes
         if producto.talla_list and talla and talla not in producto.talla_list:
             talla = ""
         if producto.color_list and color and color not in producto.color_list:
             color = ""
 
-        # Reducir stock
         if producto.stock < i["cantidad"]:
             messages.warning(request, f"Stock insuficiente para {producto.name}.")
             continue
@@ -435,34 +437,31 @@ def generar_factura(request):
             factura=factura,
             producto=producto,
             cantidad=i["cantidad"],
-            subtotal=i["subtotal"],  # ya con final_price
+            subtotal=i["subtotal"],
             talla=talla,
             color=color
         )
 
-    # 🧹 Vaciar carrito y guardar factura en sesión
     request.session["carrito"] = {}
     request.session["factura_id"] = factura.id
 
-    # 📧 Enviar correo con factura
     try:
         enviar_factura_por_correo(factura, request.user, {
             "factura": factura,
+            "items": items,  # 👈 añade items al contexto del correo
             "subtotal": subtotal,
-            "descuento": descuento,  # solo informativo
+            "descuento": descuento,
             "iva": iva,
             "total_final": total_final,
-            "fecha_local": factura.fecha,
+            "fecha_local": localtime(factura.fecha),
         })
         messages.success(request, "Factura generada y enviada por correo.")
     except Exception as e:
         messages.warning(request, f"No se pudo enviar el correo: {e}")
 
-    # 🏦 Redirigir según método de pago
     if metodo_pago == "banco":
         return redirect("store:pago_banco")
 
-    # Mostrar factura directamente si es contraentrega
     context = {
         "factura": factura,
         "items": items,
@@ -471,8 +470,16 @@ def generar_factura(request):
         "iva": iva,
         "total_final": total_final,
         "estado_pago": factura.estado_pago,
+        # 👇 añade explícitamente datos de envío al contexto
+        "nombre": factura.nombre,
+        "email": factura.email,
+        "telefono": factura.telefono,
+        "direccion": factura.direccion,
+        "ciudad": factura.ciudad,
+        "departamento": factura.departamento,
     }
     return render(request, "store/factura_detalle.html", context)
+
 
 # ============================================================
 # 🧾 Vista: ver factura
@@ -818,25 +825,23 @@ def pago_banco_widget(request):
 # ============================================================
 from store.utils.totales import calcular_totales
 from django.utils.timezone import localtime
-
 def confirmacion_pago(request):
     estado = request.GET.get("status", "SIMULADO")
-    referencia = request.GET.get("reference")
+    referencia = request.GET.get("reference") or request.session.get("factura_id")
 
     factura = Factura.objects.filter(id=referencia).first() if referencia else None
 
     if factura:
         factura.estado_pago = "Pagado" if estado == "APPROVED" else "Fallido"
+        factura.banco = request.GET.get("banco", factura.banco)  # ✅ guardar banco elegido
         factura.save()
 
         fecha_local = localtime(factura.fecha)
         items = factura.detalles.all()
 
-        # ✅ Añadir precio_unitario dinámico para mostrar en factura
         for item in items:
             item.precio_unitario = item.producto.final_price
 
-        # ✅ Calcular totales sin IVA
         totales = calcular_totales(factura)
 
         contexto = {
@@ -850,9 +855,7 @@ def confirmacion_pago(request):
         }
         return render(request, "store/factura.html", contexto)
 
-    # ⚠️ Si no hay factura válida
-    context = {"estado": estado, "referencia": referencia}
-    return render(request, "store/confirmacion_pago.html", context)
+    return render(request, "store/confirmacion_pago.html", {"estado": estado, "referencia": referencia})
 
 # ============================================================
 # 🛍️ Vista: detalle de producto
