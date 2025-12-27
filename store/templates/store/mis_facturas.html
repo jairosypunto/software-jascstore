@@ -13,7 +13,8 @@
       <tr>
         <th>ID</th>
         <th>Fecha</th>
-        <th>Estado</th>
+        <th>Estado de pago</th>
+        <th>Estado del pedido</th>
         <th>Método de pago</th>
         <th>Total</th>
         <th>Productos</th>
@@ -28,10 +29,25 @@
           <td>#{{ factura.id }}</td>
           <td>{{ factura.fecha|date:"d/m/Y H:i" }}</td>
           <td>
-            {% if factura.estado_pago == "Pagado" %}
-              <span class="badge bg-success">Pagado</span>
+            {% if estado_pago == "Pagado" and es_pago_real %}
+              <span class="badge bg-success">✅ Pago Simulado</span>
+            {% elif factura.estado_pago == "Pagado" %}
+              <span class="badge bg-warning text-dark">🟡 Simulado</span>
             {% else %}
-              <span class="badge bg-warning text-dark">Pendiente</span>
+              <span class="badge bg-warning text-dark">🕒 Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if factura.estado_pedido == "pendiente" %}
+              <span class="badge bg-danger">🟡 Pendiente</span>
+            {% elif factura.estado_pedido == "preparacion" %}
+              <span class="badge bg-warning text-dark">🧰 En preparación</span>
+            {% elif factura.estado_pedido == "enviado" %}
+              <span class="badge bg-primary">🚚 Enviado</span>
+            {% elif factura.estado_pedido == "entregado" %}
+              <span class="badge bg-success">✅ Entregado</span>
+            {% else %}
+              <span class="badge bg-secondary">Sin estado</span>
             {% endif %}
           </td>
           <td>{{ factura.metodo_pago|title }}</td>
@@ -40,34 +56,16 @@
 
           <!-- 🆕 Columna de variantes (talla y color) -->
           <td class="small">
-            {# 
-              Recorremos los detalles para construir un preview.
-              No agregamos lógica compleja: mostramos las tallas y colores encontrados como badges.
-              Si quieres agrupar/contar por variante, lo hacemos luego en la vista (opcional).
-            #}
-            {% with tallas_list="" colores_list="" %}
-              {# Recolectamos tallas y colores presentes #}
-              {% for det in factura.detalles.all %}
-                {% if det.talla %}
-                  {# Mostramos cada talla como badge #}
-                  <span class="badge bg-primary me-1 mb-1">Talla: {{ det.talla }}</span>
-                {% endif %}
-                {% if det.color %}
-                  {# Mostramos cada color como badge #}
-                  <span class="badge bg-secondary me-1 mb-1">Color: {{ det.color }}</span>
-                {% endif %}
-              {% endfor %}
-
-              {# Si no hay variantes en ningún detalle, indicamos que no aplican #}
-              {% if not factura.detalles.all|length %}
-                <span class="text-muted">Sin detalles</span>
-              {% else %}
-                {# Si recorrió y no encontró ninguna talla/color, mostramos un estado neutro #}
-                {% if not factura.detalles.all.0.talla and not factura.detalles.all.0.color %}
-                  {# Este chequeo es limitado; si quieres exactitud total, mejor validar en la vista #}
-                {% endif %}
+            {% for det in factura.detalles.all %}
+              {% if det.talla %}
+                <span class="badge bg-primary me-1 mb-1">Talla: {{ det.talla }}</span>
               {% endif %}
-            {% endwith %}
+              {% if det.color %}
+                <span class="badge bg-secondary me-1 mb-1">Color: {{ det.color }}</span>
+              {% endif %}
+            {% empty %}
+              <span class="text-muted">Sin detalles</span>
+            {% endfor %}
           </td>
 
           <td>
@@ -79,7 +77,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="8" class="text-center text-muted">
+          <td colspan="9" class="text-center text-muted">
             No tienes facturas registradas.
           </td>
         </tr>

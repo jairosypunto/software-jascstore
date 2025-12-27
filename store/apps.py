@@ -1,15 +1,9 @@
-from django.contrib import admin
-# from .models import Product  # ✅ Importación correcta desde la app store
+from django.apps import AppConfig
 
-class ProductAdmin(admin.ModelAdmin):
-    list_display = (
-        'name', 'cost', 'stock', 'is_available',
-        'category', 'date_register', 'date_update'
-    )  # ✅ Muestra columnas clave en la lista
-    list_filter = ('is_available', 'category')  # ✅ Filtros laterales
-    search_fields = ('name', 'description')     # ✅ Búsqueda por nombre y descripción
-    prepopulated_fields = {'slug': ('name',)}   # ✅ Slug autogenerado desde el nombre
-    list_editable = ('cost', 'stock', 'is_available')  # ✅ Edición directa en la lista
-    ordering = ('-date_register',)  # ✅ Orden descendente por fecha de registro
+class StoreConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'store'
 
-# admin.site.register(Product, ProductAdmin)  # ✅ Registro del modelo con configuración personalizada
+    def ready(self):
+        # ✅ Aquí puedes importar señales, pero nunca modelos directamente
+        import store.signals

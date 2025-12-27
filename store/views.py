@@ -825,14 +825,29 @@ def pago_banco_widget(request):
 # ============================================================
 from store.utils.totales import calcular_totales
 from django.utils.timezone import localtime
-def confirmacion_pago(request):
-    estado = request.GET.get("status", "SIMULADO")
-    referencia = request.GET.get("reference") or request.session.get("factura_id")
+from django.shortcuts import render
+from store.models import Factura
 
+def confirmacion_pago(request):
+    estado = request.GET.get("status")
+    if estado not in ["APPROVED", "DECLINED"]:
+        estado = "SIMULADO"
+
+    referencia = request.GET.get("reference") or request.session.get("factura_id")
     factura = Factura.objects.filter(id=referencia).first() if referencia else None
 
     if factura:
-        factura.estado_pago = "Pagado" if estado == "APPROVED" else "Fallido"
+        # ✅ Actualizar estado de pago y marcar si es real
+        if estado == "APPROVED":
+            factura.estado_pago = "Pagado"
+            factura.es_pago_real = True
+        elif estado == "DECLINED":
+            factura.estado_pago = "Fallido"
+            factura.es_pago_real = False
+        else:
+            factura.estado_pago = "Pagado"  # Simulado
+            factura.es_pago_real = False
+
         factura.banco = request.GET.get("banco", factura.banco)  # ✅ guardar banco elegido
         factura.save()
 
@@ -851,12 +866,16 @@ def confirmacion_pago(request):
             "descuento": totales["ahorro_total"],
             "total_final": totales["total_final"],
             "estado_pago": factura.estado_pago,
+            "es_pago_real": factura.es_pago_real,  # ✅ esta línea es clave
             "fecha_local": fecha_local,
         }
         return render(request, "store/factura.html", contexto)
 
-    return render(request, "store/confirmacion_pago.html", {"estado": estado, "referencia": referencia})
-
+    return render(request, "store/confirmacion_pago.html", {
+        "estado": estado,
+        "referencia": referencia
+    })
+    
 # ============================================================
 # 🛍️ Vista: detalle de producto
 # ============================================================

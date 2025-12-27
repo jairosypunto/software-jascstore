@@ -10,6 +10,34 @@
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}">
+
+<style>
+  /* 💬 BOTÓN FLOTANTE DE WHATSAPP */
+  .btn-whatsapp {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366;
+    color: white;
+    font-size: 24px;
+    padding: 12px 16px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    z-index: 999;
+    text-decoration: none;
+  }
+  .btn-whatsapp:hover {
+    background-color: #20b858;
+    color: white;
+  }
+
+  /* Responsive: solo mostrar en móviles */
+  @media (min-width: 768px) {
+    .btn-whatsapp {
+      display: none;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block banner_full %}
@@ -46,9 +74,7 @@
 <section class="shop-section">
   <div class="shop-container">
 
-    <!-- ==================================================
-         🔎 FILTROS / BÚSQUEDA
-    ================================================== -->
+    <!-- 🔎 FILTROS / BÚSQUEDA -->
     <form method="get" class="search-form d-flex gap-2 mb-4">
       <input type="text"
              name="q"
@@ -74,9 +100,7 @@
       <button class="btn btn-primary">Filtrar</button>
     </form>
 
-    <!-- ==================================================
-         ⭐ PRODUCTOS DESTACADOS (Swiper)
-    ================================================== -->
+    <!-- ⭐ PRODUCTOS DESTACADOS -->
     <h2 class="section-title">⭐ Productos destacados</h2>
     <div class="swiper mySwiper destacados-swiper">
       <div class="swiper-wrapper">
@@ -93,18 +117,14 @@
         </div>
         {% endfor %}
       </div>
-      <!-- Controles Swiper -->
       <div class="swiper-button-prev"></div>
       <div class="swiper-button-next"></div>
     </div>
     
-    <!-- ==================================================
-         🛍 GRID DE PRODUCTOS (CATÁLOGO)
-    ================================================== -->
+    <!-- 🛍 GRID DE PRODUCTOS -->
     <div class="products-grid" id="productos">
       {% for product in productos %}
       <article class="product-card">
-        <!-- 📸 IMAGEN (con soporte hover de video) -->
         <div class="product-image-wrapper"
              {% if product.video_file %}
              data-video-src="{{ product.video_file.url }}"
@@ -116,14 +136,12 @@
           <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
                class="product-img"
                alt="{{ product.name }}">
-          <!-- 👁 VISTA RÁPIDA -->
           <button type="button"
                   class="quick-view jasc-quick-view"
                   data-id="{{ product.id }}"
                   title="Vista rápida">
             <i class="bi bi-eye"></i>
           </button>
-          <!-- 🛒 AGREGAR AL CARRITO -->
           <button type="button"
                   class="jasc-cart"
                   data-id="{{ product.id }}"
@@ -135,7 +153,6 @@
             <span class="badge badge-descuento">-{{ product.discount }}%</span>
           {% endif %}
         </div>
-        <!-- ℹ️ INFO -->
         <div class="product-content">
           <h3 class="product-title text-truncate">{{ product.name }}</h3>
           <p class="product-description">
@@ -158,30 +175,30 @@
       {% endfor %}
     </div>
 
-    <!-- ==================================================
-         🧠 MODAL VISTA RÁPIDA
-    ================================================== -->
+    <!-- 🧠 MODAL VISTA RÁPIDA -->
     <div class="vista-rapida-overlay hidden"></div>
     <div id="vistaRapidaPanel" class="vista-rapida-panel hidden" role="dialog" aria-modal="true" aria-label="Vista rápida">
       <button type="button" class="cerrar-panel" title="Cerrar" aria-label="Cerrar">&times;</button>
       <div id="contenidoProducto"></div>
     </div>
 
-    <!-- ==================================================
-         🛒 MODAL DE CARRITO
-    ================================================== -->
+    <!-- 🛒 MODAL DE CARRITO -->
     <div class="carrito-overlay hidden"></div>
     <div id="carritoModal" class="carrito-panel hidden" role="dialog" aria-modal="true" aria-label="Seleccionar opciones">
       <button type="button" class="cerrar-carrito" title="Cerrar">&times;</button>
-      <!-- Aquí se inyecta vista_carrito.html -->
       <div id="contenidoCarrito"></div>
     </div>
 
   </div>
 </section>
+
+<!-- 💬 BOTÓN FLOTANTE DE WHATSAPP -->
+<a href="https://wa.me/573016173378?text=Hola%20quiero%20más%20información%20sobre%20mi%20pedido"
+   class="btn-whatsapp" target="_blank" aria-label="Chat por WhatsApp">
+   <i class="bi bi-whatsapp"></i>
+</a>
 {% endblock %}
 
 {% block extra_js %}
-<!-- 🧠 LÓGICA DE TIENDA -->
 <script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 {% endblock %}

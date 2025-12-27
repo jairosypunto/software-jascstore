@@ -17,8 +17,19 @@
     .text-muted { color: #888; font-size: 11px; }
     .text-danger { color: #c0392b; }
     .text-success { color: #27ae60; font-weight: bold; }
+    .text-warning { color: #e67e22; font-weight: bold; }
     .resumen-descuento { margin-top: 10px; font-size: 11px; color: #555; }
     .resumen-descuento strong { color: #2c3e50; }
+    .btn-whatsapp {
+      display: inline-block;
+      background-color: #25D366;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -35,10 +46,16 @@
   <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
   <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
   <p><strong>Estado del pago:</strong>
-    {% if factura.estado_pago == "Pendiente" %}
-      <span class="text-danger">Pendiente</span>
+    {% if estado_pago == "Pagado" and es_pago_real %}
+      <span class="text-success">✅ Pago Simulado</span>
+    {% elif factura.estado_pago == "Pagado" %}
+      <span class="text-warning">🟡 Simulado</span>
+    {% elif factura.estado_pago == "Pendiente" %}
+      <span class="text-danger">🕒 Pendiente</span>
+    {% elif factura.estado_pago == "Fallido" %}
+      <span class="text-danger">❌ Fallido</span>
     {% else %}
-      <span class="text-success">Pagado</span>
+      <span class="text-muted">{{ factura.estado_pago }}</span>
     {% endif %}
   </p>
   {% if factura.banco %}
@@ -91,9 +108,16 @@
   <div class="text-right" style="margin-top: 20px;">
     <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
     <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
-    <p><strong>Total pagado:</strong> <span class="text-success">${{ total_final|floatformat:0|intcomma }}</span></p>
+    <p><strong>Total:</strong> <span class="text-success">${{ total_final|floatformat:0|intcomma }}</span></p>
     <p class="text-muted">El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.</p>
   </div>
+
+  <p style="margin-top:20px; text-align:center;">
+    <a href="https://wa.me/573016173378?text=Hola%20quiero%20más%20información%20sobre%20mi%20pedido%20{{ factura.id }}"
+       class="btn-whatsapp" target="_blank">
+       💬 Contactar por WhatsApp
+    </a>
+  </p>
 
   <p class="text-muted" style="margin-top: 30px;">
     Esta factura ha sido generada electrónicamente por JascShop. Válida sin firma. Gracias por tu compra.

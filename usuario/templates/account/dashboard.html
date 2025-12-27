@@ -43,7 +43,8 @@
         <th>#</th>
         <th>Fecha</th>
         <th>Método de pago</th>
-        <th>Estado</th>
+        <th>Estado de pago</th>
+        <th>Estado del pedido</th>
         <th>Total</th>
         <th>Acciones</th>
       </tr>
@@ -56,9 +57,22 @@
           <td>{{ pedido.get_payment_method_display }}</td>
           <td>
             {% if pedido.is_paid %}
-              <span class="badge bg-success">Pagado</span>
+              <span class="badge bg-success">✅ Pagado</span>
             {% else %}
-              <span class="badge bg-warning text-dark">Pendiente</span>
+              <span class="badge bg-warning text-dark">🕒 Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if pedido.estado_pedido == "pendiente" %}
+              <span class="badge bg-danger">🟡 Pendiente</span>
+            {% elif pedido.estado_pedido == "preparacion" %}
+              <span class="badge bg-warning text-dark">🧰 En preparación</span>
+            {% elif pedido.estado_pedido == "enviado" %}
+              <span class="badge bg-primary">🚚 Enviado</span>
+            {% elif pedido.estado_pedido == "entregado" %}
+              <span class="badge bg-success">✅ Entregado</span>
+            {% else %}
+              <span class="badge bg-secondary">Sin estado</span>
             {% endif %}
           </td>
           <td>${{ pedido.total|floatformat:0 }}</td>
@@ -68,7 +82,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="6" class="text-center text-muted">No hay pedidos recientes.</td>
+          <td colspan="7" class="text-center text-muted">No hay pedidos recientes.</td>
         </tr>
       {% endfor %}
     </tbody>

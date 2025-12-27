@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} 
 
 {% block content %}
 <div class="container mt-5">
@@ -6,9 +6,15 @@
     <h3 class="mb-4">🧾 Resultado del pago</h3>
 
     {% if estado == "APPROVED" %}
-      <div class="alert alert-success">
-        ✅ Tu pago ha sido aprobado correctamente.
-      </div>
+      {% if factura and factura.es_pago_real %}
+        <div class="alert alert-success">
+          ✅ Tu pago ha sido aprobado correctamente (Real).
+        </div>
+      {% else %}
+        <div class="alert alert-warning">
+          🟡 Tu pago fue marcado como <strong>Simulado</strong>.
+        </div>
+      {% endif %}
     {% elif estado == "DECLINED" %}
       <div class="alert alert-danger">
         ❌ El pago fue rechazado o cancelado. Puedes intentar nuevamente o elegir otro método.

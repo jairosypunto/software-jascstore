@@ -417,3 +417,31 @@
 .miniatura-img:hover {
   border-color: #007bff;
 }
+
+/* 🎨 Estilos comunes para JascShop */
+
+/* 💬 Botón de WhatsApp */
+.btn-whatsapp {
+  display: inline-block;
+  background-color: #25D366; /* verde oficial de WhatsApp */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: background-color 0.3s ease;
+}
+
+.btn-whatsapp:hover {
+  background-color: #20b858;
+  color: white;
+}
+
+/* Responsive: solo mostrar flotante en móviles */
+@media (min-width: 768px) {
+  .btn-whatsapp.floating {
+    display: none;
+  }
+}

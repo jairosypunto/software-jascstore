@@ -8,9 +8,29 @@
   <!-- 🧾 Encabezado de la factura -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-primary">Factura #{{ factura.id }}</h2>
-    <span class="badge {% if factura.estado_pago == 'Pagado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-      {{ estado_pago }}
-    </span>
+    <div>
+      <!-- Estado de pago -->
+      {% if estado_pago == "Pagado" and es_pago_real %}
+        <span class="badge bg-success">✅ Pago Simulado</span>
+      {% elif factura.estado_pago == "Pagado" %}
+        <span class="badge bg-warning text-dark">🟡 Simulado</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">🕒 Pendiente</span>
+      {% endif %}
+
+      <!-- 📦 Estado del pedido -->
+      {% if factura.estado_pedido == "pendiente" %}
+        <span class="badge bg-danger">🟡 Pendiente</span>
+      {% elif factura.estado_pedido == "preparacion" %}
+        <span class="badge bg-warning text-dark">🧰 En preparación</span>
+      {% elif factura.estado_pedido == "enviado" %}
+        <span class="badge bg-primary">🚚 Enviado</span>
+      {% elif factura.estado_pedido == "entregado" %}
+        <span class="badge bg-success">✅ Entregado</span>
+      {% else %}
+        <span class="badge bg-secondary">Sin estado</span>
+      {% endif %}
+    </div>
   </div>
 
   <!-- 📦 Datos del cliente y envío -->

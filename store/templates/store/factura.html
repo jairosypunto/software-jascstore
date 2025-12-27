@@ -27,11 +27,15 @@
       <h5 class="fw-bold">💳 Información de pago</h5>
       <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
       <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
-      <p><strong>Estado del pago:</strong>
-        {% if factura.estado_pago == "Pendiente" %}
-          <span class="text-danger">Pendiente</span>
+     <p><strong>Estado del pago:</strong>
+        {% if estado_pago == "Pagado" and es_pago_real %}
+          <span class="text-success">✅ Pago Simulado</span>
+        {% elif factura.estado_pago == "Pagado" %}
+          <span class="text-warning">🟡 Simulado</span>
+        {% elif factura.estado_pago == "Fallido" %}
+          <span class="text-danger">❌ Fallido</span>
         {% else %}
-          <span class="text-success">Pagado</span>
+          <span class="text-muted">🕒 Pendiente</span>
         {% endif %}
       </p>
       {% if factura.banco %}

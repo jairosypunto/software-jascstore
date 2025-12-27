@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, ProductImage, Factura, DetalleFactura, Banner, Category
+from .models import Product, ProductImage, Factura, DetalleFactura, Banner, Category, Configuracion
 
 # ================================
 # 🖼️ Configuración en línea de imágenes adicionales
@@ -51,7 +51,6 @@ class ProductAdmin(admin.ModelAdmin):
         ("Portada de video", {
             "fields": ("video_thumb",)
         }),
-
         ("Fechas", {
             "fields": ("date_register", "date_update")
         }),
@@ -70,11 +69,12 @@ class FacturaAdmin(admin.ModelAdmin):
         'total',
         'metodo_pago',
         'estado_pago',
+        'estado_pedido',   # 📦 Nuevo campo: estado del pedido
         'banco'
     )
     date_hierarchy = 'fecha'  # Navegación por fechas
-    search_fields = ('usuario__username', 'usuario__email')  # Búsqueda por usuario
-    list_filter = ('estado_pago', 'metodo_pago', 'banco')  # Filtros por estado y método
+    search_fields = ('usuario__username', 'usuario__email', 'nombre', 'email', 'telefono')
+    list_filter = ('estado_pago', 'estado_pedido', 'metodo_pago', 'banco')  # Filtros por estado y método
 
 # ================================
 # 📦 Detalle de factura
@@ -90,8 +90,8 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
         'subtotal'
     )
     list_select_related = ('factura', 'producto')  # Optimiza consultas
-    search_fields = ('producto__name',)  # Búsqueda por nombre de producto
-    list_filter = ('factura', 'talla', 'color')  # Filtros útiles
+    search_fields = ('producto__name', 'factura__usuario__username')
+    list_filter = ('factura', 'talla', 'color')
 
 # ================================
 # 🎯 Banner promocional
@@ -109,9 +109,10 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")  # Mostrar nombre y slug
     search_fields = ("name",)        # Búsqueda por nombre
     prepopulated_fields = {"slug": ("name",)}  # Slug autogenerado desde el nombre
-    
-from .models import Configuracion
 
+# ================================
+# ⚙️ Configuración general
+# ================================
 @admin.register(Configuracion)
 class ConfiguracionAdmin(admin.ModelAdmin):
     list_display = ("iva_activo",)

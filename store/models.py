@@ -112,28 +112,112 @@ class Product(models.Model):
         """Devuelve lista de colores separadas por comas."""
         return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
 
+from django.conf import settings
+from django.db import models
+from store.models import Product  # Ajusta el import según tu estructura
+
 # 🧾 Modelo de Factura
 class Factura(models.Model):
     """Factura generada tras una compra."""
+
+    # 👤 Usuario que realizó la compra
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         help_text="Usuario dueño de la factura"
     )
-    fecha = models.DateTimeField(auto_now_add=True, help_text="Fecha de creación de la factura")
-    total = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total final con impuestos y descuentos")
-    metodo_pago = models.CharField(max_length=30, default="No especificado", help_text="Método de pago elegido")
-    estado_pago = models.CharField(max_length=20, default="Pendiente", help_text="Estado del pago")
-    transaccion_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID de transacción del banco/proveedor")
-    banco = models.CharField(max_length=100, blank=True, null=True, help_text="Banco usado en el pago si aplica")
 
-    # 🚚 Datos de envío
-    nombre = models.CharField(max_length=150, blank=True, null=True, help_text="Nombre completo del cliente")
-    email = models.EmailField(blank=True, null=True, help_text="Correo electrónico del cliente")
-    telefono = models.CharField(max_length=30, blank=True, null=True, help_text="Teléfono de contacto")
-    direccion = models.CharField(max_length=255, blank=True, null=True, help_text="Dirección de entrega")
-    ciudad = models.CharField(max_length=120, blank=True, null=True, help_text="Ciudad de entrega")
-    departamento = models.CharField(max_length=120, blank=True, null=True, help_text="Departamento de entrega")
+    # 📅 Fecha de creación automática
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Fecha de creación de la factura"
+    )
+
+    # 💰 Total final con impuestos y descuentos
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Total final con impuestos y descuentos"
+    )
+
+    # 💳 Información de pago
+    metodo_pago = models.CharField(
+        max_length=30,
+        default="No especificado",
+        help_text="Método de pago elegido"
+    )
+    estado_pago = models.CharField(
+        max_length=20,
+        default="Pendiente",
+        help_text="Estado del pago"
+    )
+    es_pago_real = models.BooleanField(
+        default=False,
+        help_text="Indica si el pago fue confirmado por el proveedor o es simulado"
+    )
+    transaccion_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="ID de transacción del banco/proveedor"
+    )
+    banco = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Banco usado en el pago si aplica"
+    )
+
+    # 🚚 Datos de envío del cliente
+    nombre = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True,
+        help_text="Nombre completo del cliente"
+    )
+    email = models.EmailField(
+        blank=True,
+        null=True,
+        help_text="Correo electrónico del cliente"
+    )
+    telefono = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="Teléfono de contacto"
+    )
+    direccion = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Dirección de entrega"
+    )
+    ciudad = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        help_text="Ciudad de entrega"
+    )
+    departamento = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        help_text="Departamento de entrega"
+    )
+
+    # 📦 Estado del pedido
+    ESTADOS_PEDIDO = [
+        ('pendiente', 'Pendiente'),
+        ('preparacion', 'En preparación'),
+        ('enviado', 'Enviado'),
+        ('entregado', 'Entregado'),
+    ]
+    estado_pedido = models.CharField(
+        max_length=20,
+        choices=ESTADOS_PEDIDO,
+        default='pendiente',
+        help_text="Estado actual del pedido"
+    )
 
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
@@ -141,12 +225,76 @@ class Factura(models.Model):
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
     """Detalle de cada producto dentro de una factura."""
-    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)
-    producto = models.ForeignKey(Product, on_delete=models.CASCADE)
+
+    factura = models.ForeignKey(
+        Factura,
+        related_name="detalles",
+        on_delete=models.CASCADE
+    )
+    producto = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE
+    )
     cantidad = models.PositiveIntegerField()
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    talla = models.CharField(max_length=20, blank=True, null=True)
-    color = models.CharField(max_length=30, blank=True, null=True)
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    # 🎽 Variantes del producto (opcional)
+    talla = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+    color = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True
+    )
+
+    def variantes(self):
+        """Devuelve un string con las variantes seleccionadas (talla y color)."""
+        partes = []
+        if self.talla:
+            partes.append(f"Talla: {self.talla}")
+        if self.color:
+            partes.append(f"Color: {self.color}")
+        return " | ".join(partes) if partes else "Sin variantes"
+
+    def __str__(self):
+        return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"  
+    
+# 📦 Modelo de DetalleFactura
+class DetalleFactura(models.Model):
+    """Detalle de cada producto dentro de una factura."""
+
+    factura = models.ForeignKey(
+        Factura,
+        related_name="detalles",
+        on_delete=models.CASCADE
+    )
+    producto = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE
+    )
+    cantidad = models.PositiveIntegerField()
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    # 🎽 Variantes del producto (opcional)
+    talla = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+    color = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True
+    )
 
     def variantes(self):
         """Devuelve un string con las variantes seleccionadas (talla y color)."""
@@ -159,8 +307,7 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"
-
-
+    
 # 🎯 Modelo de Banner
 class Banner(models.Model):
     """Banner principal para la tienda (portada)."""
