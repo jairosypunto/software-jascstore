@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html_join
 from .models import Product, ProductImage, Factura, DetalleFactura, Banner, Category, Configuracion
 
 # ================================
@@ -6,7 +7,7 @@ from .models import Product, ProductImage, Factura, DetalleFactura, Banner, Cate
 # ================================
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 1  # Permite agregar una imagen adicional por defecto
+    extra = 1
     verbose_name = "Imagen adicional"
     verbose_name_plural = "Imágenes adicionales"
 
@@ -16,25 +17,24 @@ class ProductImageInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'name',          # Nombre del producto
-        'cost',          # Precio original
-        'discount',      # Porcentaje de descuento
-        'final_price',   # Precio final calculado (con descuento)
-        'stock',         # Unidades disponibles
-        'is_available',  # Estado de disponibilidad
-        'category',      # Categoría asignada
-        'talla',         # Tallas disponibles
-        'color',         # Colores disponibles
-        'video_url',     # Video externo
-        'video_file'     # Video subido al servidor
+        'name',
+        'cost',
+        'discount',
+        'final_price',
+        'stock',
+        'is_available',
+        'category',
+        'talla_buttons',   # ✅ tallas como botones
+        'color_buttons',   # ✅ colores como botones
+        'video_url',
+        'video_file'
     )
-    list_editable = ('discount',)  # Permite editar el descuento directamente en la lista
-    prepopulated_fields = {'slug': ('name',)}  # Slug autogenerado desde el nombre
-    search_fields = ('name', 'description')    # Búsqueda por nombre y descripción
-    list_filter = ('is_available', 'category', 'destacado', 'nuevo')  # Filtros útiles
-    inlines = [ProductImageInline]  # Muestra imágenes adicionales en línea
+    list_editable = ('discount',)
+    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ('name', 'description')
+    list_filter = ('is_available', 'category', 'destacado', 'nuevo')
+    inlines = [ProductImageInline]
 
-    # Organización de campos en secciones del formulario
     fieldsets = (
         ("Información básica", {
             "fields": ("name", "slug", "description", "category", "image")
@@ -55,7 +55,29 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("date_register", "date_update")
         }),
     )
-    readonly_fields = ("final_price", "date_register", "date_update")  # Campos calculados o automáticos
+    readonly_fields = ("final_price", "date_register", "date_update")
+
+    # Métodos para mostrar tallas y colores como botones
+    def talla_buttons(self, obj):
+        if not obj.talla_list:
+            return "-"
+        return format_html_join(
+            '',
+            '<button style="margin:2px; padding:4px 8px; border-radius:4px; background:#eee; border:1px solid #ccc;">{}</button>',
+            ((t,) for t in obj.talla_list)
+        )
+    talla_buttons.short_description = "Tallas"
+
+    def color_buttons(self, obj):
+        if not obj.color_list:
+            return "-"
+        return format_html_join(
+            '',
+            '<button style="margin:2px; padding:4px 8px; border-radius:4px; background:#eee; border:1px solid #ccc;">{}</button>',
+            ((c,) for c in obj.color_list)
+        )
+    color_buttons.short_description = "Colores"
+
 
 # ================================
 # 🧾 Factura
@@ -69,12 +91,13 @@ class FacturaAdmin(admin.ModelAdmin):
         'total',
         'metodo_pago',
         'estado_pago',
-        'estado_pedido',   # 📦 Nuevo campo: estado del pedido
+        'estado_pedido',
         'banco'
     )
-    date_hierarchy = 'fecha'  # Navegación por fechas
+    date_hierarchy = 'fecha'
     search_fields = ('usuario__username', 'usuario__email', 'nombre', 'email', 'telefono')
-    list_filter = ('estado_pago', 'estado_pedido', 'metodo_pago', 'banco')  # Filtros por estado y método
+    list_filter = ('estado_pago', 'estado_pedido', 'metodo_pago', 'banco')
+
 
 # ================================
 # 📦 Detalle de factura
@@ -85,13 +108,14 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
         'factura',
         'producto',
         'cantidad',
-        'talla',     # Mostrar talla
-        'color',     # Mostrar color
+        'talla',
+        'color',
         'subtotal'
     )
-    list_select_related = ('factura', 'producto')  # Optimiza consultas
+    list_select_related = ('factura', 'producto')
     search_fields = ('producto__name', 'factura__usuario__username')
     list_filter = ('factura', 'talla', 'color')
+
 
 # ================================
 # 🎯 Banner promocional
@@ -101,14 +125,16 @@ class BannerAdmin(admin.ModelAdmin):
     list_display = ("title", "subtitle", "image")
     search_fields = ("title", "subtitle")
 
+
 # ================================
 # 🗂️ Categoría de productos
 # ================================
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug")  # Mostrar nombre y slug
-    search_fields = ("name",)        # Búsqueda por nombre
-    prepopulated_fields = {"slug": ("name",)}  # Slug autogenerado desde el nombre
+    list_display = ("name", "slug")
+    search_fields = ("name",)
+    prepopulated_fields = {"slug": ("name",)}
+
 
 # ================================
 # ⚙️ Configuración general

@@ -52,9 +52,6 @@ def login_view(request):
 
 
 # 🧑‍💼 Vista del dashboard privado con métricas y pedidos
-
-
-
 @login_required
 def dashboard(request):
     usuario = request.user
@@ -76,16 +73,18 @@ def dashboard(request):
         .order_by('-fecha')[:5]
     )
 
-    # 📦 Contexto enviado a la plantilla
+    # 📦 Productos publicados (no tocar color_list aquí)
+    productos = Product.objects.filter(is_available=True)
+
     context = {
         'section': 'dashboard',
         'total_pedidos': total_pedidos,
         'productos_publicados': productos_publicados,
         'total_ventas': total_ventas,
         'pedidos_recientes': pedidos_recientes,
+        'products': productos,  # se usan las @property en la plantilla
     }
     return render(request, 'account/dashboard.html', context)
-
 
 # 📝 Vista de registro de usuario
 def register(request):

@@ -2,11 +2,12 @@ from django.db import models
 from django.conf import settings
 from decimal import Decimal
 
+
 # 🧾 Nota histórica:
 # El modelo Category antes vivía en la app `categorias`.
 # Ahora está consolidado en `store` para simplificar el proyecto y evitar dependencias rotas.
 # El campo Product.category apunta directamente a store.Category.
-from django.db import models
+
 
 class Configuracion(models.Model):
     iva_activo = models.BooleanField(default=True)
@@ -27,6 +28,7 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 # 🛍️ Modelo de Producto
@@ -84,6 +86,8 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    # ================= PROPIEDADES =================
+
     @property
     def has_variants(self):
         """Devuelve True si el producto tiene tallas o colores configurados."""
@@ -112,9 +116,33 @@ class Product(models.Model):
         """Devuelve lista de colores separadas por comas."""
         return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
 
-from django.conf import settings
-from django.db import models
-from store.models import Product  # Ajusta el import según tu estructura
+    @property
+    def color_visual_list(self):
+        """Devuelve lista de colores con nombre y estilo CSS."""
+        return [
+            {"nombre": nombre, "css": self.color_to_css(nombre)}
+            for nombre in self.color_list
+        ]
+
+    # ================= HELPERS =================
+
+    def color_to_css(self, nombre):
+        """Convierte nombre de color a código CSS básico."""
+        mapa = {
+            "Blanco": "#ffffff",
+            "Negro": "#000000",
+            "Azul": "#007bff",
+            "Rojo": "#dc3545",
+            "Verde": "#28a745",
+            "Amarillo": "#ffc107",
+            "Rosado": "#ff69b4",
+            "Gris": "#6c757d",
+            "Naranja": "#fd7e14",
+            "Morado": "#6f42c1",
+        }
+        return mapa.get(nombre.strip(), "#999999")  # color por defecto si no está en el mapa
+
+
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
@@ -264,49 +292,6 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"  
-    
-# 📦 Modelo de DetalleFactura
-class DetalleFactura(models.Model):
-    """Detalle de cada producto dentro de una factura."""
-
-    factura = models.ForeignKey(
-        Factura,
-        related_name="detalles",
-        on_delete=models.CASCADE
-    )
-    producto = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE
-    )
-    cantidad = models.PositiveIntegerField()
-    subtotal = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-
-    # 🎽 Variantes del producto (opcional)
-    talla = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True
-    )
-    color = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True
-    )
-
-    def variantes(self):
-        """Devuelve un string con las variantes seleccionadas (talla y color)."""
-        partes = []
-        if self.talla:
-            partes.append(f"Talla: {self.talla}")
-        if self.color:
-            partes.append(f"Color: {self.color}")
-        return " | ".join(partes) if partes else "Sin variantes"
-
-    def __str__(self):
-        return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"
     
 # 🎯 Modelo de Banner
 class Banner(models.Model):

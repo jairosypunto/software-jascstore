@@ -1,50 +1,75 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}{{ producto.name }} | JascShop{% endblock %}
 
 {% block content %}
 <div class="container my-5">
   <div class="row g-4">
 
-    <!-- 🖼 IMÁGENES -->
+    <!-- 🖼 VISOR PRINCIPAL -->
     <div class="col-md-6">
-
-      <div class="imagen-principal mb-3 text-center">
-        <img id="imagen-principal"
-             src="{{ producto.image.url }}"
-             class="img-fluid rounded shadow">
+      <div id="imagen-principal" class="imagen-principal mb-3 text-center">
+        <!-- El visor se llenará dinámicamente con JS -->
       </div>
 
-      <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <!-- Miniaturas -->
+      <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
         {% if producto.image %}
           <img src="{{ producto.image.url }}"
                class="miniatura activa"
-               data-url="{{ producto.image.url }}">
+               data-type="image"
+               data-src="{{ producto.image.url }}">
         {% endif %}
 
         {% for img in producto.images.all %}
           <img src="{{ img.image.url }}"
                class="miniatura"
-               data-url="{{ img.image.url }}">
+               data-type="image"
+               data-src="{{ img.image.url }}">
         {% endfor %}
+
+        {% if producto.video_file %}
+          <img src="{{ producto.video_thumb.url }}"
+               class="miniatura"
+               data-type="video"
+               data-src="{{ producto.video_file.url }}"
+               data-poster="{{ producto.video_thumb.url }}">
+        {% endif %}
+
+        {% if producto.video_url %}
+          <img src="{{ producto.video_thumb.url }}"
+               class="miniatura"
+               data-type="video"
+               data-src="{{ producto.video_url }}"
+               data-poster="{{ producto.video_thumb.url }}">
+        {% endif %}
       </div>
     </div>
 
-    <!-- 📄 INFO -->
+    <!-- 📄 INFO PRODUCTO -->
     <div class="col-md-6">
       <h2 class="fw-bold">{{ producto.name }}</h2>
       <p class="text-muted">{{ producto.description }}</p>
 
       {% if producto.discount > 0 %}
-        <p class="fs-4 text-danger fw-bold">${{ producto.final_price|floatformat:0 }}</p>
-        <p class="text-muted text-decoration-line-through">${{ producto.cost|floatformat:0 }}</p>
+        <p class="fs-4 text-danger fw-bold">
+          ${{ producto.final_price|floatformat:0 }}
+        </p>
+        <p class="text-muted text-decoration-line-through">
+          ${{ producto.cost|floatformat:0 }}
+        </p>
       {% else %}
-        <p class="fs-4 fw-bold">${{ producto.cost|floatformat:0 }}</p>
+        <p class="fs-4 fw-bold">
+          ${{ producto.cost|floatformat:0 }}
+        </p>
       {% endif %}
 
+      <!-- ================= FORMULARIO AGREGAR AL CARRITO ================= -->
       <form method="POST"
             action="{% url 'store:agregar_al_carrito' producto.id %}"
-            id="form-add-cart">
+            id="form-add-cart"
+            data-product-id="{{ producto.id }}">
         {% csrf_token %}
 
         <!-- ================= TALLAS ================= -->
@@ -66,18 +91,22 @@
         {% endif %}
 
         <!-- ================= COLORES ================= -->
-        {% if producto.colors_list %}
+        {% if producto.color_visual_list %}
         <div class="mb-3">
           <label class="fw-bold">Colores:</label>
           <div class="d-flex gap-2 flex-wrap">
-            {% for color in producto.colors_list %}
-            <label class="option-chip color-chip">
-              <input type="radio"
-                     name="selected_color"
-                     value="{{ color }}"
-                     class="visually-hidden">
-              <span>{{ color }}</span>
-            </label>
+            {% for color in producto.color_visual_list %}
+              <label class="option-chip color-chip">
+                <input type="radio"
+                      name="selected_color"
+                      value="{{ color.nombre }}"
+                      class="visually-hidden">
+                <!-- Mostrar nombre encima del fondo -->
+                <span style="background-color: {{ color.css }};
+                            color: {% if color.nombre == 'Blanco' %}#000{% else %}#fff{% endif %};">
+                  {{ color.nombre }}
+                </span>
+              </label>
             {% endfor %}
           </div>
         </div>
@@ -88,8 +117,9 @@
         <input type="hidden" name="selected_color_hidden">
         <input type="hidden" name="cantidad" value="1">
 
+        <!-- BOTÓN -->
         <button type="submit"
-                class="btn btn-primary mt-3"
+                class="btn btn-primary mt-3 btn-agregar"
                 disabled>
           <i class="bi bi-cart-plus"></i> Agregar al carrito
         </button>

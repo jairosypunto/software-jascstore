@@ -4,39 +4,40 @@
 from decimal import Decimal
 from io import BytesIO
 
-# ============
+# ============================
 # Librerías Django
-# ============
+# ============================
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMessage
 from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.http import HttpResponse
-
 from django.utils.timezone import localtime
+from django.views.decorators.http import require_POST
 
-# ============
+# ============================
 # Modelos propios
-# ============
+# ============================
 from .models import Product, Factura, DetalleFactura, Banner, Category
+from .forms import CheckoutForm
 
-# ============
+# ============================
 # Utilidades propias
-# ============
+# ============================
 from store.utils import formatear_numero
+from store.utils.totales import calcular_totales
+from store.utils.email import enviar_factura   # ✅ Función de correo con SendGrid
 
-# ============
+# ============================
 # Librerías externas (ReportLab para PDF)
-# ============
+# ============================
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-
 
 # ============================================================
 # 🧮 Función auxiliar: cálculo de precio final con descuento
@@ -98,20 +99,9 @@ def _items_carrito(request):
 
     return items
 
-
-from decimal import Decimal
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
-from store.models import Product
-from store.utils.totales import calcular_totales
-
-
 # ============================================================
 # 🛒 Agregar al carrito
 # ============================================================
-
-
 @require_POST
 def agregar_al_carrito(request, product_id):
     producto = get_object_or_404(Product, id=product_id)
@@ -154,13 +144,9 @@ def agregar_al_carrito(request, product_id):
     # ✅ Si no es AJAX, redirigir al carrito HTML
     return redirect("store:ver_carrito")
 
-
 # ============================================================
 # 📋 Ver carrito
 # ============================================================
-from decimal import Decimal
-from store.utils.totales import calcular_totales
-
 def ver_carrito(request):
     carrito = request.session.get('carrito', {})
 
@@ -223,10 +209,6 @@ def vaciar_carrito(request):
     request.session['carrito'] = {}
     messages.info(request, "Tu carrito fue vaciado.")
     return redirect('store:ver_carrito')
-
-# ============================================================
-# 📋 Vista: ver carrito (actualizada)
-# ============================================================
 
 # ============================================================
 # 🛒 Vista: modal de carrito (contenido dinámico)
@@ -310,23 +292,26 @@ def store(request):
 def productos_por_categoria(request, category_slug):
     """
     Muestra listado de productos filtrado por una categoría específica.
+    Si el slug es 'todos', se muestran todos los productos disponibles.
     Se usa en el menú de categorías y en la vista store.html.
     """
-    categoria = get_object_or_404(Category, slug=category_slug)
-    productos = Product.objects.filter(category=categoria, is_available=True)
+    if category_slug == "todos":
+        productos = Product.objects.filter(is_available=True)
+        categoria = None  # no hay categoría específica
+    else:
+        categoria = get_object_or_404(Category, slug=category_slug)
+        productos = Product.objects.filter(category=categoria, is_available=True)
 
     context = {
-        'categoria': categoria,
-        'productos': productos,
+        "categoria": categoria,
+        "productos": productos,
+        "slug": category_slug,  # útil para el template
     }
-    return render(request, 'store/productos_por_categoria.html', context)
+    return render(request, "store/productos_por_categoria.html", context)
 
 # ============================================================
 # 🧾 Vista: checkout
 # ============================================================
-# store/views.py
-from .forms import CheckoutForm
-
 def checkout(request):
     items = _items_carrito(request)
     subtotal = sum(i['subtotal'] for i in items)
@@ -365,7 +350,7 @@ def generar_factura(request):
     - Crea factura y detalles.
     - Reduce stock de productos.
     - Guarda datos de envío.
-    - Envía correo con PDF adjunto.
+    - Envía correo con plantilla HTML (SendGrid).
     """
     if request.method != "POST":
         return redirect("store:checkout")
@@ -380,17 +365,16 @@ def generar_factura(request):
         messages.error(request, "Tu carrito está vacío.")
         return redirect("store:ver_carrito")
 
+    # 🧮 Calcular totales
     subtotal = sum(i["subtotal"] for i in items)
     descuento = sum(
         (i["precio_original"] - i["precio_unitario"]) * i["cantidad"]
         for i in items if i["discount"] > 0
     )
-
     base_imponible = subtotal
     iva = Decimal("0.00")
     if getattr(settings, "IVA_ACTIVO", False):
         iva = base_imponible * Decimal("0.19")
-
     total_final = base_imponible + iva
 
     # ✅ Datos de envío
@@ -442,13 +426,15 @@ def generar_factura(request):
             color=color
         )
 
+    # 🛒 Vaciar carrito y guardar referencia
     request.session["carrito"] = {}
     request.session["factura_id"] = factura.id
 
+    # 📨 Enviar correo con SendGrid
     try:
-        enviar_factura_por_correo(factura, request.user, {
+        enviar_factura(factura, {
             "factura": factura,
-            "items": items,  # 👈 añade items al contexto del correo
+            "items": items,
             "subtotal": subtotal,
             "descuento": descuento,
             "iva": iva,
@@ -459,9 +445,11 @@ def generar_factura(request):
     except Exception as e:
         messages.warning(request, f"No se pudo enviar el correo: {e}")
 
+    # 🔀 Redirigir según método de pago
     if metodo_pago == "banco":
         return redirect("store:pago_banco")
 
+    # 📄 Renderizar detalle de factura
     context = {
         "factura": factura,
         "items": items,
@@ -470,7 +458,6 @@ def generar_factura(request):
         "iva": iva,
         "total_final": total_final,
         "estado_pago": factura.estado_pago,
-        # 👇 añade explícitamente datos de envío al contexto
         "nombre": factura.nombre,
         "email": factura.email,
         "telefono": factura.telefono,
@@ -479,7 +466,6 @@ def generar_factura(request):
         "departamento": factura.departamento,
     }
     return render(request, "store/factura_detalle.html", context)
-
 
 # ============================================================
 # 🧾 Vista: ver factura
@@ -503,7 +489,6 @@ def ver_factura(request, factura_id):
     }
     return render(request, "store/factura_pdf.html", contexto)
 
-
 # ============================================================
 # 🧾 Vista: historial de facturas
 # ============================================================
@@ -526,15 +511,23 @@ def generar_factura_pdf(request, factura_id):
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
     detalles = DetalleFactura.objects.filter(factura=factura)
 
-    # 🧮 Recalcular totales
+    # 🧮 Totales
+    # Subtotal ya con descuento aplicado en final_price
     subtotal = sum(d.subtotal for d in detalles)
-    descuento = sum(
+
+    # Ahorro total solo como referencia visual (no se usa para cálculos)
+    ahorro_total = sum(
         (d.producto.cost - d.producto.final_price) * d.cantidad
         for d in detalles if d.producto.discount > 0
     )
-    base_imponible = subtotal - descuento
-    iva = base_imponible * Decimal("0.19")
-    total = base_imponible + iva
+
+    # IVA solo si aplica y el método de pago NO es contra entrega
+    iva = Decimal("0.00")
+    if factura.metodo_pago.lower() != "contra entrega" and getattr(factura, "aplica_iva", False):
+        iva = subtotal * Decimal("0.19")
+
+    # Total final = subtotal + IVA (el descuento ya está aplicado en final_price)
+    total = subtotal + iva
 
     # 🧾 Generar PDF
     buffer = BytesIO()
@@ -570,8 +563,10 @@ def generar_factura_pdf(request, factura_id):
 
     # Totales
     elements.append(Paragraph(f"Subtotal: ${subtotal:.2f}", styles['Normal']))
-    elements.append(Paragraph(f"Descuento: ${descuento:.2f}", styles['Normal']))
-    elements.append(Paragraph(f"IVA: ${iva:.2f}", styles['Normal']))
+    if ahorro_total > 0:
+        elements.append(Paragraph(f"Ahorro total: ${ahorro_total:.2f}", styles['Normal']))
+    if iva > 0:
+        elements.append(Paragraph(f"IVA: ${iva:.2f}", styles['Normal']))
     elements.append(Paragraph(f"Total: ${total:.2f}", styles['Normal']))
 
     doc.build(elements)
@@ -635,7 +630,6 @@ def formatear_numero(valor):
 # ============================================================
 # 📧 Generar y enviar factura por correo con PDF adjunto
 # ============================================================
-
 def enviar_factura_por_correo(factura, usuario, contexto=None):
     """Genera un PDF de la factura y lo envía por correo al usuario."""
     if contexto is None:
@@ -823,11 +817,6 @@ def pago_banco_widget(request):
 # ============================================================
 # ✅ Vista: confirmación de pago
 # ============================================================
-from store.utils.totales import calcular_totales
-from django.utils.timezone import localtime
-from django.shortcuts import render
-from store.models import Factura
-
 def confirmacion_pago(request):
     estado = request.GET.get("status")
     if estado not in ["APPROVED", "DECLINED"]:
@@ -851,6 +840,10 @@ def confirmacion_pago(request):
         factura.banco = request.GET.get("banco", factura.banco)  # ✅ guardar banco elegido
         factura.save()
 
+        # 📨 Enviar correo de confirmación
+        if factura.email:
+            enviar_factura(factura, {"factura": factura})
+
         fecha_local = localtime(factura.fecha)
         items = factura.detalles.all()
 
@@ -866,7 +859,7 @@ def confirmacion_pago(request):
             "descuento": totales["ahorro_total"],
             "total_final": totales["total_final"],
             "estado_pago": factura.estado_pago,
-            "es_pago_real": factura.es_pago_real,  # ✅ esta línea es clave
+            "es_pago_real": factura.es_pago_real,
             "fecha_local": fecha_local,
         }
         return render(request, "store/factura.html", contexto)
@@ -875,7 +868,7 @@ def confirmacion_pago(request):
         "estado": estado,
         "referencia": referencia
     })
-    
+
 # ============================================================
 # 🛍️ Vista: detalle de producto
 # ============================================================

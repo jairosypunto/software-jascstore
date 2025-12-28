@@ -8,7 +8,7 @@
   <h2 class="mb-4 text-primary">Mis facturas</h2>
 
   <!-- 📋 Tabla de facturas -->
-  <table class="table table-bordered table-hover">
+  <table class="table table-bordered table-hover align-middle" aria-label="Listado de facturas">
     <thead class="table-dark">
       <tr>
         <th>ID</th>
@@ -18,7 +18,6 @@
         <th>Método de pago</th>
         <th>Total</th>
         <th>Productos</th>
-        <!-- 🆕 Nueva columna para el preview de variantes -->
         <th>Variantes</th>
         <th>Acciones</th>
       </tr>
@@ -28,15 +27,19 @@
         <tr>
           <td>#{{ factura.id }}</td>
           <td>{{ factura.fecha|date:"d/m/Y H:i" }}</td>
+
+          <!-- Estado de pago -->
           <td>
-            {% if estado_pago == "Pagado" and es_pago_real %}
-              <span class="badge bg-success">✅ Pago Simulado</span>
-            {% elif factura.estado_pago == "Pagado" %}
+            {% if factura.estado_pago == "Pagado" %}
+              <span class="badge bg-success">✅ Pagado</span>
+            {% elif factura.estado_pago == "Simulado" %}
               <span class="badge bg-warning text-dark">🟡 Simulado</span>
             {% else %}
-              <span class="badge bg-warning text-dark">🕒 Pendiente</span>
+              <span class="badge bg-secondary">🕒 Pendiente</span>
             {% endif %}
           </td>
+
+          <!-- Estado del pedido -->
           <td>
             {% if factura.estado_pedido == "pendiente" %}
               <span class="badge bg-danger">🟡 Pendiente</span>
@@ -50,28 +53,32 @@
               <span class="badge bg-secondary">Sin estado</span>
             {% endif %}
           </td>
+
           <td>{{ factura.metodo_pago|title }}</td>
           <td>${{ factura.total|intcomma }}</td>
           <td>{{ factura.detalles.count }} ítem(s)</td>
 
-          <!-- 🆕 Columna de variantes (talla y color) -->
+          <!-- Variantes -->
           <td class="small">
             {% for det in factura.detalles.all %}
               {% if det.talla %}
-                <span class="badge bg-primary me-1 mb-1">Talla: {{ det.talla }}</span>
+                <span class="badge bg-info me-1 mb-1">👕 {{ det.talla }}</span>
               {% endif %}
               {% if det.color %}
-                <span class="badge bg-secondary me-1 mb-1">Color: {{ det.color }}</span>
+                <span class="badge bg-secondary me-1 mb-1">🎨 {{ det.color }}</span>
               {% endif %}
             {% empty %}
               <span class="text-muted">Sin detalles</span>
             {% endfor %}
           </td>
 
+          <!-- Acciones -->
           <td>
-            <a href="{% url 'store:ver_factura' factura_id=factura.id %}" 
-               class="btn btn-sm btn-outline-primary">
+            <a href="{% url 'store:ver_factura' factura.id %}" class="btn btn-sm btn-outline-primary">
               Ver detalle
+            </a>
+            <a href="{% url 'store:generar_factura_pdf' factura.id %}" class="btn btn-sm btn-outline-secondary ms-1">
+              📄 PDF
             </a>
           </td>
         </tr>

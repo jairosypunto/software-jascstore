@@ -1,25 +1,76 @@
 {% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}🧾 Factura #{{ order.id }} - JascShop{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2>Factura de compra</h2>
+<div class="container py-4">
+  <h2 class="mb-3 text-primary fw-bold">🧾 Factura de compra</h2>
   <hr>
-  <p><strong>Cliente:</strong> {{ order.user.username }}</p>
-  <p><strong>Fecha:</strong> {{ order.created_at }}</p>
-  <p><strong>Método de pago:</strong> {{ order.payment_method }}</p>
-  <p><strong>Total:</strong> ${{ order.total|floatformat:0 }}</p>
 
+  <!-- Datos principales -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <p><strong>Cliente:</strong> {{ order.user.username }}</p>
+      <p><strong>Fecha:</strong> {{ order.created_at|date:"d M Y H:i" }}</p>
+      <p><strong>Método de pago:</strong> {{ order.get_payment_method_display }}</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <h4 class="fw-bold">Total: ${{ order.total|floatformat:0|intcomma }}</h4>
+      {% if order.is_paid %}
+        <span class="badge bg-success">Pagado</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">Pendiente</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Detalles de pago -->
   {% if order.payment_method == 'transferencia' %}
     <div class="alert alert-info">
-      <h4>Datos para transferencia:</h4>
-      <p>Banco: Bancolombia</p>
-      <p>Cuenta: 123456789</p>
-      <p>Referencia: Pedido #{{ order.id }}</p>
+      <h5 class="fw-bold">💳 Datos para transferencia</h5>
+      <p><strong>Banco:</strong> Bancolombia</p>
+      <p><strong>Cuenta:</strong> 123456789</p>
+      <p><strong>Referencia:</strong> Pedido #{{ order.id }}</p>
     </div>
   {% else %}
     <div class="alert alert-success">
-      <p>Tu pedido será pagado al momento de la entrega.</p>
+      <p>✅ Tu pedido será pagado al momento de la entrega.</p>
     </div>
   {% endif %}
+
+  <!-- Tabla de productos -->
+  {% if order.items.all %}
+    <h5 class="mt-4">Productos incluidos</h5>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio unitario</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+          <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price|floatformat:0|intcomma }}</td>
+            <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <!-- Botón volver -->
+  <div class="mt-4 text-center">
+    <a href="{% url 'pedidos:mis_pedidos' %}" class="btn btn-outline-primary">
+      ⬅️ Volver a mis pedidos
+    </a>
+  </div>
 </div>
 {% endblock %}

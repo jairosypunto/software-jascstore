@@ -1,22 +1,22 @@
+# pedidos/admin.py
 from django.contrib import admin
 from .models import Order, Product
 
-# 📦 Administración de productos
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'price', 'image')  # columnas visibles
-    search_fields = ('name',)  # búsqueda por nombre
-    list_filter = ('price',)   # filtro por precio
-    ordering = ('name',)       # orden alfabético
+    list_display = ('id', 'name', 'price', 'image', 'tallas', 'colores')
+    search_fields = ('name',)
+    list_filter = ('price',)
+    ordering = ('name',)
+    fields = ('name', 'price', 'image', 'tallas', 'colores')  # ✅ editable en admin
 
-# 🧾 Administración de pedidos
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user', 'created_at', 'total',
         'payment_method', 'is_paid', 'is_confirmed'
-    )  # columnas visibles
-    list_filter = ('is_paid', 'is_confirmed', 'payment_method')  # filtros laterales
-    search_fields = ('user__username',)  # búsqueda por usuario
-    date_hierarchy = 'created_at'  # navegación por fecha
-    ordering = ('-created_at',)    # pedidos más recientes primero
+    )
+    list_filter = ('is_paid', 'is_confirmed', 'payment_method')
+    search_fields = ('user__username',)
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)

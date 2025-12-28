@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Detalle del pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-primary">🧾 Pedido #{{ pedido.id }}</h2>
+
+  <!-- Datos principales -->
+  <p><strong>Fecha:</strong> {{ pedido.created_at|date:"d/m/Y H:i" }}</p>
+  <p><strong>Método de pago:</strong> {{ pedido.get_payment_method_display }}</p>
+  <p><strong>Estado de pago:</strong>
+    {% if pedido.is_paid %}
+      <span class="badge bg-success">Pagado</span>
+    {% else %}
+      <span class="badge bg-warning text-dark">Pendiente</span>
+    {% endif %}
+  </p>
+  <p><strong>Estado del pedido:</strong> {{ pedido.estado_pedido }}</p>
+  <p><strong>Total:</strong> ${{ pedido.total|floatformat:0|intcomma }}</p>
+
+  <!-- Productos -->
+  <h4 class="mt-4">📦 Productos</h4>
+  <table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Precio unitario</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in detalles %}
+        <tr>
+          <td>
+            <strong>{{ item.product.name }}</strong>
+            {% if item.talla or item.color %}
+              <div class="small text-muted mt-1">
+                {% if item.talla %}
+                  <span class="me-2">Talla: {{ item.talla }}</span>
+                {% endif %}
+                {% if item.color %}
+                  <span class="d-inline-flex align-items-center gap-1">
+                    Color:
+                    <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background-color:{{ item.color|default:'#999' }};border:1px solid #ccc;"
+                          title="{{ item.color }}"></span>
+                    <span>{{ item.color }}</span>
+                  </span>
+                {% endif %}
+              </div>
+            {% endif %}
+          </td>
+          <td>{{ item.quantity }}</td>
+          <td>${{ item.price|floatformat:0|intcomma }}</td>
+          <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Botón volver -->
+  <div class="mt-3">
+    <a href="{% url 'pedidos:mis_pedidos' %}" class="btn btn-outline-secondary">⬅ Volver a mis pedidos</a>
+  </div>
+</div>
+{% endblock %}

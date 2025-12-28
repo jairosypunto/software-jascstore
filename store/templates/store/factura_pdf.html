@@ -96,20 +96,24 @@
     </tbody>
   </table>
 
+  <!-- Mostrar solo referencia de descuentos, no recalcular -->
   {% for item in items %}
     {% if item.producto.discount > 0 %}
       <div class="resumen-descuento">
         <strong>{{ item.producto.name }}</strong>: Antes ${{ item.producto.cost|floatformat:0|intcomma }}
-        ({{ item.producto.discount }}% de descuento)
+        ({{ item.producto.discount }}% de descuento aplicado)
       </div>
     {% endif %}
   {% endfor %}
 
+  <!-- Resumen final -->
   <div class="text-right" style="margin-top: 20px;">
     <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
-    <p><strong>Ahorro total:</strong> ${{ descuento|floatformat:0|intcomma }}</p>
+    {% if iva > 0 %}
+      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
+    {% endif %}
     <p><strong>Total:</strong> <span class="text-success">${{ total_final|floatformat:0|intcomma }}</span></p>
-    <p class="text-muted">El descuento ya fue aplicado en los precios unitarios. Esta línea refleja el ahorro total.</p>
+    <p class="text-muted">Los precios unitarios ya incluyen el descuento aplicado.</p>
   </div>
 
   <p style="margin-top:20px; text-align:center;">

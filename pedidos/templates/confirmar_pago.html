@@ -1,20 +1,62 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}💳 Confirmación de Pago - JascShop{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2 class="text-center">Confirmar Pago</h2>
-  <hr>
-  <form method="post" action="{% url 'store:generar_factura' %}">
-    {% csrf_token %}
-    <div class="form-group">
-      <label for="metodo_pago">Selecciona el método de pago:</label>
-      <select name="metodo_pago" id="metodo_pago" class="form-control" required>
-        <option value="">-- Selecciona --</option>
-        <option value="transferencia">Transferencia bancaria</option>
-        <option value="contraentrega">Pago contra entrega</option>
-      </select>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+          <h4 class="mb-0">🛒 Proceso de compra</h4>
+        </div>
+        <div class="card-body">
+
+          <!-- Barra de progreso -->
+          <div class="progress mb-4" style="height: 25px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 33%;">
+              Paso 1: Método de pago
+            </div>
+          </div>
+
+          <!-- Paso 1: Selección de método -->
+          <h5 class="fw-bold mb-3">💳 Selecciona tu método de pago</h5>
+          <form method="post" action="{% url 'store:generar_factura' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="metodo_pago" class="form-label">Método de pago</label>
+              <select name="metodo_pago" id="metodo_pago" class="form-select" required>
+                <option value="">-- Selecciona --</option>
+                <option value="transferencia">🏦 Transferencia bancaria</option>
+                <option value="contraentrega">🚚 Pago contra entrega</option>
+              </select>
+            </div>
+
+            <!-- Paso 2: Confirmación -->
+            <div class="alert alert-info mt-4">
+              <h6 class="fw-bold">📋 Paso 2: Confirmar datos</h6>
+              <p>Revisa que tu información de envío y el método de pago sean correctos antes de continuar.</p>
+            </div>
+
+            <!-- Paso 3: Finalización -->
+            <div class="alert alert-success mt-4">
+              <h6 class="fw-bold">✅ Paso 3: Recibir factura</h6>
+              <p>Una vez confirmado, recibirás tu factura por correo electrónico con el detalle de tu compra.</p>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-success btn-lg">
+                Confirmar Pedido
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="card-footer text-center">
+          <small class="text-muted">Tu compra está protegida por JascShop</small>
+        </div>
+      </div>
     </div>
-    <button type="submit" class="btn btn-primary mt-3">Confirmar Pedido</button>
-  </form>
+  </div>
 </div>
 {% endblock %}

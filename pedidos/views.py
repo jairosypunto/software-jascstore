@@ -2,27 +2,24 @@ from django.contrib import messages
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Order
+from store.models import Product   # ✅ Importar el modelo correcto
 from .utils import calcular_total
+
 
 @login_required
 def confirmar_pago(request):
     if request.method == 'POST':
         metodo = request.POST.get('metodo_pago')
-
-        # ✅ Recuperar el carrito desde la sesión
         carrito = request.session.get('carrito', {})
-        print("Carrito recibido:", carrito)  # 🧪 Depuración visual
+        print("Carrito recibido:", carrito)
 
-        # ✅ Validar que el carrito no esté vacío
         if not carrito:
             messages.error(request, "Tu carrito está vacío.")
             return redirect('carrito')
 
-        # ✅ Calcular el total desde los precios ya con descuento
-        total = calcular_total(carrito)  # debe usar precio_unitario (final_price)
-        print("Total calculado:", total)  # 🧪 Depuración visual
+        total = calcular_total(carrito)
+        print("Total calculado:", total)
 
-        # ✅ Crear el pedido en la base de datos
         order = Order.objects.create(
             user=request.user,
             total=total,
@@ -31,24 +28,40 @@ def confirmar_pago(request):
             is_confirmed=True
         )
 
-        # ✅ Guardar el pedido en sesión si lo necesitas para redirección
         request.session['pedido_id'] = order.id
-
         messages.success(request, "Pedido confirmado correctamente.")
         return redirect('factura', order_id=order.id)
 
-    # ✅ Renderizar el formulario si no es POST
     return render(request, 'confirmar_pago.html')
+
 
 @login_required
 def factura(request, order_id):
-    # ✅ Recuperar el pedido del usuario
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'factura.html', {'order': order})
 
 
 @login_required
 def mis_pedidos(request):
-    # Aquí puedes traer los pedidos del usuario autenticado
-    # Ejemplo mínimo para que no falle:
-    return render(request, 'pedidos/mis_pedidos.html')
+    pedidos = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'pedidos/mis_pedidos.html', {'pedidos': pedidos})
+
+
+@login_required
+def ver_pedido(request, pedido_id):
+    pedido = get_object_or_404(Order, id=pedido_id, user=request.user)
+    detalles = pedido.products.all()
+    context = {
+        "pedido": pedido,
+        "detalles": detalles,
+    }
+    return render(request, "pedidos/ver_pedido.html", context)
+
+
+# ✅ Vista profesional con slug para detalle de producto
+@login_required
+def detalle_producto(request, slug):
+    producto = get_object_or_404(Product, slug=slug)
+    return render(request, "store/detalle_producto.html", {"producto": producto})
+
+
