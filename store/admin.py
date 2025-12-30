@@ -1,6 +1,10 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html_join
+from django.urls import path
+from django.shortcuts import redirect
+
 from .models import Product, ProductImage, Factura, DetalleFactura, Banner, Category, Configuracion
+from store.utils.email import enviar_factura   # ✅ función oficial de envío
 
 # ================================
 # 🖼️ Configuración en línea de imágenes adicionales
@@ -92,12 +96,66 @@ class FacturaAdmin(admin.ModelAdmin):
         'metodo_pago',
         'estado_pago',
         'estado_pedido',
-        'banco'
+        'banco',
+        'correo_enviado',
     )
     date_hierarchy = 'fecha'
-    search_fields = ('usuario__username', 'usuario__email', 'nombre', 'email', 'telefono')
-    list_filter = ('estado_pago', 'estado_pedido', 'metodo_pago', 'banco')
+    search_fields = (
+        'usuario__username',
+        'usuario__email',
+        'nombre',
+        'email',
+        'telefono',
+        'transaccion_id',
+    )
+    list_filter = (
+        'estado_pago',
+        'estado_pedido',
+        'metodo_pago',
+        'banco',
+        'correo_enviado',
+    )
 
+    # ✅ Acción masiva para reenviar facturas seleccionadas
+    actions = ["reenviar_factura"]
+
+    def reenviar_factura(self, request, queryset):
+        reenviadas = 0
+        for factura in queryset:
+            if factura.estado_pago == "Pagado":
+                ok = enviar_factura(factura)   # ✅ usamos la función oficial
+                if ok:
+                    reenviadas += 1
+        self.message_user(
+            request,
+            f"Se reenviaron {reenviadas} factura(s) correctamente.",
+            level=messages.SUCCESS
+        )
+    reenviar_factura.short_description = "📧 Reenviar factura seleccionada"
+
+    # ✅ Botón individual en el detalle de la factura
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:factura_id>/reenviar/',
+                self.admin_site.admin_view(self.reenviar_factura_individual),
+                name='store_factura_reenviar',
+            ),
+        ]
+        return custom_urls + urls
+
+    def reenviar_factura_individual(self, request, factura_id):
+        factura = Factura.objects.get(pk=factura_id)
+        if factura.estado_pago == "Pagado":
+            ok = enviar_factura(factura)   # ✅ también aquí
+            if ok:
+                self.message_user(request, f"✅ Factura #{factura.id} reenviada correctamente.", level=messages.SUCCESS)
+            else:
+                self.message_user(request, f"❌ Error al reenviar factura #{factura.id}.", level=messages.ERROR)
+        else:
+            self.message_user(request, f"⚠️ Factura #{factura.id} no se puede reenviar porque el estado es {factura.estado_pago}.", level=messages.WARNING)
+        return redirect(f"/admin/store/factura/{factura_id}/change/")
 
 # ================================
 # 📦 Detalle de factura

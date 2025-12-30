@@ -5,11 +5,15 @@ from . import views
 
 urlpatterns = [
     # 🔐 Login: muestra formulario y redirige al /home/ si ya está autenticado
-    path('login/', LoginView.as_view(
-        template_name='account/login.html',
-        redirect_authenticated_user=True,
-        next_page='/home/'  # ✅ Redirección después del login
-    ), name='login'),
+    path(
+        'login/',
+        LoginView.as_view(
+            template_name='account/login.html',
+            redirect_authenticated_user=True,
+            next_page='/home/'  # ✅ Redirección después del login
+        ),
+        name='login'
+    ),
 
     # 🔓 Logout: cierra sesión y redirige según LOGOUT_REDIRECT_URL en settings.py
     path('logout/', LogoutView.as_view(), name='logout'),
@@ -28,9 +32,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
 
     # 🧑 Dashboard del usuario (solo si está autenticado)
-    # ⚠️ Esta ruta usa '', lo que significa que al entrar a /account/ se carga el dashboard
-    # ✅ No compite con la raíz del proyecto, que usa views.inicio
-    path('dashboard/', views.dashboard, name='dashboard')  # ✅ Ruta clara y específica
+    path('dashboard/', views.dashboard, name='dashboard'),  # ✅ Ruta clara y específica
 
     # 🧪 Rutas futuras (perfil, historial, etc.)
     # path('perfil/', views.perfil, name='perfil'),

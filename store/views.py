@@ -17,6 +17,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.timezone import localtime
 from django.views.decorators.http import require_POST
+from django.core.mail import EmailMessage
 
 # ============================
 # Modelos propios
@@ -630,8 +631,19 @@ def formatear_numero(valor):
 # ============================================================
 # 📧 Generar y enviar factura por correo con PDF adjunto
 # ============================================================
+
 def enviar_factura_por_correo(factura, usuario, contexto=None):
-    """Genera un PDF de la factura y lo envía por correo al usuario."""
+    """
+    Genera un PDF de la factura y lo envía por correo al usuario.
+    🚫 Solo se envía si el estado de pago es 'Pagado'.
+    """
+
+    # ✅ Condición de envío
+    if factura.estado_pago != "Pagado":
+        print(f"⚠️ Factura #{factura.id} no enviada porque el estado es {factura.estado_pago}")
+        return None
+
+    # Construcción del contexto si no se pasa explícito
     if contexto is None:
         subtotal = factura.total / Decimal('1.19')
         iva = factura.total - subtotal
@@ -645,9 +657,11 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
             "fecha_local": factura.fecha,
         }
 
+    # Asunto y mensaje HTML
     asunto = f"Factura #{factura.id} - JascShop"
     mensaje = render_to_string('emails/factura.html', contexto)
 
+    # Generar PDF en memoria
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elementos = []
@@ -671,7 +685,7 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
         precio_final = item.subtotal / item.cantidad
         precio_original = Decimal(item.producto.cost)
 
-        # ✅ Formato visual en dos líneas
+        # Formato visual en dos líneas si hay descuento
         if item.producto.discount > 0:
             texto_precio = (
                 f"<font color='#888'><strike>${formatear_numero(precio_original)}</strike></font><br/>"
@@ -680,7 +694,7 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
         else:
             texto_precio = f"<b>${formatear_numero(precio_final)}</b>"
 
-        # ✅ Variantes en el nombre del producto
+        # Variantes en el nombre del producto
         nombre_producto = item.producto.name
         if item.talla or item.color:
             variantes = []
@@ -716,19 +730,149 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     elementos.append(Paragraph(f"<b>Descuento:</b> ${formatear_numero(contexto['descuento'])}", estilos['Normal']))
     elementos.append(Paragraph(f"<b>Total pagado:</b> ${formatear_numero(contexto['total_final'])}", estilos['Normal']))
 
+    # Construir PDF
     doc.build(elementos)
     buffer.seek(0)
 
-    email = EmailMessage(
-        asunto,
-        mensaje,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[usuario.email]
-    )
-    email.content_subtype = "html"
-    email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
-    email.send()
+    # Enviar correo con PDF adjunto
+    try:
+        email = EmailMessage(
+            asunto,
+            mensaje,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[usuario.email]
+        )
+        email.content_subtype = "html"
+        email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
+        email.send()
 
+        # ✅ Marcar la factura como enviada
+        factura.correo_enviado = True
+        factura.save(update_fields=["correo_enviado"])
+
+        print(f"✅ Factura #{factura.id} enviada correctamente a {usuario.email}")
+        return True
+    except Exception as e:
+        print(f"❌ Error al enviar factura #{factura.id}: {e}")
+        return False
+    
+    """
+    Genera un PDF de la factura y lo envía por correo al usuario.
+    🚫 Solo se envía si el estado de pago es 'Pagado'.
+    """
+
+    # ✅ Condición de envío
+    if factura.estado_pago != "Pagado":
+        print(f"⚠️ Factura #{factura.id} no enviada porque el estado es {factura.estado_pago}")
+        return None
+
+    # Construcción del contexto si no se pasa explícito
+    if contexto is None:
+        subtotal = factura.total / Decimal('1.19')
+        iva = factura.total - subtotal
+        contexto = {
+            "factura": factura,
+            "subtotal": subtotal,
+            "iva": iva,
+            "descuento": Decimal('0.00'),
+            "total_final": factura.total,
+            "banco": factura.banco,
+            "fecha_local": factura.fecha,
+        }
+
+    # Asunto y mensaje HTML
+    asunto = f"Factura #{factura.id} - JascShop"
+    mensaje = render_to_string('emails/factura.html', contexto)
+
+    # Generar PDF en memoria
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elementos = []
+    estilos = getSampleStyleSheet()
+
+    # Encabezado
+    elementos.append(Paragraph(f"<b>Factura #{factura.id} - JascShop</b>", estilos['Title']))
+    elementos.append(Spacer(1, 12))
+    elementos.append(Paragraph(f"Cliente: {usuario.username}", estilos['Normal']))
+    elementos.append(Paragraph(f"Email: {usuario.email}", estilos['Normal']))
+    elementos.append(Paragraph(f"Fecha: {contexto['fecha_local']}", estilos['Normal']))
+    elementos.append(Paragraph(f"Método de pago: {factura.metodo_pago}", estilos['Normal']))
+    elementos.append(Paragraph(f"Estado del pago: {factura.estado_pago}", estilos['Normal']))
+    if factura.banco:
+        elementos.append(Paragraph(f"Banco utilizado: {factura.banco}", estilos['Normal']))
+    elementos.append(Spacer(1, 12))
+
+    # Tabla de productos
+    datos = [["Producto", "Cantidad", "Precio unitario", "Subtotal"]]
+    for item in factura.detalles.all():
+        precio_final = item.subtotal / item.cantidad
+        precio_original = Decimal(item.producto.cost)
+
+        # Formato visual en dos líneas si hay descuento
+        if item.producto.discount > 0:
+            texto_precio = (
+                f"<font color='#888'><strike>${formatear_numero(precio_original)}</strike></font><br/>"
+                f"<b>${formatear_numero(precio_final)}</b>"
+            )
+        else:
+            texto_precio = f"<b>${formatear_numero(precio_final)}</b>"
+
+        # Variantes en el nombre del producto
+        nombre_producto = item.producto.name
+        if item.talla or item.color:
+            variantes = []
+            if item.talla:
+                variantes.append(f"Talla: {item.talla}")
+            if item.color:
+                variantes.append(f"Color: {item.color}")
+            nombre_producto += f" ({' | '.join(variantes)})"
+
+        datos.append([
+            nombre_producto,
+            str(item.cantidad),
+            Paragraph(texto_precio, estilos['Normal']),
+            f"${formatear_numero(item.subtotal)}"
+        ])
+
+    tabla = Table(datos, colWidths=[250, 80, 100, 100])
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f2f2f2")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+        ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 12))
+
+    # Totales
+    elementos.append(Paragraph(f"<b>Subtotal:</b> ${formatear_numero(contexto['subtotal'])}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>IVA (19%):</b> ${formatear_numero(contexto['iva'])}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Descuento:</b> ${formatear_numero(contexto['descuento'])}", estilos['Normal']))
+    elementos.append(Paragraph(f"<b>Total pagado:</b> ${formatear_numero(contexto['total_final'])}", estilos['Normal']))
+
+    # Construir PDF
+    doc.build(elementos)
+    buffer.seek(0)
+
+    # Enviar correo con PDF adjunto
+    try:
+        email = EmailMessage(
+            asunto,
+            mensaje,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[usuario.email]
+        )
+        email.content_subtype = "html"
+        email.attach(f"Factura_{factura.id}.pdf", buffer.read(), 'application/pdf')
+        email.send()
+        print(f"✅ Factura #{factura.id} enviada correctamente a {usuario.email}")
+        return True
+    except Exception as e:
+        print(f"❌ Error al enviar factura #{factura.id}: {e}")
+        return False
 
 # ============================================================
 # 👁️ Vista: vista rápida de producto

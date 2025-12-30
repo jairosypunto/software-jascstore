@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse, render
 
-from models import Product
+from JascEcommerce.JascEcommerce.models import Product
 
 def home(request):
     productos = Product.objects.filter(is_available=True)

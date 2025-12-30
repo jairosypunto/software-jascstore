@@ -4,7 +4,9 @@ from django.template.loader import render_to_string
 from django.utils.timezone import localtime
 from decouple import config
 
+# ============================================================
 # 📧 Enviar correo simple (texto plano)
+# ============================================================
 def enviar_correo(destinatario, asunto, mensaje):
     """
     Envía un correo simple usando la API de SendGrid.
@@ -27,13 +29,22 @@ def enviar_correo(destinatario, asunto, mensaje):
         print("❌ Error al enviar correo:", e)
         return None
 
+
+# ============================================================
 # 🧾 Enviar factura con plantilla HTML
+# ============================================================
 def enviar_factura(factura, contexto=None):
     """
     Envía un correo con la factura en formato HTML usando SendGrid API.
     - factura: instancia del modelo Factura
     - contexto: diccionario adicional para renderizar la plantilla
     """
+
+    # 🚫 Solo enviar si el pago está confirmado
+    if factura.estado_pago != "Pagado":
+        print(f"⚠️ Factura #{factura.id} no enviada porque el estado es {factura.estado_pago}")
+        return None
+
     asunto = f"Factura #{factura.id} - JascEcommerce"
     html_content = render_to_string("emails/factura.html", {
         "usuario": factura.usuario,
@@ -54,7 +65,7 @@ def enviar_factura(factura, contexto=None):
     try:
         sg = SendGridAPIClient(config("SENDGRID_API_KEY"))
         response = sg.send(message)
-        print(f"✅ Factura enviada con estado {response.status_code}")
+        print(f"✅ Factura #{factura.id} enviada con estado {response.status_code}")
         return response.status_code
     except Exception as e:
         print("❌ Error al enviar factura:", e)

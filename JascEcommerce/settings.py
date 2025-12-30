@@ -115,7 +115,6 @@ TEMPLATES = [
             BASE_DIR / "store" / "templates",
             BASE_DIR / "home" / "templates",
             BASE_DIR / "auths" / "templates",
-            # ❌ eliminado: BASE_DIR / "categorias" / "templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -123,7 +122,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # ✅ menú de categorías desde store
                 "store.context_processors.menu_links",
                 "store.context_processors.total_items_carrito",
                 "store.context_processors.static_version",
@@ -141,8 +139,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "store" / "static",
     BASE_DIR / "home" / "static",
     BASE_DIR / "auths" / "static",
-    BASE_DIR / "static",  # favicon y extras globales
-    # ❌ eliminado: BASE_DIR / "categorias" / "static",
+    BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -153,15 +150,14 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Usar Cloudinary como almacenamiento por defecto
+# ✅ Usar Cloudinary como almacenamiento por defecto
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-# Configuración de Cloudinary
-CLOUDINARY = {
-    "cloud_name": config("CLOUDINARY_CLOUD_NAME"),
-    "api_key": config("CLOUDINARY_API_KEY"),
-    "api_secret": config("CLOUDINARY_API_SECRET"),
-    "secure": True,
+# ✅ Configuración correcta de Cloudinary
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": config("CLOUDINARY_API_KEY"),
+    "API_SECRET": config("CLOUDINARY_API_SECRET"),
 }
 
 # ================================
@@ -179,7 +175,6 @@ EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = config("SENDGRID_API_KEY")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
-# Opcional: ayuda a depurar en modo debug
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 SENDGRID_ECHO_TO_STDOUT = True
 

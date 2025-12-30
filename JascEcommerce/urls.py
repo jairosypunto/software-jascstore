@@ -6,19 +6,19 @@ from home import views as home_views  # ✅ Usamos la vista home como portada
 
 urlpatterns = [
     # Admin
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
 
     # Usuarios y autenticación
-    path('account/', include('usuario.urls')),          # App personalizada
+    path('account/', include('usuario.urls')),
     path("accounts/", include("django.contrib.auth.urls")),  # Login/logout Django
 
     # Portada
-    path('', home_views.home, name="inicio"),
+    path("", home_views.home, name="inicio"),
 
     # Apps principales
-    path('store/', include('store.urls')),
-    path('pedidos/', include('pedidos.urls')),
-    path('home/', include('home.urls')),  # opcional
+    path("store/", include("store.urls")),
+    path("pedidos/", include("pedidos.urls")),
+    path("home/", include("home.urls")),  # opcional
 ]
 
 # Archivos estáticos y media (solo en desarrollo)
