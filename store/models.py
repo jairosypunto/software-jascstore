@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
-
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 # 🧾 Nota histórica:
 # El modelo Category antes vivía en la app `categorias`.
@@ -29,11 +29,11 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-
-
-# 🛍️ Modelo de Producto
+    
 class Product(models.Model):
     """Modelo principal de productos, con variantes y multimedia."""
+
+    # 🔤 Identificación
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
@@ -42,8 +42,13 @@ class Product(models.Model):
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.PositiveIntegerField(default=0)
 
-    # 📸 Imagen principal → ahora Cloudinary gestiona la ruta
-    image = models.ImageField(blank=True, null=True)
+    # 📸 Imagen principal (forzado a Cloudinary)
+    image = models.ImageField(
+        storage=MediaCloudinaryStorage(),
+        upload_to="imgs/products/",
+        blank=True,
+        null=True
+    )
 
     # 📦 Stock y disponibilidad
     stock = models.PositiveIntegerField()
@@ -51,7 +56,7 @@ class Product(models.Model):
 
     # 🔗 Relación con categoría
     category = models.ForeignKey(
-        Category,
+        "Category",
         on_delete=models.CASCADE,
         related_name="products",
         help_text="Categoría a la que pertenece el producto"
@@ -78,10 +83,20 @@ class Product(models.Model):
         help_text="Lista separada por comas: Blanco,Negro,Azul"
     )
 
-    # 🎥 Multimedia → también gestionado por Cloudinary
+    # 🎥 Multimedia (forzado a Cloudinary como video)
     video_url = models.URLField(blank=True, null=True)
-    video_file = models.FileField(blank=True, null=True)
-    video_thumb = models.ImageField(blank=True, null=True)
+    video_file = models.FileField(
+        storage=MediaCloudinaryStorage(resource_type="video"),
+        upload_to="videos/products/",
+        blank=True,
+        null=True
+    )
+    video_thumb = models.ImageField(
+        storage=MediaCloudinaryStorage(),
+        upload_to="imgs/products/video_thumbs/",
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return self.name
@@ -90,10 +105,12 @@ class Product(models.Model):
 
     @property
     def has_variants(self):
+        """Devuelve True si el producto tiene tallas o colores configurados."""
         return bool(self.talla_list or self.color_list)
 
     @property
     def final_price(self):
+        """Calcula el precio final aplicando descuento."""
         try:
             discount_value = int(self.discount)
         except (ValueError, TypeError):
@@ -106,20 +123,26 @@ class Product(models.Model):
 
     @property
     def talla_list(self):
+        """Devuelve lista de tallas separadas por comas."""
         return [s.strip() for s in self.talla.split(",") if s.strip()] if self.talla else []
 
     @property
     def color_list(self):
+        """Devuelve lista de colores separadas por comas."""
         return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
 
     @property
     def color_visual_list(self):
+        """Devuelve lista de colores con nombre y estilo CSS."""
         return [
             {"nombre": nombre, "css": self.color_to_css(nombre)}
             for nombre in self.color_list
         ]
 
+    # ================= HELPERS =================
+
     def color_to_css(self, nombre):
+        """Convierte nombre de color a código CSS básico."""
         mapa = {
             "Blanco": "#ffffff",
             "Negro": "#000000",
@@ -132,8 +155,7 @@ class Product(models.Model):
             "Naranja": "#fd7e14",
             "Morado": "#6f42c1",
         }
-        return mapa.get(nombre.strip(), "#999999")
-    
+        return mapa.get(nombre.strip(), "#999999")  # color por defecto si no está en el mapa
 
 # 🧾 Modelo de Factura
 class Factura(models.Model):
