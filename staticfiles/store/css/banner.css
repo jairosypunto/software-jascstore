@@ -1,0 +1,171 @@
+/* =========================
+   🌐 FULL-BLEED UTILITY
+   ========================= */
+/* Utilidad para que un bloque ocupe todo el ancho real de la pantalla */
+.full-bleed {
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+}
+
+
+/* =========================
+   🏪 BANNER PRINCIPAL
+   ========================= */
+/* Configuración del Swiper principal del banner */
+.bannerSwiper.swiper {
+  width: 100vw;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 500px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.bannerSwiper .swiper-wrapper {
+  width: 100% !important;
+}
+
+.bannerSwiper .swiper-slide {
+  position: relative;
+  width: 100vw;
+  height: 500px;
+  overflow: hidden;
+}
+
+.bannerSwiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;       /* Imagen cubre todo el slide */
+  object-position: center; /* Centrada */
+  display: block;
+}
+
+
+/* Fondo alternativo para slides con background */
+.banner-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+
+/* Texto sobre el banner */
+.banner-caption {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* centra vertical */
+  align-items: center;       /* centra horizontal */
+  z-index: 2;
+  text-align: center;
+  color: white;
+  padding: 0 20px;           /* margen lateral */
+}
+
+.banner-caption h2 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.banner-caption p {
+  font-size: 1.2rem;
+}
+
+
+/* Controles visibles del Swiper */
+.bannerSwiper .swiper-button-prev,
+.bannerSwiper .swiper-button-next {
+  color: #fff;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+
+.bannerSwiper .swiper-pagination-bullet {
+  background: rgba(255,255,255,0.85);
+}
+
+
+/* =========================
+   ⭐ PRODUCTOS DESTACADOS (mySwiper)
+   ========================= */
+/* Carrusel secundario para productos destacados */
+.mySwiper.swiper {
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+.mySwiper .swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mySwiper .swiper-slide img {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.mySwiper .swiper-slide img:hover {
+  transform: scale(1.05);
+}
+
+
+/* =========================
+   📱 RESPONSIVE
+   ========================= */
+@media (max-width: 768px) {
+  .bannerSwiper.swiper {
+    height: 320px;
+    margin-left: 0 !important; /* ✅ Evita corte en celular vertical */
+  }
+
+  .bannerSwiper .swiper-slide {
+    width: 100vw !important;
+  }
+
+  .bannerSwiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .banner-caption h2 {
+    font-size: 1.8rem;
+  }
+
+  .banner-caption p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bannerSwiper.swiper {
+    height: 280px;
+    margin-left: 0 !important; /* ✅ Refuerzo para pantallas muy estrechas */
+  }
+}
+
+
+/* =========================
+   🛑 EXTRA
+   ========================= */
+/* Evitar scroll horizontal causado por 100vw */
+html, body {
+  overflow-x: hidden;
+}

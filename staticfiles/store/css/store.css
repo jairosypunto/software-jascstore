@@ -1,0 +1,589 @@
+/* =====================================================
+   🏬 STORE – LAYOUT GENERAL
+===================================================== */
+
+/* Contenedor principal de la tienda */
+.shop-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Ajuste pantallas grandes */
+@media (min-width: 1400px) {
+  .shop-container {
+    max-width: 1400px;
+  }
+}
+
+/* =====================================================
+   🔎 FILTROS / BUSCADOR
+===================================================== */
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.search-form > * {
+  flex: 1 1 200px; /* todos crecen igual y mínimo 200px */
+}
+
+.search-form .btn {
+  font-weight: 600;
+}
+
+/* =====================================================
+   ⭐ PRODUCTOS DESTACADOS (SWIPER)
+===================================================== */
+
+.destacados-swiper {
+  margin: 30px 0;
+}
+
+.destacado-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.destacado-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.destacado-info {
+  padding: 12px;
+}
+
+.destacado-info h4 {
+  font-size: 15px;
+  margin: 0;
+}
+
+.destacado-info span {
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+/* =====================================================
+   🛍 GRID DE PRODUCTOS
+===================================================== */
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* Card producto */
+.product-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transition: transform 0.25s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Imagen */
+.product-image-wrapper {
+  position: relative;
+}
+
+.product-img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+}
+
+/* Botones flotantes */
+.jasc-quick-view,
+.jasc-cart {
+  position: absolute;
+  background: #fff;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+.jasc-quick-view {
+  top: 10px;
+  right: 10px;
+}
+
+.jasc-cart {
+  bottom: 10px;
+  right: 10px;
+}
+/* =====================================================
+   🧠 VISTA RÁPIDA – MODAL
+===================================================== */
+
+/* Overlay */
+.vista-rapida-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 998;
+}
+
+.vista-rapida-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Panel */
+.vista-rapida-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  max-width: 980px;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 16px;
+  overflow-y: auto;
+  z-index: 999;
+  padding: 20px;
+
+  /* ✅ Borde con iluminación oscura */
+  border: 2px solid #222;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+  transition: box-shadow 0.3s ease;
+}
+
+.vista-rapida-panel.visible {
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.vista-rapida-panel.hidden {
+  display: none;
+}
+
+/* Botón cerrar */
+.cerrar-panel {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* ✅ Botón agregar al carrito dentro del modal */
+.vista-rapida-panel .btn-agregar {
+  background: linear-gradient(to right, #ff4d00, #ff8000);
+  color: white;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+  padding: 12px;
+  border-radius: 8px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.vista-rapida-panel .btn-agregar:hover {
+  transform: scale(1.05);
+}
+/* =====================================================
+   📸 GALERÍA PRODUCTO (TIPO JASC)
+===================================================== */
+
+.galeria-producto {
+  display: flex;
+  gap: 16px;
+}
+
+/* Imagen / video principal */
+.imagen-principal {
+  min-height: 500px;          /* reserva espacio fijo */
+  max-height: 500px;          /* asegura que no crezca más */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;           /* evita que se desborde */
+  background-color: #f9f9f9;  /* fondo neutro para videos o imágenes pequeñas */
+  border-radius: 12px;
+}
+
+.imagen-principal img,
+.imagen-principal video {
+  width: 100%;
+  height: auto;               /* mantiene proporción */
+  max-height: 500px;
+  object-fit: contain;        /* ajusta sin recortar */
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+/* ====== CONTENEDOR MINIATURAS ====== */
+.miniaturas-horizontal {
+  display: flex;
+  flex-direction: column; /* vertical */
+  gap: 8px;
+}
+
+/* ====== MINIATURA GENERAL ====== */
+.miniatura {
+  width: 60px;
+  height: 60px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hover y selección */
+.miniatura:hover {
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+}
+
+.miniatura.activa {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+/* ====== MINIATURA VIDEO ====== */
+.video-thumb {
+  background: #000;
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-thumb::after {
+  content: "▶"; /* ícono de play */
+  font-size: 22px;
+  color: #fff;
+}
+
+/* =====================================================
+   🎨 OPCIONES (TALLAS / COLORES)
+===================================================== */
+
+.bloque-opciones {
+  margin-top: 16px;
+}
+
+.label-opcion {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option-chip {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.option-chip.seleccionado {
+  background: #ff4d00;
+  color: #fff;
+  border-color: #ff4d00;
+}
+
+/* =====================================================
+   🛒 BOTÓN CARRITO
+===================================================== */
+
+.btn-agregar {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* =====================================================
+   📱 RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+
+  .galeria-producto {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .imagen-principal {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .miniaturas-horizontal {
+    flex-direction: row;
+  }
+}
+
+/* =====================================================
+   🍞 TOASTS DE NOTIFICACIÓN
+===================================================== */
+.jasc-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  animation: fadeInOut 3s ease forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(20px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(20px); }
+}
+
+/* =====================================================
+   🛒 MODAL DE CARRITO (panel lateral tipo Temu)
+===================================================== */
+.carrito-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 100%;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  z-index: 9999;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.carrito-panel:not(.hidden) {
+  transform: translateX(0);
+}
+
+.carrito-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 9998;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.miniaturas-abajo {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.miniatura-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.miniatura-img:hover {
+  border-color: #007bff;
+}
+
+/* 🎨 Estilos comunes para JascShop */
+
+/* 💬 Botón de WhatsApp */
+.btn-whatsapp {
+  display: inline-block;
+  background-color: #25D366; /* verde oficial de WhatsApp */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: background-color 0.3s ease;
+}
+
+.btn-whatsapp:hover {
+  background-color: #20b858;
+  color: white;
+}
+
+/* Responsive: solo mostrar flotante en móviles */
+@media (min-width: 768px) {
+  .btn-whatsapp.floating {
+    display: none;
+  }
+}
+
+/* 🛒 Estilos para la sección del carrito */
+.cart-section h2 {
+  font-size: 2rem;
+  color: #007bff;
+}
+
+.list-group-item {
+  border-left: 4px solid #f0f0f0;
+  transition: background 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f9f9f9;
+}
+
+.btn-outline-danger, .btn-outline-primary {
+  min-width: 150px;
+}
+
+.text-primary {
+  color: #007bff !important;
+}
+
+/* ============================
+   🎨 Estilos para productos por categoría
+   ============================ */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1px solid #eee;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.card-text {
+  font-size: 0.95rem;
+}
+
+.btn-outline-primary {
+  border-radius: 20px;
+}
+
+.btn-success {
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.alert-warning {
+  border-radius: 8px;
+}
+
+
+/* ============================
+   🎨 Estilos para selección de color
+   ============================ */
+.color-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+/* El círculo que muestra el color */
+.color-chip span {
+  display: inline-block;
+  width: 28px;   /* un poco más grande para que se note */
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.2);
+}
+
+/* Hover para dar feedback visual */
+.color-chip:hover span {
+  transform: scale(1.1);
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* Cuando el chip está seleccionado */
+.color-chip.seleccionado span {
+  border: 2px solid #007bff;
+  box-shadow: 0 0 6px rgba(0,123,255,0.6);
+}
+
+.color-text {
+  font-weight: 500;
+  color: #111;
+  margin-bottom: .5rem;
+}
+
+.color-chips {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: .25rem .5rem;
+  border-radius: 4px;
+  font-size: .85rem;
+  cursor: pointer;
+}

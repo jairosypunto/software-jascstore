@@ -1,0 +1,369 @@
+/* =========================================================
+   🛍️ JASC ECOMMERCE – VISTA RÁPIDA & VISTA DIRECTA
+   Estilo Jasc · CSS FINAL PROFESIONAL
+========================================================= */
+
+/* ================= RESET LOCAL ================= */
+.vista-rapida-contenido,
+.vista-directa {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #222;
+}
+
+/* =================================================
+   📦 CONTENEDORES GENERALES
+================================================= */
+.vista-rapida-contenido {
+  display: flex;
+  gap: 24px;
+  max-width: 960px;
+}
+
+.vista-directa {
+  max-width: 520px;
+  margin: auto;
+}
+
+/* =================================================
+   🖼️ GALERÍA – VISTA RÁPIDA
+================================================= */
+.galeria-producto {
+  display: flex;
+  gap: 12px;
+}
+
+/* MINIATURAS IZQUIERDA */
+.miniaturas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.miniaturas.horizontal {
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* MINIATURA */
+.miniatura {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  transition: all .2s ease;
+  background: #fff;
+}
+
+.miniatura:hover {
+  transform: scale(1.05);
+  border-color: #ff4d00;
+}
+
+.miniatura.activa {
+  border: 2px solid #ff4d00;
+}
+
+/* IMAGEN PRINCIPAL */
+.imagen-principal {
+  width: 360px;
+  max-width: 100%;
+}
+
+.big-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #f7f7f7;
+}
+
+/* =================================================
+   📄 INFO PRODUCTO
+================================================= */
+.info-producto {
+  flex: 1;
+}
+
+.titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.descripcion {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+/* =================================================
+   💰 PRECIOS
+================================================= */
+.precio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.precio-final {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff4d00;
+}
+
+.precio-original {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.badge-descuento {
+  background: #ff4d00;
+  color: #fff;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 4px;
+}
+
+/* =================================================
+   🎯 OPCIONES (TALLAS / COLORES)
+================================================= */
+.bloque-opciones {
+  margin-bottom: 14px;
+}
+
+.label-opcion {
+  display: block;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* CHIPS */
+.option-chip {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all .2s ease;
+  background: #fff;
+}
+
+.option-chip:hover {
+  border-color: #ff4d00;
+  color: #ff4d00;
+}
+
+.option-chip.seleccionado {
+  border-color: #ff4d00;
+  background: #fff1eb;
+  color: #ff4d00;
+  font-weight: 600;
+}
+
+/* =================================================
+   🛒 BOTONES DE ACCIÓN
+================================================= */
+.btn-agregar {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(to right, #ff4d00, #ff8000);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s ease;
+  margin-top: 12px;
+}
+
+.btn-agregar:hover {
+  transform: scale(1.03);
+  background: linear-gradient(to right, #e84300, #ff6a00);
+}
+
+.btn-agregar:disabled {
+  background: #ddd;
+  cursor: not-allowed;
+  color: #999;
+}
+
+/* ⚡ BOTÓN COMPRAR AHORA */
+.btn-comprar {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #ff6a00;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .25s ease;
+  margin-top: 16px;
+}
+
+.btn-comprar:hover {
+  transform: scale(1.04);
+  background: #e65c00;
+}
+
+/* =================================================
+   🎭 MODAL PANEL & OVERLAY
+================================================= */
+.vista-rapida-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.vista-rapida-overlay.visible {
+  opacity: 1;
+}
+
+.vista-rapida-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 1000;
+  max-width: 980px;
+  width: 95%;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+.vista-rapida-panel.visible {
+  opacity: 1;
+  animation: zoomFadeIn 0.3s ease-out;
+}
+
+/* Botón cerrar */
+.cerrar-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #666;
+  transition: color .2s ease;
+}
+
+.cerrar-panel:hover {
+  color: #ff4d00;
+}
+ 
+/* =================================================
+   ✅ TRANSICIONES SUAVES 
+================================================= */
+#vistaRapidaPanel {
+  transition: opacity 0.3s ease;
+}
+#vistaRapidaPanel.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+#vistaRapidaPanel.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* =================================================
+   📱 RESPONSIVE
+================================================= */
+@media (max-width: 768px) {
+  .vista-rapida-contenido {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .galeria-producto {
+    flex-direction: column-reverse;
+  }
+
+  .miniaturas {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .imagen-principal {
+    width: 100%;
+  }
+
+  .vista-rapida-panel {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    max-width: 100%;
+  }
+}
+
+/* ✅ Animación de entrada suave */
+@keyframes zoomFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translate(-50%, -50%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(-50%, -50%);
+  }
+}
+
+
+/* ==================================================
+   🛒 Estilos del modal de carrito
+================================================== */
+.carrito-galeria {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.carrito-galeria .imagen-principal img {
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.miniaturas-abajo {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.miniaturas-abajo .miniatura {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.miniaturas-abajo .miniatura:hover {
+  transform: scale(1.1);
+  border-color: #27ae60;
+}
