@@ -13,11 +13,18 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    "jascstore.up.railway.app",
+    "jascor.railway.app",
+    "software-jascstore-production.up.railway.app",
     "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
     "testserver",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://jascor.railway.app",
+    "https://software-jascstore-production.up.railway.app",
+    "https://jairos.pythonanywhere.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
