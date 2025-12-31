@@ -1,7 +1,7 @@
 from pathlib import Path
 from datetime import datetime
-import os
 from decouple import config
+import os
 
 # ================================
 # 📁 BASE DEL PROYECTO
@@ -9,10 +9,11 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "cambia-esto-en-produccion")
-DEBUG = True
+SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
+    "jascstore.up.railway.app",
     "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
@@ -20,6 +21,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://jascstore.up.railway.app",
     "https://jairos.pythonanywhere.com",
 ]
 
@@ -150,14 +152,12 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# ✅ Usar Cloudinary como almacenamiento por defecto
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-# ✅ Configuración correcta de Cloudinary
 CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": config("CLOUDINARY_API_KEY"),
-    "API_SECRET": config("CLOUDINARY_API_SECRET"),
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
+    "API_KEY": config("CLOUDINARY_API_KEY", default=""),
+    "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
 }
 
 # ================================
@@ -172,8 +172,8 @@ LOGOUT_REDIRECT_URL = "/home/"
 # 📧 MAIL (SendGrid API)
 # ================================
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
-SENDGRID_API_KEY = config("SENDGRID_API_KEY")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+SENDGRID_API_KEY = config("SENDGRID_API_KEY", default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@jascstore.com")
 
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 SENDGRID_ECHO_TO_STDOUT = True
