@@ -13,7 +13,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    "software-jascstore-production.up.railway.app",
+   "blissful-reflection-production-6a5b.up.railway.app",
     "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
