@@ -1,47 +1,49 @@
-# Entornos virtuales
+# ==== ENTORNOS VIRTUALES ====
 venv/
 env/
 .Jascenv/
 
-# Archivos compilados de Python
+# ==== PYTHON COMPILADOS ====
 *.pyc
 __pycache__/
 
-# Base de datos local (no subir nunca a producción)
+# ==== BASE DE DATOS LOCAL (NO SUBIR A PRODUCCIÓN) ====
 db.sqlite3
 
-# Carpeta global de collectstatic (se genera en producción)
+# ==== STATICFILES (GENERADOS EN PRODUCCIÓN CON collectstatic) ====
 staticfiles/
 
-# Archivos de configuración y secretos
+# ==== CONFIGURACIÓN Y SECRETOS ====
 *.env
 *.log
 settings.txt
 
-# IDEs y editores
+# ==== IDEs Y EDITORES ====
 .vscode/
 .idea/
 
-# Migraciones innecesarias (solo dejar __init__.py)
+# ==== MIGRACIONES (solo dejar __init__.py) ====
 */migrations/__pycache__/
 */migrations/*.pyc
-*/migrations/*.py
-!*/migrations/__init__.py
 
-# Archivos del sistema
+# ==== ARCHIVOS DEL SISTEMA ====
 .DS_Store
 Thumbs.db
 
-# Archivos de backup
+# ==== BACKUPS ====
 *.bak
 *.tmp
 
-# Archivos de traducción
+# ==== TRADUCCIONES ====
 *.mo
 *.pot
 
-# Netlify
+# ==== NETLIFY ====
 .netlify/
 
-# Carpeta de media (subidas dinámicas de usuarios/productos)
+# ==== MEDIA (subidas dinámicas de usuarios/productos) ====
 media/
+
+# ==== RAILWAY ESPECÍFICO ====
+# Railway genera automáticamente logs y artefactos de despliegue
+railway.json
