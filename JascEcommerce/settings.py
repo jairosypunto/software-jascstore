@@ -23,35 +23,12 @@ ALLOWED_HOSTS = [
     "testserver",                    # servidor de pruebas
 ]
 
-# ================================
-# 🔐 CSRF y CORS dinámicos
-# ================================
-if DEBUG:
-    # Desarrollo local
-    CSRF_TRUSTED_ORIGINS = [
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-    ]
-    CORS_ALLOWED_ORIGINS = [
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-    ]
-else:
-    # Producción
-    CSRF_TRUSTED_ORIGINS = [
-        "https://jascstore.com",
-        "https://www.jascstore.com",
-        "https://jkghm9at.up.railway.app",  # ✅ dominio Railway real según DNS
-        "https://jairos.pythonanywhere.com",
-    ]
-    CORS_ALLOWED_ORIGINS = [
-        "https://jascstore.com",
-        "https://www.jascstore.com",
-    ]
-
 # Forzar HTTPS y cookies seguras solo en producción
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # ⚠️ IMPORTANTE:
+    # Activa SECURE_SSL_REDIRECT = True SOLO cuando Railway ya muestre "Active SSL"
+    # en Settings → Domains para jascstore.com y www.jascstore.com.
+    SECURE_SSL_REDIRECT = False   # 👈 temporalmente desactivado para evitar bucles
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
@@ -68,7 +45,6 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
 # ================================
