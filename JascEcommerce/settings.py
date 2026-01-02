@@ -54,6 +54,16 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+    # Cabeceras de seguridad adicionales
+    X_FRAME_OPTIONS = "DENY"
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    # HSTS (HTTP Strict Transport Security)
+    SECURE_HSTS_SECONDS = 31536000  # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
@@ -119,6 +129,9 @@ INSTALLED_APPS = [
 
     # ✅ CORS
     "corsheaders",
+
+    # ✅ Sitemap para SEO
+    "django.contrib.sitemaps",
 ]
 
 # ================================
@@ -224,3 +237,20 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # 🔄 VERSIONADO DE STATIC
 # ================================
 STATIC_VERSION = "20260101183500"
+
+# ================================
+# 📊 Logging en producción
+# ================================
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",  # cambia a "DEBUG" si quieres más detalle
+    },
+}

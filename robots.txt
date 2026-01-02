@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://jascstore.com/sitemap.xml
+Sitemap: https://www.jascstore.com/sitemap.xml
