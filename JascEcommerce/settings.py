@@ -161,6 +161,10 @@ TEMPLATES = [
 # ================================
 # 🎨 ARCHIVOS ESTÁTICOS
 # ================================
+# URL base para servir archivos estáticos
+STATIC_URL = "/static/"
+
+# Directorios de archivos estáticos organizados por app
 STATICFILES_DIRS = [
     BASE_DIR / "usuario" / "static" / "usuario",
     BASE_DIR / "store" / "static" / "store",
@@ -168,7 +172,11 @@ STATICFILES_DIRS = [
     BASE_DIR / "auths" / "static" / "auths",
     BASE_DIR / "static",
 ]
+
+# Carpeta donde collectstatic reunirá todos los archivos para producción
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Whitenoise para servir estáticos comprimidos y versionados
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ================================
