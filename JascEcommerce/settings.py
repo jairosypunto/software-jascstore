@@ -41,7 +41,7 @@ else:
     CSRF_TRUSTED_ORIGINS = [
         "https://jascstore.com",
         "https://www.jascstore.com",
-        "https://software-jascstore-production.up.railway.app",
+        "https://blissful-reflection-production-6a5b.up.railway.app",  # ✅ dominio Railway real
         "https://jairos.pythonanywhere.com",
     ]
     CORS_ALLOWED_ORIGINS = [
