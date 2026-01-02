@@ -161,12 +161,11 @@ TEMPLATES = [
 # ================================
 # 🎨 ARCHIVOS ESTÁTICOS
 # ================================
-STATIC_URL = "/static/"
 STATICFILES_DIRS = [
-    BASE_DIR / "usuario" / "static",
-    BASE_DIR / "store" / "static",
-    BASE_DIR / "home" / "static",
-    BASE_DIR / "auths" / "static",
+    BASE_DIR / "usuario" / "static" / "usuario",
+    BASE_DIR / "store" / "static" / "store",
+    BASE_DIR / "home" / "static" / "home",
+    BASE_DIR / "auths" / "static" / "auths",
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
