@@ -2,6 +2,7 @@ from pathlib import Path
 from datetime import datetime
 from decouple import config
 import os
+import dj_database_url
 
 # ================================
 # 📁 BASE DEL PROYECTO
@@ -13,17 +14,50 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-   "blissful-reflection-production-6a5b.up.railway.app",
-    "jairos.pythonanywhere.com",
-    "127.0.0.1",
-    "localhost",
-    "testserver",
+    "jascstore.com",                 # dominio raíz
+    "www.jascstore.com",             # subdominio www
+    "8pfljzmx.up.railway.app",       # dominio Railway
+    "jairos.pythonanywhere.com",     # dominio PythonAnywhere
+    "127.0.0.1",                     # localhost para desarrollo
+    "localhost",                     # localhost alternativo
+    "testserver",                    # servidor de pruebas
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://software-jascstore-production.up.railway.app",
-    "https://jairos.pythonanywhere.com",
-]
+# ================================
+# 🔐 CSRF y CORS dinámicos
+# ================================
+if DEBUG:
+    # Desarrollo local
+    CSRF_TRUSTED_ORIGINS = [
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ]
+    CORS_ALLOWED_ORIGINS = [
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ]
+else:
+    # Producción
+    CSRF_TRUSTED_ORIGINS = [
+        "https://jascstore.com",
+        "https://www.jascstore.com",
+        "https://software-jascstore-production.up.railway.app",
+        "https://jairos.pythonanywhere.com",
+    ]
+    CORS_ALLOWED_ORIGINS = [
+        "https://jascstore.com",
+        "https://www.jascstore.com",
+    ]
+
+# Forzar HTTPS y cookies seguras solo en producción
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
@@ -31,12 +65,12 @@ CSRF_TRUSTED_ORIGINS = [
 AUTH_USER_MODEL = "auths.Auth"
 
 # ================================
-# 🗃️ BASE DE DATOS
+# 🗃️ BASE DE DATOS (Postgres Railway)
 # ================================
-import dj_database_url
-
 DATABASES = {
-    "default": dj_database_url.config(default="sqlite:///db.sqlite3")
+    "default": dj_database_url.config(
+        default=config("DATABASE_URL", default="sqlite:///db.sqlite3")
+    )
 }
 
 # ================================
@@ -82,6 +116,9 @@ INSTALLED_APPS = [
     # ✅ Cloudinary (media)
     "cloudinary",
     "cloudinary_storage",
+
+    # ✅ CORS
+    "corsheaders",
 ]
 
 # ================================
@@ -90,6 +127,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # 👈 agregado antes de CommonMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -185,4 +223,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ================================
 # 🔄 VERSIONADO DE STATIC
 # ================================
-STATIC_VERSION = "20251211231500"
+STATIC_VERSION = "20260101183500"

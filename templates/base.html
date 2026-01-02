@@ -8,10 +8,32 @@
   <!-- 🧠 Título dinámico -->
   <title>{% block title %}JascShop{% endblock %}</title>
 
+  <!-- 🔎 SEO básico -->
+  <meta name="description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
+  <meta name="keywords" content="tienda online, ecommerce, descuentos, productos, JascStore">
+  <meta name="author" content="JascStore">
+
+  <!-- 🌐 Open Graph (Facebook, WhatsApp) -->
+  <meta property="og:title" content="JascStore - Tu tienda online">
+  <meta property="og:description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
+  <meta property="og:image" content="https://jascstore.com/static/img/banner.jpg">
+  <meta property="og:url" content="https://jascstore.com">
+  <meta property="og:type" content="website">
+
+  <!-- 🐦 Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JascStore - Tu tienda online">
+  <meta name="twitter:description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
+  <meta name="twitter:image" content="https://jascstore.com/static/img/banner.jpg">
+
   <!-- 🎨 Frameworks visuales -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- ✅ Favicon -->
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 
   <!-- ✅ CSS propios -->
   <link rel="stylesheet" href="{% static 'home/css/bootstrap_home.css' %}?v={{ STATIC_VERSION }}">
@@ -22,6 +44,7 @@
   <!-- 📦 Estilos adicionales por página -->
   {% block extra_css %}{% endblock %}
 </head>
+
 <body>
 
   <!-- 🔔 Mensajes del sistema -->

@@ -18,18 +18,19 @@
 <div class="container mt-4">
   <form method="get" action="{% url 'inicio' %}" class="row g-3">
     <div class="col-md-4">
-      <input type="text" name="q" class="form-control" placeholder="Buscar productos...">
+      <input type="text" name="q" value="{{ search_query|default:'' }}" class="form-control" placeholder="Buscar productos...">
     </div>
     <div class="col-md-4">
       <select name="order" class="form-select">
         <option value="">Ordenar por...</option>
-        <option value="name">Nombre</option>
-        <option value="price">Precio ascendente</option>
-        <option value="price_desc">Precio descendente</option>
+        <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
+        <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ascendente</option>
+        <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio descendente</option>
+        <option value="newest" {% if order == 'newest' %}selected{% endif %}>Más recientes</option>
       </select>
     </div>
     <div class="col-md-4">
-      <button type="submit" class="btn btn-primary w-100">Aplicar filtros home</button>
+      <button type="submit" class="btn btn-primary w-100">Aplicar filtros</button>
     </div>
   </form>
 </div>
@@ -41,8 +42,7 @@
     {% for producto in productos_destacados %}
       <div class="col-md-3 mb-4">
         <div class="card h-100 shadow-sm position-relative">
-          <a href="{% url 'store:store' %}">
-          
+          <a href="{% url 'store:detalle_producto' producto.slug %}">
             {% if producto.image %}
               <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
             {% else %}
@@ -52,17 +52,29 @@
           {% if producto.nuevo %}
             <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
           {% endif %}
+          {% if producto.discount %}
+            <span class="badge bg-danger position-absolute top-0 end-0 m-2">-{{ producto.discount }}%</span>
+          {% endif %}
           <div class="card-body text-center">
             <h6 class="card-title">{{ producto.name }}</h6>
+            <p class="text-muted mb-1">
+              {% if producto.discount %}
+                <span class="text-decoration-line-through">${{ producto.cost }}</span>
+                <span class="fw-bold text-danger">${{ producto.final_price }}</span>
+              {% else %}
+                <span class="fw-bold">${{ producto.cost }}</span>
+              {% endif %}
+            </p>
+            <a href="{% url 'store:agregar_carrito' producto.id %}" class="btn btn-sm btn-outline-primary">Agregar</a>
           </div>
         </div>
       </div>
-      {% empty %}
-        <div class="col-12 text-center p-4 bg-light border rounded shadow-sm">
-          <h4 class="text-primary mb-2">📦 No hay productos destacados disponibles</h4>
-          <p class="text-muted">Estamos actualizando nuestra vitrina. Vuelve pronto para descubrir nuevas ofertas educativas.</p>
-        </div>
-      {% endfor %}
+    {% empty %}
+      <div class="col-12 text-center p-4 bg-light border rounded shadow-sm">
+        <h4 class="text-primary mb-2">📦 No hay productos destacados disponibles</h4>
+        <p class="text-muted">Estamos actualizando nuestra vitrina. Vuelve pronto para descubrir nuevas ofertas educativas.</p>
+      </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}
