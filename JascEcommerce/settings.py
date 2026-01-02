@@ -16,7 +16,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [
     "jascstore.com",                 # dominio raíz
     "www.jascstore.com",             # subdominio www
-    "8pfljzmx.up.railway.app",       # dominio Railway
+    "jkghm9at.up.railway.app",       # ✅ dominio Railway real según DNS
     "jairos.pythonanywhere.com",     # dominio PythonAnywhere
     "127.0.0.1",                     # localhost para desarrollo
     "localhost",                     # localhost alternativo
@@ -41,7 +41,7 @@ else:
     CSRF_TRUSTED_ORIGINS = [
         "https://jascstore.com",
         "https://www.jascstore.com",
-        "https://blissful-reflection-production-6a5b.up.railway.app",  # ✅ dominio Railway real
+        "https://jkghm9at.up.railway.app",  # ✅ dominio Railway real según DNS
         "https://jairos.pythonanywhere.com",
     ]
     CORS_ALLOWED_ORIGINS = [
