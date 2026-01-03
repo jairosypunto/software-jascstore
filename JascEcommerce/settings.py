@@ -1,7 +1,5 @@
 from pathlib import Path
-from datetime import datetime
 from decouple import config
-import os
 import dj_database_url
 
 # ================================
@@ -9,6 +7,7 @@ import dj_database_url
 # ================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ================================
 # 🔐 Seguridad
 # ================================
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
@@ -18,32 +17,35 @@ ALLOWED_HOSTS = [
     "jascstore.com",
     "www.jascstore.com",
     "blissful-reflection-production-6a5b.up.railway.app",
-    "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
     "testserver",
 ]
 
+# Solo tus dominios reales para CSRF. No incluyas el dominio de Railway.
 CSRF_TRUSTED_ORIGINS = [
     "https://jascstore.com",
     "https://www.jascstore.com",
-    "https://blissful-reflection-production-6a5b.up.railway.app",
 ]
 
 if not DEBUG:
+    # Redirección a HTTPS (actívalo solo si tu dominio tiene SSL activo)
     SECURE_SSL_REDIRECT = True
+
+    # Cookies seguras
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    # Reconocer HTTPS detrás del proxy de Railway
+    # Reconocer HTTPS detrás de Railway
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
 
-    # Cookies consistentes
+    # Samesite para admin
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SAMESITE = "Lax"
 
-    # No forzar dominio de cookies → Django lo maneja automáticamente
+    # No fuerces dominios de cookies: evita
+    # CSRF_COOKIE_DOMAIN / SESSION_COOKIE_DOMAIN
 else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
@@ -117,14 +119,14 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "django_extensions",
 
-    # ✅ Cloudinary (media)
+    # Media
     "cloudinary",
     "cloudinary_storage",
 
-    # ✅ CORS
+    # CORS
     "corsheaders",
 
-    # ✅ Sitemap para SEO
+    # SEO
     "django.contrib.sitemaps",
 ]
 
@@ -134,7 +136,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # 👈 agregado antes de CommonMiddleware
+    "corsheaders.middleware.CorsMiddleware",  # antes de CommonMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -225,7 +227,6 @@ LOGOUT_REDIRECT_URL = "/home/"
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = config("SENDGRID_API_KEY", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@jascstore.com")
-
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 SENDGRID_ECHO_TO_STDOUT = True
 EMAIL_USE_TLS = True
@@ -252,6 +253,6 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "INFO",  # cambia a "DEBUG" si quieres más detalle
+        "level": "INFO",
     },
 }
