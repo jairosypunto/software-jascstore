@@ -1,2 +1,1 @@
-web: gunicorn JascEcommerce.wsgi
-release: python manage.py migrate && python manage.py createsuperuser --noinput && python manage.py collectstatic --noinput
+release: python -c "from django.conf import settings; print('CSRF_TRUSTED_ORIGINS =', settings.CSRF_TRUSTED_ORIGINS)" && python manage.py migrate && python manage.py collectstatic --noinput
