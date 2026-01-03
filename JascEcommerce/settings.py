@@ -53,7 +53,29 @@ else:
     CSRF_COOKIE_SECURE = False
 
 # Reconocer HTTPS detrás del proxy de Railway
+# Reconocer HTTPS detrás del proxy de Railway
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+# Cookies seguras y consistentes para dominio principal
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Asegurar que las cookies apliquen a jascstore.com y www
+CSRF_COOKIE_DOMAIN = ".jascstore.com"
+SESSION_COOKIE_DOMAIN = ".jascstore.com"
+
+# Samesite compatible con flujo estándar de admin
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
+# Asegura que la middleware de CSRF está activa y en orden correcto
+# (verifica que en MIDDLEWARE tengas esto y en este orden relativo)
+# 'django.middleware.security.SecurityMiddleware',
+# 'django.middleware.common.CommonMiddleware',
+# 'django.middleware.csrf.CsrfViewMiddleware',
+# 'django.contrib.sessions.middleware.SessionMiddleware',
+# 'django.contrib.auth.middleware.AuthenticationMiddleware',
 
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
