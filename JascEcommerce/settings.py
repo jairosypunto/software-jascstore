@@ -19,7 +19,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [
     "jascstore.com",
     "www.jascstore.com",
-    "jkghm9at.up.railway.app",
+    "blissful-reflection-production-6a5b.up.railway.app",  # 👈 este es el correcto
     "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
