@@ -16,19 +16,23 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [
     "jascstore.com",                 # dominio raíz
     "www.jascstore.com",             # subdominio www
-    "jkghm9at.up.railway.app",       # ✅ dominio Railway real según DNS
+    "jkghm9at.up.railway.app",       # dominio Railway real
     "jairos.pythonanywhere.com",     # dominio PythonAnywhere
     "127.0.0.1",                     # localhost para desarrollo
     "localhost",                     # localhost alternativo
     "testserver",                    # servidor de pruebas
 ]
 
+# CSRF Trusted Origins (evita errores de login en producción)
+CSRF_TRUSTED_ORIGINS = [
+    "https://jascstore.com",
+    "https://www.jascstore.com",
+    "https://*.railway.app",
+]
+
 # Forzar HTTPS y cookies seguras solo en producción
 if not DEBUG:
-    # ⚠️ IMPORTANTE:
-    # Activa SECURE_SSL_REDIRECT = True SOLO cuando Railway ya muestre "Active SSL"
-    # en Settings → Domains para jascstore.com y www.jascstore.com.
-    SECURE_SSL_REDIRECT = False   # 👈 temporalmente desactivado para evitar bucles
+    SECURE_SSL_REDIRECT = True   # ⚠️ Actívalo cuando Railway muestre "Active SSL"
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
@@ -45,18 +49,15 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    
+
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
 # ================================
 AUTH_USER_MODEL = "auths.Auth"
 
 # ================================
-# 🗃️ BASE DE DATOS (Postgres Railway)
+# 🗃️ BASE DE DATOS (Postgres Railway / Local)
 # ================================
-import dj_database_url
-from decouple import config
-
 if DEBUG:
     DATABASES = {
         "default": {
@@ -76,7 +77,6 @@ else:
             ssl_require=True
         )
     }
-
 
 # ================================
 # 🔐 VALIDACIÓN DE CONTRASEÑAS
@@ -144,9 +144,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-    # ================================
 # 🔐 Seguridad extra (solo producción)
-# ================================
 if not DEBUG:
     ADMINS = [("Admin", "admin@jascstore.com")]
     MANAGERS = ADMINS
@@ -154,7 +152,7 @@ if not DEBUG:
         MIDDLEWARE.index("django.middleware.common.CommonMiddleware"),
         "django.middleware.common.BrokenLinkEmailsMiddleware"
     )
-    
+
 # ================================
 # 🌐 URLS Y WSGI
 # ================================
@@ -191,10 +189,7 @@ TEMPLATES = [
 # ================================
 # 🎨 ARCHIVOS ESTÁTICOS
 # ================================
-# URL base para servir archivos estáticos
 STATIC_URL = "/static/"
-
-# Directorios de archivos estáticos organizados por app
 STATICFILES_DIRS = [
     BASE_DIR / "usuario" / "static" / "usuario",
     BASE_DIR / "store" / "static" / "store",
@@ -202,11 +197,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "auths" / "static" / "auths",
     BASE_DIR / "static",
 ]
-
-# Carpeta donde collectstatic reunirá todos los archivos para producción
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Whitenoise para servir estáticos comprimidos y versionados
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ================================
@@ -216,7 +207,6 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
     "API_KEY": config("CLOUDINARY_API_KEY", default=""),
@@ -240,9 +230,8 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@jascstore.co
 
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 SENDGRID_ECHO_TO_STDOUT = True
-EMAIL_USE_TLS = True  # 🔒 seguridad extra
-EMAIL_PORT = 587      # puerto estándar TLS
-
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
 
 # ================================
 # 🆔 LLAVES PRIMARIAS
@@ -261,13 +250,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
+        "console": {"class": "logging.StreamHandler"},
     },
     "root": {
         "handlers": ["console"],
         "level": "INFO",  # cambia a "DEBUG" si quieres más detalle
     },
 }
-
