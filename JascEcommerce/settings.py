@@ -23,14 +23,13 @@ ALLOWED_HOSTS = [
     "testserver",
 ]
 
-# Solo tus dominios reales para CSRF
 CSRF_TRUSTED_ORIGINS = [
     "https://jascstore.com",
     "https://www.jascstore.com",
 ]
 
 if not DEBUG:
-    # Redirección a HTTPS (actívalo solo si tu dominio tiene SSL activo)
+    # Redirección a HTTPS
     SECURE_SSL_REDIRECT = True
 
     # Cookies seguras
@@ -45,12 +44,14 @@ if not DEBUG:
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SAMESITE = "Lax"
 
-    # No forzar dominios de cookies → Django lo maneja automáticamente
 else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    
+
+# ================================
+# 📝 Logging para validar en producción
+# ================================
 import logging
 logger = logging.getLogger(__name__)
 logger.warning("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
