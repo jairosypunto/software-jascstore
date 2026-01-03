@@ -11,15 +11,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
 # ================================
-# 🔐 Seguridad
-# ================================
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     "jascstore.com",
     "www.jascstore.com",
-    "blissful-reflection-production-6a5b.up.railway.app",  # dominio Railway correcto
+    "blissful-reflection-production-6a5b.up.railway.app",
     "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
@@ -32,50 +30,24 @@ CSRF_TRUSTED_ORIGINS = [
     "https://blissful-reflection-production-6a5b.up.railway.app",
 ]
 
-# Cookies y seguridad solo en producción
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True   # Actívalo cuando Railway muestre "Active SSL"
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    # Cabeceras de seguridad adicionales
-    X_FRAME_OPTIONS = "DENY"
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Reconocer HTTPS detrás del proxy de Railway
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
 
-    # HSTS (HTTP Strict Transport Security)
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # Cookies consistentes
+    CSRF_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SAMESITE = "Lax"
+
+    # No forzar dominio de cookies → Django lo maneja automáticamente
 else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-
-# Reconocer HTTPS detrás del proxy de Railway
-# Reconocer HTTPS detrás del proxy de Railway
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-USE_X_FORWARDED_HOST = True
-
-# Cookies seguras y consistentes para dominio principal
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-
-# Asegurar que las cookies apliquen a jascstore.com y www
-CSRF_COOKIE_DOMAIN = ".jascstore.com"
-SESSION_COOKIE_DOMAIN = ".jascstore.com"
-
-# Samesite compatible con flujo estándar de admin
-CSRF_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SAMESITE = "Lax"
-
-# Asegura que la middleware de CSRF está activa y en orden correcto
-# (verifica que en MIDDLEWARE tengas esto y en este orden relativo)
-# 'django.middleware.security.SecurityMiddleware',
-# 'django.middleware.common.CommonMiddleware',
-# 'django.middleware.csrf.CsrfViewMiddleware',
-# 'django.contrib.sessions.middleware.SessionMiddleware',
-# 'django.contrib.auth.middleware.AuthenticationMiddleware',
 
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
@@ -171,7 +143,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# 🔐 Seguridad extra (solo producción)
 if not DEBUG:
     ADMINS = [("Admin", "admin@jascstore.com")]
     MANAGERS = ADMINS
