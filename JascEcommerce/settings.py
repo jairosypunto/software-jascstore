@@ -45,6 +45,7 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
 # ================================
@@ -53,11 +54,29 @@ AUTH_USER_MODEL = "auths.Auth"
 # ================================
 # 🗃️ BASE DE DATOS (Postgres Railway)
 # ================================
-DATABASES = {
-    "default": dj_database_url.config(
-        default=config("DATABASE_URL", default="sqlite:///db.sqlite3")
-    )
-}
+import dj_database_url
+from decouple import config
+
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "jascecommerce",
+            "USER": "jairo",
+            "PASSWORD": "TuClaveSegura",
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=config("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+
 
 # ================================
 # 🔐 VALIDACIÓN DE CONTRASEÑAS
@@ -125,6 +144,17 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+    # ================================
+# 🔐 Seguridad extra (solo producción)
+# ================================
+if not DEBUG:
+    ADMINS = [("Admin", "admin@jascstore.com")]
+    MANAGERS = ADMINS
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index("django.middleware.common.CommonMiddleware"),
+        "django.middleware.common.BrokenLinkEmailsMiddleware"
+    )
+    
 # ================================
 # 🌐 URLS Y WSGI
 # ================================
@@ -210,6 +240,9 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@jascstore.co
 
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 SENDGRID_ECHO_TO_STDOUT = True
+EMAIL_USE_TLS = True  # 🔒 seguridad extra
+EMAIL_PORT = 587      # puerto estándar TLS
+
 
 # ================================
 # 🆔 LLAVES PRIMARIAS
@@ -237,3 +270,4 @@ LOGGING = {
         "level": "INFO",  # cambia a "DEBUG" si quieres más detalle
     },
 }
+
