@@ -2,7 +2,6 @@ from pathlib import Path
 from decouple import config
 import dj_database_url
 
-
 # ================================
 # 📁 BASE DEL PROYECTO
 # ================================
@@ -48,14 +47,6 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-
-# ================================
-# 📝 Logging para validar en producción
-# ================================
-import logging
-logger = logging.getLogger(__name__)
-logger.warning("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
-logger.warning("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
 
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
@@ -262,3 +253,9 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+# ✅ Logging para validar en runtime
+import logging
+logger = logging.getLogger(__name__)
+logger.warning("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
+logger.warning("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
