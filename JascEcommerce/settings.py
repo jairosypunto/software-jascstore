@@ -42,7 +42,6 @@ if not DEBUG:
     # Samesite para admin
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SAMESITE = "Lax"
-
 else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
