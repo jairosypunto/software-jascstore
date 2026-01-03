@@ -53,6 +53,9 @@ else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
+# Reconocer HTTPS detrás del proxy de Railway
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # ================================
 # 🧠 MODELO DE USUARIO PERSONALIZADO
 # ================================
