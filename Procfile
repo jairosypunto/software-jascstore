@@ -1,1 +1,2 @@
 release: python -c "from django.conf import settings; print('CSRF_TRUSTED_ORIGINS =', settings.CSRF_TRUSTED_ORIGINS)" && python manage.py migrate && python manage.py collectstatic --noinput
+web: gunicorn JascEcommerce.wsgi
