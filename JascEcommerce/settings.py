@@ -2,9 +2,6 @@ from pathlib import Path
 from decouple import config
 import dj_database_url
 
-# ================================
-# 📁 BASE DEL PROYECTO
-# ================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ================================
@@ -28,18 +25,13 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 if not DEBUG:
-    # Redirección a HTTPS
     SECURE_SSL_REDIRECT = True
-
-    # Cookies seguras
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    # Reconocer HTTPS detrás del proxy de Railway
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
 
-    # Samesite para admin
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SAMESITE = "Lax"
 else:
@@ -53,7 +45,7 @@ else:
 AUTH_USER_MODEL = "auths.Auth"
 
 # ================================
-# 🗃️ BASE DE DATOS (Postgres Railway / Local)
+# 🗃️ BASE DE DATOS
 # ================================
 if DEBUG:
     DATABASES = {
@@ -105,24 +97,19 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Apps del proyecto
     "auths",
     "store",
     "home",
     "pedidos",
 
-    # Extras
     "django.contrib.humanize",
     "django_extensions",
 
-    # Media
     "cloudinary",
     "cloudinary_storage",
 
-    # CORS
     "corsheaders",
 
-    # SEO
     "django.contrib.sitemaps",
 ]
 
@@ -132,7 +119,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # antes de CommonMiddleware
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
