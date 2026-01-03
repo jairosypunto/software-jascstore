@@ -19,18 +19,17 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [
     "jascstore.com",
     "www.jascstore.com",
-    "blissful-reflection-production-6a5b.up.railway.app",  # 👈 este es el correcto
+    "blissful-reflection-production-6a5b.up.railway.app",  # dominio Railway correcto
     "jairos.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
     "testserver",
 ]
 
-# CSRF Trusted Origins (evita errores de login en producción)
 CSRF_TRUSTED_ORIGINS = [
     "https://jascstore.com",
     "https://www.jascstore.com",
-    "https://*.railway.app",
+    "https://blissful-reflection-production-6a5b.up.railway.app",
 ]
 
 # Cookies y seguridad solo en producción
