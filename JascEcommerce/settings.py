@@ -10,17 +10,20 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Seguridad
+# ================================
+# 🔐 Seguridad
+# ================================
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    "jascstore.com",                 # dominio raíz
-    "www.jascstore.com",             # subdominio www
-    "jkghm9at.up.railway.app",       # dominio Railway real
-    "jairos.pythonanywhere.com",     # dominio PythonAnywhere
-    "127.0.0.1",                     # localhost para desarrollo
-    "localhost",                     # localhost alternativo
-    "testserver",                    # servidor de pruebas
+    "jascstore.com",
+    "www.jascstore.com",
+    "jkghm9at.up.railway.app",
+    "jairos.pythonanywhere.com",
+    "127.0.0.1",
+    "localhost",
+    "testserver",
 ]
 
 # CSRF Trusted Origins (evita errores de login en producción)
@@ -30,9 +33,9 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.railway.app",
 ]
 
-# Forzar HTTPS y cookies seguras solo en producción
+# Cookies y seguridad solo en producción
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True   # ⚠️ Actívalo cuando Railway muestre "Active SSL"
+    SECURE_SSL_REDIRECT = True   # Actívalo cuando Railway muestre "Active SSL"
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
@@ -42,7 +45,7 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
     # HSTS (HTTP Strict Transport Security)
-    SECURE_HSTS_SECONDS = 31536000  # 1 año
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 else:
