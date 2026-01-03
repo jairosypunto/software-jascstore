@@ -22,7 +22,7 @@ ALLOWED_HOSTS = [
     "testserver",
 ]
 
-# Solo tus dominios reales para CSRF. No incluyas el dominio de Railway.
+# Solo tus dominios reales para CSRF
 CSRF_TRUSTED_ORIGINS = [
     "https://jascstore.com",
     "https://www.jascstore.com",
@@ -36,7 +36,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    # Reconocer HTTPS detrás de Railway
+    # Reconocer HTTPS detrás del proxy de Railway
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
 
@@ -44,8 +44,7 @@ if not DEBUG:
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SAMESITE = "Lax"
 
-    # No fuerces dominios de cookies: evita
-    # CSRF_COOKIE_DOMAIN / SESSION_COOKIE_DOMAIN
+    # No forzar dominios de cookies → Django lo maneja automáticamente
 else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
