@@ -178,7 +178,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "usuario" / "static" / "usuario",
     BASE_DIR / "store" / "static" / "store",
     BASE_DIR / "home" / "static" / "home",
-    BASE_DIR / "auths" / "static" / "auths",
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
