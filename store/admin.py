@@ -14,6 +14,16 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
     verbose_name = "Imagen adicional"
     verbose_name_plural = "Imágenes adicionales"
+    fields = ("image", "thumbnail")   # ✅ mostramos la miniatura
+    readonly_fields = ("thumbnail",)
+
+    def thumbnail(self, obj):
+        if obj.image:
+            return f'<img src="{obj.image.url}" style="max-height:100px;"/>'
+        return "-"
+    thumbnail.allow_tags = True
+    thumbnail.short_description = "Vista previa"
+
 
 # ================================
 # 🛍️ Producto principal
@@ -28,8 +38,8 @@ class ProductAdmin(admin.ModelAdmin):
         'stock',
         'is_available',
         'category',
-        'talla_buttons',   # ✅ tallas como botones
-        'color_buttons',   # ✅ colores como botones
+        'talla_buttons',
+        'color_buttons',
         'video_url',
         'video_file'
     )
@@ -37,7 +47,7 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'description')
     list_filter = ('is_available', 'category', 'destacado', 'nuevo')
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline]   # ✅ ahora con miniaturas
 
     fieldsets = (
         ("Información básica", {
@@ -81,7 +91,6 @@ class ProductAdmin(admin.ModelAdmin):
             ((c,) for c in obj.color_list)
         )
     color_buttons.short_description = "Colores"
-
 
 # ================================
 # 🧾 Factura

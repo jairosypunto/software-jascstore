@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
-from cloudinary_storage.storage import MediaCloudinaryStorage
 
 # 🧾 Nota histórica:
 # El modelo Category antes vivía en la app `categorias`.
@@ -14,6 +13,7 @@ class Configuracion(models.Model):
 
     def __str__(self):
         return "Configuración general"
+
 
 # 📂 Modelo de Categoría
 class Category(models.Model):
@@ -29,7 +29,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    
+
 class Product(models.Model):
     """Modelo principal de productos, con variantes y multimedia."""
 
@@ -42,13 +42,8 @@ class Product(models.Model):
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.PositiveIntegerField(default=0)
 
-    # 📸 Imagen principal (forzado a Cloudinary)
-    image = models.ImageField(
-        storage=MediaCloudinaryStorage(),
-        upload_to="imgs/products/",
-        blank=True,
-        null=True
-    )
+    # 📸 Imagen principal (usa DEFAULT_FILE_STORAGE → local o Cloudinary)
+    image = models.ImageField(upload_to="products/", blank=True, null=True)
 
     # 📦 Stock y disponibilidad
     stock = models.PositiveIntegerField()
@@ -83,20 +78,10 @@ class Product(models.Model):
         help_text="Lista separada por comas: Blanco,Negro,Azul"
     )
 
-    # 🎥 Multimedia (forzado a Cloudinary como video)
+    # 🎥 Multimedia (usa DEFAULT_FILE_STORAGE → local o Cloudinary)
     video_url = models.URLField(blank=True, null=True)
-    video_file = models.FileField(
-        storage=MediaCloudinaryStorage(resource_type="video"),
-        upload_to="videos/products/",
-        blank=True,
-        null=True
-    )
-    video_thumb = models.ImageField(
-        storage=MediaCloudinaryStorage(),
-        upload_to="imgs/products/video_thumbs/",
-        blank=True,
-        null=True
-    )
+    video_file = models.FileField(upload_to="videos/products/", blank=True, null=True)
+    video_thumb = models.ImageField(upload_to="video_thumbs/", blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -155,153 +140,57 @@ class Product(models.Model):
             "Naranja": "#fd7e14",
             "Morado": "#6f42c1",
         }
-        return mapa.get(nombre.strip(), "#999999")  # color por defecto si no está en el mapa
-
+        return mapa.get(nombre.strip(), "#999999")  # color por defecto si no está en el mapa   
+    
 # 🧾 Modelo de Factura
 class Factura(models.Model):
     """Factura generada tras una compra."""
 
-    # 👤 Usuario que realizó la compra
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         help_text="Usuario dueño de la factura"
     )
-
-    # 📅 Fecha de creación automática
-    fecha = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Fecha de creación de la factura"
-    )
-
-    # 💰 Total final con impuestos y descuentos
-    total = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        help_text="Total final con impuestos y descuentos"
-    )
-
-    # 💳 Información de pago
-    metodo_pago = models.CharField(
-        max_length=30,
-        default="No especificado",
-        help_text="Método de pago elegido"
-    )
-    estado_pago = models.CharField(
-        max_length=20,
-        default="Pendiente",
-        help_text="Estado del pago"
-    )
-    es_pago_real = models.BooleanField(
-        default=False,
-        help_text="Indica si el pago fue confirmado por el proveedor o es simulado"
-    )
-    transaccion_id = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        help_text="ID de transacción del banco/proveedor"
-    )
-    banco = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        help_text="Banco usado en el pago si aplica"
-    )
+    fecha = models.DateTimeField(auto_now_add=True, help_text="Fecha de creación de la factura")
+    total = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total final con impuestos y descuentos")
+    metodo_pago = models.CharField(max_length=30, default="No especificado", help_text="Método de pago elegido")
+    estado_pago = models.CharField(max_length=20, default="Pendiente", help_text="Estado del pago")
+    es_pago_real = models.BooleanField(default=False, help_text="Indica si el pago fue confirmado por el proveedor o es simulado")
+    transaccion_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID de transacción del banco/proveedor")
+    banco = models.CharField(max_length=100, blank=True, null=True, help_text="Banco usado en el pago si aplica")
 
     # 🚚 Datos de envío del cliente
-    nombre = models.CharField(
-        max_length=150,
-        blank=True,
-        null=True,
-        help_text="Nombre completo del cliente"
-    )
-    email = models.EmailField(
-        blank=True,
-        null=True,
-        help_text="Correo electrónico del cliente"
-    )
-    telefono = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        help_text="Teléfono de contacto"
-    )
-    direccion = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Dirección de entrega"
-    )
-    ciudad = models.CharField(
-        max_length=120,
-        blank=True,
-        null=True,
-        help_text="Ciudad de entrega"
-    )
-    departamento = models.CharField(
-        max_length=120,
-        blank=True,
-        null=True,
-        help_text="Departamento de entrega"
-    )
+    nombre = models.CharField(max_length=150, blank=True, null=True, help_text="Nombre completo del cliente")
+    email = models.EmailField(blank=True, null=True, help_text="Correo electrónico del cliente")
+    telefono = models.CharField(max_length=30, blank=True, null=True, help_text="Teléfono de contacto")
+    direccion = models.CharField(max_length=255, blank=True, null=True, help_text="Dirección de entrega")
+    ciudad = models.CharField(max_length=120, blank=True, null=True, help_text="Ciudad de entrega")
+    departamento = models.CharField(max_length=120, blank=True, null=True, help_text="Departamento de entrega")
 
-    # 📦 Estado del pedido
     ESTADOS_PEDIDO = [
         ('pendiente', 'Pendiente'),
         ('preparacion', 'En preparación'),
         ('enviado', 'Enviado'),
         ('entregado', 'Entregado'),
     ]
-    estado_pedido = models.CharField(
-        max_length=20,
-        choices=ESTADOS_PEDIDO,
-        default='pendiente',
-        help_text="Estado actual del pedido"
-    )
-
-    # 📧 Trazabilidad del correo
-    correo_enviado = models.BooleanField(
-        default=False,
-        help_text="Indica si la factura fue enviada por correo al cliente"
-    )
+    estado_pedido = models.CharField(max_length=20, choices=ESTADOS_PEDIDO, default='pendiente', help_text="Estado actual del pedido")
+    correo_enviado = models.BooleanField(default=False, help_text="Indica si la factura fue enviada por correo al cliente")
 
     def __str__(self):
         return f"Factura {self.id} - {self.usuario}"
-    
+
+
 # 📦 Modelo de DetalleFactura
 class DetalleFactura(models.Model):
     """Detalle de cada producto dentro de una factura."""
-
-    factura = models.ForeignKey(
-        Factura,
-        related_name="detalles",
-        on_delete=models.CASCADE
-    )
-    producto = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE
-    )
+    factura = models.ForeignKey(Factura, related_name="detalles", on_delete=models.CASCADE)
+    producto = models.ForeignKey(Product, on_delete=models.CASCADE)
     cantidad = models.PositiveIntegerField()
-    subtotal = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-
-    # 🎽 Variantes del producto (opcional)
-    talla = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True
-    )
-    color = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True
-    )
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    talla = models.CharField(max_length=20, blank=True, null=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
 
     def variantes(self):
-        """Devuelve un string con las variantes seleccionadas (talla y color)."""
         partes = []
         if self.talla:
             partes.append(f"Talla: {self.talla}")
@@ -310,25 +199,37 @@ class DetalleFactura(models.Model):
         return " | ".join(partes) if partes else "Sin variantes"
 
     def __str__(self):
-        return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"  
-    
+        return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"
+
+
 # 🎯 Modelo de Banner
 class Banner(models.Model):
     """Banner principal para la tienda (portada)."""
     title = models.CharField(max_length=200, default="Bienvenido a JascShop")
     subtitle = models.CharField(max_length=300, blank=True, null=True)
-    image = models.ImageField(upload_to="banners/")
+    image = models.ImageField(
+        upload_to="banners/",   # ✅ carpeta limpia en Cloudinary
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return self.title
-
-
+    
+    
 # 📦 Modelo de imágenes adicionales
 class ProductImage(models.Model):
     """Galería de imágenes adicionales para un producto."""
-    product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
-    image = models.ImageField(blank=True, null=True)  # ahora Cloudinary gestiona la ruta
+    product = models.ForeignKey(
+        Product,
+        related_name="images",
+        on_delete=models.CASCADE
+    )
+    image = models.ImageField(
+        upload_to="products/",
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
-        return f"{self.product.name} - {self.id}"
-    
+        return f"{self.product.name} - {self.id}"  
