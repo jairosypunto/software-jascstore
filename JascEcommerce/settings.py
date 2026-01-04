@@ -1,6 +1,7 @@
 from pathlib import Path
 from decouple import config
 import dj_database_url
+import logging
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -184,17 +185,20 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ================================
-# 🖼️ MEDIA (Cloudinary)
+# 🖼️ MEDIA (Local vs Cloudinary)
 # ================================
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
-    "API_KEY": config("CLOUDINARY_API_KEY", default=""),
-    "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
-}
+if DEBUG:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+else:
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
+        "API_KEY": config("CLOUDINARY_API_KEY", default=""),
+        "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
+    }
 
 # ================================
 # 🔐 LOGIN / LOGOUT
@@ -241,7 +245,6 @@ LOGGING = {
 }
 
 # ✅ Logging para validar en runtime
-import logging
 logger = logging.getLogger(__name__)
-logger.warning("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
-logger.warning("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
+logger.info("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
+logger.info("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)

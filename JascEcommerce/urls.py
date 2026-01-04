@@ -33,7 +33,14 @@ urlpatterns = [
     path("robots.txt", home_views.robots_txt, name="robots_txt"),  # vista simple que devuelve el archivo
 ]
 
-# Archivos estáticos y media (solo en desarrollo)
+# ================================
+# 📦 Archivos estáticos y media
+# ================================
 if settings.DEBUG:
+    # 👉 Solo en desarrollo: servir media y estáticos desde el sistema de archivos
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# 👉 En producción:
+# - WhiteNoise sirve los estáticos automáticamente
+# - Cloudinary sirve los media desde su CDN
