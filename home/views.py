@@ -43,3 +43,15 @@ def robots_txt(request):
         "Sitemap: https://jascstore.com/sitemap.xml"
     )
     return HttpResponse(content, content_type="text/plain")
+
+# 🔧 Vista de depuración para configuración de almacenamiento
+
+from django.conf import settings
+from django.http import JsonResponse
+
+def debug_storage(request):
+    return JsonResponse({
+        "DEBUG": settings.DEBUG,
+        "DEFAULT_FILE_STORAGE": settings.DEFAULT_FILE_STORAGE,
+        "CLOUDINARY_STORAGE": settings.CLOUDINARY_STORAGE,
+    })
