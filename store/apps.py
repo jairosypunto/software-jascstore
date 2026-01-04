@@ -7,12 +7,12 @@ class StoreConfig(AppConfig):
 
     def ready(self):
         import store.signals
-
-        # 👇 Crear superusuario automáticamente si no existe
         User = get_user_model()
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser(
                 username="admin",
-                email="jairosypunto@gmail.com",
-                password="jasc2026!"  # cámbiala por una clave segura
+                email="siprofesional@gamil.com",
+                password="jasc2026!",
+                name="Jairo",
+                lastname="Salazar"
             )
