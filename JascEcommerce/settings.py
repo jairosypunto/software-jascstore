@@ -13,6 +13,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [
     "jascstore.com",
     "www.jascstore.com",
+    "jascstore.up.railway.app",
     "127.0.0.1",
     "localhost",
     "testserver",
@@ -21,6 +22,7 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://jascstore.com",
     "https://www.jascstore.com",
+    "https://jascstore.up.railway.app",
 ]
 
 if not DEBUG:
