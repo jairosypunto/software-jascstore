@@ -194,11 +194,12 @@ if DEBUG:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-    CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
-        "API_KEY": config("CLOUDINARY_API_KEY", default=""),
-        "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
-    }
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": config("CLOUDINARY_API_KEY"),
+    "API_SECRET": config("CLOUDINARY_API_SECRET"),
+}
 
 # ================================
 # 🔐 LOGIN / LOGOUT
@@ -248,3 +249,7 @@ LOGGING = {
 logger = logging.getLogger(__name__)
 logger.info("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
 logger.info("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
+
+logger.info("DEBUG = %s", DEBUG)
+logger.info("DEFAULT_FILE_STORAGE = %s", DEFAULT_FILE_STORAGE)
+logger.info("CLOUDINARY_STORAGE = %s", CLOUDINARY_STORAGE)

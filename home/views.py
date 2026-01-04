@@ -55,3 +55,34 @@ def debug_storage(request):
         "DEFAULT_FILE_STORAGE": settings.DEFAULT_FILE_STORAGE,
         "CLOUDINARY_STORAGE": settings.CLOUDINARY_STORAGE,
     })
+    
+# Otra vista de depuración para inspeccionar campos de modelo y su almacenamiento    
+    
+from django.http import JsonResponse
+from django.apps import apps
+
+def debug_fields_storage(request):
+    data = {}
+
+    # Lista de modelos y campos a inspeccionar
+    targets = [
+        ("store", "Banner", "image"),
+        ("store", "ProductImage", "image"),
+        ("store", "Product", "video_thumb"),
+        ("store", "Product", "image"),  # si tu Product tiene imagen principal
+    ]
+
+    for app_label, model_name, field_name in targets:
+        try:
+            Model = apps.get_model(app_label, model_name)
+            field = Model._meta.get_field(field_name)
+            data[f"{model_name}.{field_name}"] = {
+                "field_class": field.__class__.__name__,
+                "storage_class": field.storage.__class__.__name__,
+                "upload_to": getattr(field, "upload_to", None),
+            }
+        except Exception as e:
+            data[f"{model_name}.{field_name}"] = {"error": str(e)}
+
+    return JsonResponse(data)
+
