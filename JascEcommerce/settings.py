@@ -13,7 +13,6 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [
     "jascstore.com",
     "www.jascstore.com",
-    "blissful-reflection-production-6a5b.up.railway.app",
     "127.0.0.1",
     "localhost",
     "testserver",
