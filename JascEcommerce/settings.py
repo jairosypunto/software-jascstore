@@ -9,7 +9,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 🔐 Seguridad
 # ================================
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
-DEBUG = config("DEBUG", default=False, cast=bool)
+
+# Forzar interpretación correcta de DEBUG desde Railway
+DEBUG = config("DEBUG", default="False").lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = [
     "jascstore.com",
