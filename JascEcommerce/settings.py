@@ -30,10 +30,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
-
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SAMESITE = "Lax"
 else:
@@ -42,12 +40,12 @@ else:
     CSRF_COOKIE_SECURE = False
 
 # ================================
-# 🧠 MODELO DE USUARIO PERSONALIZADO
+# 🧠 Modelo de usuario personalizado
 # ================================
 AUTH_USER_MODEL = "auths.Auth"
 
 # ================================
-# 🗃️ BASE DE DATOS
+# 🗃️ Base de datos
 # ================================
 if DEBUG:
     DATABASES = {
@@ -70,7 +68,7 @@ else:
     }
 
 # ================================
-# 🔐 VALIDACIÓN DE CONTRASEÑAS
+# 🔐 Validación de contraseñas
 # ================================
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -80,7 +78,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ================================
-# 🌍 INTERNACIONALIZACIÓN
+# 🌍 Internacionalización
 # ================================
 LANGUAGE_CODE = "es-co"
 TIME_ZONE = "America/Bogota"
@@ -88,7 +86,7 @@ USE_I18N = True
 USE_TZ = True
 
 # ================================
-# 📦 APLICACIONES INSTALADAS
+# 📦 Aplicaciones instaladas
 # ================================
 INSTALLED_APPS = [
     "usuario.apps.UsuarioConfig",
@@ -100,7 +98,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "auths",
-    'store.apps.StoreConfig',   # ⚠️ no solo 'store'
+    "store.apps.StoreConfig",   # ⚠️ importante que sea StoreConfig
     "home",
     "pedidos",
 
@@ -111,12 +109,11 @@ INSTALLED_APPS = [
     "cloudinary_storage",
 
     "corsheaders",
-
     "django.contrib.sitemaps",
 ]
 
 # ================================
-# ⚙️ MIDDLEWARE
+# ⚙️ Middleware
 # ================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -139,13 +136,13 @@ if not DEBUG:
     )
 
 # ================================
-# 🌐 URLS Y WSGI
+# 🌐 URLs y WSGI
 # ================================
 ROOT_URLCONF = "JascEcommerce.urls"
 WSGI_APPLICATION = "JascEcommerce.wsgi.application"
 
 # ================================
-# 🧠 PLANTILLAS
+# 🧠 Plantillas
 # ================================
 TEMPLATES = [
     {
@@ -172,7 +169,7 @@ TEMPLATES = [
 ]
 
 # ================================
-# 🎨 ARCHIVOS ESTÁTICOS
+# 🎨 Archivos estáticos
 # ================================
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
@@ -185,7 +182,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ================================
-# 🖼️ MEDIA (Local vs Cloudinary)
+# 🖼️ Media (Local vs Cloudinary)
 # ================================
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -202,7 +199,7 @@ CLOUDINARY_STORAGE = {
 }
 
 # ================================
-# 🔐 LOGIN / LOGOUT
+# 🔐 Login / Logout
 # ================================
 LOGIN_URL = "account:login"
 LOGIN_REDIRECT_URL = "/account/dashboard/"
@@ -210,7 +207,7 @@ LOGOUT_URL = "account:logout"
 LOGOUT_REDIRECT_URL = "/home/"
 
 # ================================
-# 📧 MAIL (SendGrid API)
+# 📧 Mail (SendGrid API)
 # ================================
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = config("SENDGRID_API_KEY", default="")
@@ -221,12 +218,12 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
 # ================================
-# 🆔 LLAVES PRIMARIAS
+# 🆔 Llaves primarias
 # ================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ================================
-# 🔄 VERSIONADO DE STATIC
+# 🔄 Versionado de static
 # ================================
 STATIC_VERSION = "20260101183500"
 
@@ -249,7 +246,6 @@ LOGGING = {
 logger = logging.getLogger(__name__)
 logger.info("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
 logger.info("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
-
 logger.info("DEBUG = %s", DEBUG)
 logger.info("DEFAULT_FILE_STORAGE = %s", DEFAULT_FILE_STORAGE)
 logger.info("CLOUDINARY_STORAGE = %s", CLOUDINARY_STORAGE)
