@@ -42,7 +42,7 @@
     {% for producto in productos_destacados %}
       <div class="col-md-3 mb-4">
         <div class="card h-100 shadow-sm position-relative">
-          <!-- Imagen y nombre → redirigen a store.html -->
+          <!-- Imagen → redirige a la tienda general -->
           <a href="{% url 'store:store' %}">
             {% if producto.image %}
               <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
@@ -59,9 +59,7 @@
           {% endif %}
 
           <div class="card-body text-center">
-            <h6 class="card-title">
-              <a href="{% url 'store:store' %}" class="text-decoration-none text-dark">{{ producto.name }}</a>
-            </h6>
+            <h6 class="card-title">{{ producto.name }}</h6>
             <p class="text-muted mb-1">
               {% if producto.discount %}
                 <span class="text-decoration-line-through">${{ producto.cost }}</span>
@@ -71,8 +69,8 @@
               {% endif %}
             </p>
 
-            <!-- Botón Agregar → redirige a carrito.html -->
-            <a href="{% url 'store:ver_carrito' %}" class="btn btn-sm btn-outline-primary">Agregar</a>
+            <!-- Botón Agregar → redirige al detalle del producto -->
+            <a href="{% url 'store:detalle_producto' producto.slug %}" class="btn btn-sm btn-outline-primary">Agregar</a>
           </div>
         </div>
       </div>
