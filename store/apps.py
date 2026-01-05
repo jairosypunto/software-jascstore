@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from django.core.files.storage import default_storage, storages
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,10 +31,12 @@ class StoreConfig(AppConfig):
         if not settings.DEBUG:
             try:
                 from cloudinary_storage.storage import MediaCloudinaryStorage
-                storages["default"] = MediaCloudinaryStorage()
-                logger.info("default_storage reemplazado por MediaCloudinaryStorage en producción.")
+                from django.core.files.storage import default_storage
+                # Reemplazar el objeto default_storage directamente
+                default_storage._wrapped = MediaCloudinaryStorage()
+                logger.info("✅ default_storage reemplazado por MediaCloudinaryStorage en producción.")
             except Exception as e:
-                logger.error(f"Error configurando Cloudinary como default_storage: {e}")
+                logger.error(f"⚠️ Error configurando Cloudinary como default_storage: {e}")
 
         # 🔄 Re-vincular storage de los modelos al default (Cloudinary o FS)
         try:
