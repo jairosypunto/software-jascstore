@@ -4,7 +4,7 @@
 {% block title %}Inicio - JascShop{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'home/css/home.css' %}?v={{ STATIC_VERSION }}">
+<link rel="stylesheet" href="{% static 'home/css/home.css' %}?v={{ STATIC_VERSION|default:'1.0' }}">
 {% endblock %}
 
 {% block content %}
@@ -40,10 +40,10 @@
   <h2 class="mb-4 text-center">Productos destacados</h2>
   <div class="row">
     {% for producto in productos_destacados %}
+      {% if producto.slug %}
       <div class="col-md-3 mb-4">
         <div class="card h-100 shadow-sm position-relative">
-          <!-- Imagen → redirige a la tienda -->
-          <a href="{% url 'store:tienda' %}">
+          <a href="{% url 'store:detalle_producto' producto.slug %}">
             {% if producto.image %}
               <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
             {% else %}
@@ -68,15 +68,11 @@
                 <span class="fw-bold">${{ producto.cost }}</span>
               {% endif %}
             </p>
-
-            <!-- Botón Agregar → POST al carrito -->
-            <form method="post" action="{% url 'store:agregar_al_carrito' producto.id %}" class="d-inline">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-primary">Agregar</button>
-            </form>
+            <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-sm btn-outline-primary">Agregar</a>
           </div>
         </div>
       </div>
+      {% endif %}
     {% empty %}
       <div class="col-12 text-center p-4 bg-light border rounded shadow-sm">
         <h4 class="text-primary mb-2">📦 No hay productos destacados disponibles</h4>
