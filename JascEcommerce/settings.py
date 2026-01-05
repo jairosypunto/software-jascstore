@@ -201,6 +201,18 @@ CLOUDINARY_STORAGE = {
 }
 
 # ================================
+# 🔄 Forzar default_storage en producción
+# ================================
+if not DEBUG:
+    try:
+        from cloudinary_storage.storage import MediaCloudinaryStorage
+        from django.core.files.storage import storages
+        storages["default"] = MediaCloudinaryStorage()
+        print("✅ default_storage forzado a MediaCloudinaryStorage en producción")
+    except Exception as e:
+        print("⚠️ Error configurando Cloudinary como default_storage:", e)
+
+# ================================
 # 🔐 Login / Logout
 # ================================
 LOGIN_URL = "account:login"
