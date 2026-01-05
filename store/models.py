@@ -233,3 +233,12 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.id}"  
+    
+from django.core.files.storage import default_storage
+from .models import Product, Banner, ProductImage
+
+Product._meta.get_field('image').storage = default_storage
+Product._meta.get_field('video_thumb').storage = default_storage
+Product._meta.get_field('video_file').storage = default_storage
+ProductImage._meta.get_field('image').storage = default_storage
+Banner._meta.get_field('image').storage = default_storage

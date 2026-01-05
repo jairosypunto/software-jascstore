@@ -100,7 +100,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "auths",
-    "store",
+    'store.apps.StoreConfig',   # ⚠️ no solo 'store'
     "home",
     "pedidos",
 
