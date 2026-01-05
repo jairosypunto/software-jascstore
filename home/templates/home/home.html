@@ -42,19 +42,22 @@
     {% for producto in productos_destacados %}
       <div class="col-md-3 mb-4">
         <div class="card h-100 shadow-sm position-relative">
-          <a href="{% url 'store:detalle_producto' producto.slug %}">
+          <!-- Imagen → redirige a la tienda -->
+          <a href="{% url 'store:tienda' %}">
             {% if producto.image %}
               <img src="{{ producto.image.url }}" class="card-img-top" alt="{{ producto.name }}">
             {% else %}
               <img src="{% static 'store/img/default.jpg' %}" class="card-img-top" alt="Sin imagen">
             {% endif %}
           </a>
+
           {% if producto.nuevo %}
             <span class="badge bg-success position-absolute top-0 start-0 m-2">NUEVO</span>
           {% endif %}
           {% if producto.discount %}
             <span class="badge bg-danger position-absolute top-0 end-0 m-2">-{{ producto.discount }}%</span>
           {% endif %}
+
           <div class="card-body text-center">
             <h6 class="card-title">{{ producto.name }}</h6>
             <p class="text-muted mb-1">
@@ -65,7 +68,12 @@
                 <span class="fw-bold">${{ producto.cost }}</span>
               {% endif %}
             </p>
-            <a href="{% url 'store:agregar_al_carrito' producto.id %}" class="btn btn-sm btn-outline-primary">Agregar</a>
+
+            <!-- Botón Agregar → POST al carrito -->
+            <form method="post" action="{% url 'store:agregar_al_carrito' producto.id %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-primary">Agregar</button>
+            </form>
           </div>
         </div>
       </div>
