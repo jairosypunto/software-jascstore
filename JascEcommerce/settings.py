@@ -251,3 +251,11 @@ logger.info("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
 logger.info("DEBUG = %s", DEBUG)
 logger.info("DEFAULT_FILE_STORAGE = %s", DEFAULT_FILE_STORAGE)
 logger.info("CLOUDINARY_STORAGE = %s", CLOUDINARY_STORAGE)
+
+# ✅ Debug directo en Railway
+print("DEBUG =", DEBUG)
+print("DEFAULT_FILE_STORAGE =", DEFAULT_FILE_STORAGE)
+print("CLOUDINARY_STORAGE =", CLOUDINARY_STORAGE)
+
+from django.core.files.storage import default_storage
+print("default_storage backend class =", default_storage.__class__.__name__)
