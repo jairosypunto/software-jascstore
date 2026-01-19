@@ -7,26 +7,32 @@
 <div class="container my-5">
   <div class="row g-4">
 
-    <!-- 🖼 VISOR PRINCIPAL -->
     <div class="col-md-6">
       <div id="imagen-principal" class="imagen-principal mb-3 text-center">
-        <!-- El visor se llenará dinámicamente con JS -->
+        {% if producto.image %}
+          <img src="{{ producto.image.url }}" class="img-fluid rounded shadow" style="max-height: 500px;" id="main-view">
+        {% else %}
+          <img src="{% static 'img/no-image.png' %}" class="img-fluid rounded shadow" style="max-height: 500px;">
+        {% endif %}
       </div>
 
-      <!-- Miniaturas -->
       <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
         {% if producto.image %}
           <img src="{{ producto.image.url }}"
-               class="miniatura activa"
+               class="miniatura activa activa-azul"
                data-type="image"
-               data-src="{{ producto.image.url }}">
+               data-src="{{ producto.image.url }}"
+               data-color="" 
+               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
         {% endif %}
 
         {% for img in producto.images.all %}
           <img src="{{ img.image.url }}"
                class="miniatura"
                data-type="image"
-               data-src="{{ img.image.url }}">
+               data-src="{{ img.image.url }}"
+               data-color="{{ img.color_vinculado|default:'' }}"
+               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
         {% endfor %}
 
         {% if producto.video_file %}
@@ -34,7 +40,8 @@
                class="miniatura"
                data-type="video"
                data-src="{{ producto.video_file.url }}"
-               data-poster="{{ producto.video_thumb.url }}">
+               data-poster="{{ producto.video_thumb.url }}"
+               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
         {% endif %}
 
         {% if producto.video_url %}
@@ -42,40 +49,35 @@
                class="miniatura"
                data-type="video"
                data-src="{{ producto.video_url }}"
-               data-poster="{{ producto.video_thumb.url }}">
+               data-poster="{{ producto.video_thumb.url }}"
+               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
         {% endif %}
       </div>
     </div>
 
-    <!-- 📄 INFO PRODUCTO -->
     <div class="col-md-6">
       <h2 class="fw-bold">{{ producto.name }}</h2>
       <p class="text-muted">{{ producto.description }}</p>
 
-      {% if producto.discount > 0 %}
-        <p class="fs-4 text-danger fw-bold">
-          ${{ producto.final_price|floatformat:0 }}
-        </p>
-        <p class="text-muted text-decoration-line-through">
-          ${{ producto.cost|floatformat:0 }}
-        </p>
-      {% else %}
-        <p class="fs-4 fw-bold">
-          ${{ producto.cost|floatformat:0 }}
-        </p>
-      {% endif %}
+      <div class="precios mb-4">
+        {% if producto.discount > 0 %}
+          <span class="fs-3 text-danger fw-bold">${{ producto.final_price|floatformat:0 }}</span>
+          <span class="text-muted text-decoration-line-through ms-2">${{ producto.cost|floatformat:0 }}</span>
+          <span class="badge bg-danger ms-2">-{{ producto.discount }}%</span>
+        {% else %}
+          <span class="fs-3 fw-bold">${{ producto.cost|floatformat:0 }}</span>
+        {% endif %}
+      </div>
 
-      <!-- ================= FORMULARIO AGREGAR AL CARRITO ================= -->
       <form method="POST"
             action="{% url 'store:agregar_al_carrito' producto.id %}"
             id="form-add-cart"
             data-product-id="{{ producto.id }}">
         {% csrf_token %}
 
-        <!-- ================= TALLAS ================= -->
         {% if producto.talla_list %}
-        <div class="mb-3">
-          <label class="fw-bold">Tallas:</label>
+        <div class="mb-4">
+          <label class="fw-bold d-block mb-2">Tallas:</label>
           <div class="d-flex gap-2 flex-wrap">
             {% for talla in producto.talla_list %}
             <label class="option-chip size-chip">
@@ -83,17 +85,16 @@
                      name="selected_size"
                      value="{{ talla }}"
                      class="visually-hidden">
-              <span>{{ talla }}</span>
+              <span class="btn btn-outline-secondary size-btn">{{ talla }}</span>
             </label>
             {% endfor %}
           </div>
         </div>
         {% endif %}
 
-        <!-- ================= COLORES ================= -->
         {% if producto.color_visual_list %}
-        <div class="mb-3">
-          <label class="fw-bold">Colores:</label>
+        <div class="mb-4">
+          <label class="fw-bold d-block mb-2">Colores:</label>
           <div class="d-flex gap-2 flex-wrap">
             {% for color in producto.color_visual_list %}
               <label class="option-chip color-chip">
@@ -101,9 +102,14 @@
                       name="selected_color"
                       value="{{ color.nombre }}"
                       class="visually-hidden">
-                <!-- Mostrar nombre encima del fondo -->
-                <span style="background-color: {{ color.css }};
-                            color: {% if color.nombre == 'Blanco' %}#000{% else %}#fff{% endif %};">
+                <span class="color-indicator" 
+                      style="background-color: {{ color.css }}; 
+                             padding: 8px 15px; 
+                             border-radius: 20px; 
+                             display: inline-block; 
+                             cursor: pointer; 
+                             border: 2px solid #ddd;
+                             color: {% if color.nombre == 'Blanco' or color.css == '#ffffff' %}#000{% else %}#fff{% endif %};">
                   {{ color.nombre }}
                 </span>
               </label>
@@ -112,22 +118,45 @@
         </div>
         {% endif %}
 
-        <!-- HIDDEN -->
-        <input type="hidden" name="selected_size_hidden">
-        <input type="hidden" name="selected_color_hidden">
+        <input type="hidden" name="selected_size_hidden" id="selected_size_hidden">
+        <input type="hidden" name="selected_color_hidden" id="selected_color_hidden">
         <input type="hidden" name="cantidad" value="1">
 
-        <!-- BOTÓN -->
-        <button type="submit"
-                class="btn btn-primary mt-3 btn-agregar"
-                disabled>
-          <i class="bi bi-cart-plus"></i> Agregar al carrito
-        </button>
+        <div class="d-grid gap-2">
+            <button type="submit"
+                    class="btn btn-primary btn-lg mt-3 btn-agregar"
+                    id="btn-add-main"
+                    disabled>
+              <i class="bi bi-cart-plus"></i> Agregar al carrito
+            </button>
+        </div>
       </form>
     </div>
 
   </div>
 </div>
+
+<style>
+/* Efecto de selección para miniaturas */
+.miniatura.activa-azul {
+    border: 3px solid #007bff !important;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+    transform: scale(1.05);
+}
+
+/* Efecto visual cuando se selecciona una talla o color */
+input[type="radio"]:checked + span {
+    border-color: #007bff !important;
+    background-color: #007bff !important;
+    color: #fff !important;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.size-btn {
+    min-width: 45px;
+    text-align: center;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}

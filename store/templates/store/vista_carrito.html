@@ -1,69 +1,62 @@
 {% load static %}
-
-<!-- ==================================================
-     🛒 MODAL DE CARRITO (contenido dinámico)
-================================================== -->
-<div class="carrito-galeria p-3">
-
-  <!-- 🖼 Imagen principal -->
-  <div class="imagen-principal text-center mb-3">
-    <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-         alt="{{ producto.name }}"
-         class="img-fluid rounded shadow-sm"
-         id="imagenPrincipalCarrito">
-  </div>
-
-  <!-- 🖼 Miniaturas debajo -->
-  {% if producto.images.all %}
-  <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
-    {% for img in producto.images.all %}
-      <img src="{{ img.image.url }}"
-           class="miniatura rounded border"
-           alt="Miniatura {{ forloop.counter }}"
-           style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;"
-           onclick="mostrarImagenCarrito('{{ img.image.url }}')">
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  <!-- 🎥 Miniatura de video -->
-  {% if producto.video_file or producto.video_url %}
-  <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
-    <div class="miniatura video-thumb"
-         style="width: 60px; height: 60px; cursor: pointer;"
-         onclick="mostrarVideoCarrito('{% if producto.video_file %}{{ producto.video_file.url }}{% else %}{{ producto.video_url }}{% endif %}', '{% if producto.video_thumb %}{{ producto.video_thumb.url }}{% else %}{% static 'imgs/video-placeholder.jpg' %}{% endif %}')">
-      <img src="{% if producto.video_thumb %}{{ producto.video_thumb.url }}{% else %}{% static 'imgs/video-placeholder.jpg' %}{% endif %}"
-           alt="Video"
-           style="width: 100%; height: 100%; object-fit: cover;">
+<div class="carrito-galeria p-3" id="contenidoProducto">
+    <div class="imagen-principal text-center mb-3" id="visor-principal">
+        <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+             class="img-fluid rounded shadow-sm" id="imagen-principal" style="max-height: 250px;">
     </div>
-  </div>
-  {% endif %}
 
-  <!-- 🎯 Variantes: talla y color -->
-  <div class="variantes mb-3">
-    {% if producto.talla_list %}
-      <label for="selectTalla" class="form-label fw-bold">Talla:</label>
-      <select id="selectTalla" name="talla" class="form-select">
-        {% for talla in producto.talla_list %}
-          <option value="{{ talla }}">{{ talla }}</option>
+    <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
+        {% if producto.image %}
+        <div class="miniatura activa activa-azul" data-type="image" data-src="{{ producto.image.url }}" data-color="base" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd;">
+            <img src="{{ producto.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        {% endif %}
+        {% for img in producto.images.all %}
+        <div class="miniatura" data-type="image" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado }}" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd;">
+            <img src="{{ img.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
         {% endfor %}
-      </select>
-    {% endif %}
+    </div>
 
-    {% if producto.color_list %}
-      <label for="selectColor" class="form-label fw-bold mt-2">Color:</label>
-      <select id="selectColor" name="color" class="form-select">
-        {% for color in producto.color_list %}
-          <option value="{{ color }}">{{ color }}</option>
-        {% endfor %}
-      </select>
-    {% endif %}
-  </div>
+    <form id="form-add-cart" onsubmit="return false;"> {% csrf_token %}
+        <input type="hidden" name="selected_size_hidden" id="selected_size_hidden">
+        <input type="hidden" name="selected_color_hidden" id="selected_color_hidden">
+        <input type="hidden" name="imagen_seleccionada_url" id="imagen_seleccionada_url" value="{{ producto.image.url }}">
 
-  <!-- 🛒 Botón agregar al carrito -->
-  <button id="agregarDesdeModal"
-          data-id="{{ producto.id }}"
-          class="btn btn-success w-100 py-2 fw-bold">
-    🛒 Agregar al carrito
-  </button>
+        {% if producto.talla_list %}
+        <div class="mb-3">
+            <label class="fw-bold small d-block mb-1">Talla:</label>
+            <div class="d-flex gap-2 flex-wrap">
+                {% for talla in producto.talla_list %}
+                <button type="button" class="option-chip size-chip btn btn-sm btn-outline-dark">{{ talla }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if producto.color_list %}
+        <div class="mb-3">
+            <label class="fw-bold small d-block mb-1">Color:</label>
+            <div class="d-flex gap-2 flex-wrap">
+                {% for color in producto.color_list %}
+                <button type="button" class="option-chip color-chip btn btn-sm btn-outline-dark">{{ color }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <button type="button" id="agregarDesdeModal" data-id="{{ producto.id }}"
+                class="btn btn-success w-100 py-2 fw-bold btn-agregar" disabled>
+            🛒 Agregar al carrito
+        </button>
+    </form>
 </div>
+
+<script>
+    (function() {
+        const cont = document.getElementById('contenidoProducto');
+        if (window.initVistaRapida) {
+            window.initVistaRapida(cont);
+        }
+    })();
+</script>

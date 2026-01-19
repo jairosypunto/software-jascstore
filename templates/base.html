@@ -5,69 +5,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 🧠 Título dinámico -->
   <title>{% block title %}JascStore{% endblock %}</title>
 
-  <!-- 🔎 SEO básico -->
   <meta name="description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
   <meta name="keywords" content="tienda online, ecommerce, descuentos, productos, JascStore">
   <meta name="author" content="JascStore">
 
-  <!-- 🌐 Open Graph (Facebook, WhatsApp) -->
   <meta property="og:title" content="JascStore - Tu tienda online">
   <meta property="og:description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
   <meta property="og:image" content="https://jascstore.com/static/img/banner.jpg">
   <meta property="og:url" content="https://jascstore.com">
   <meta property="og:type" content="website">
 
-  <!-- 🐦 Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="JascStore - Tu tienda online">
   <meta name="twitter:description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
-  <meta name="twitter:image" content="https://jascstore.com/static/img/banner.jpg">
 
-  <!-- 🎨 Frameworks visuales -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-  <!-- ✅ Favicon -->
   <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
-  <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 
-  <!-- ✅ CSS propios -->
   <link rel="stylesheet" href="{% static 'home/css/bootstrap_home.css' %}?v={{ STATIC_VERSION }}">
   <link rel="stylesheet" href="{% static 'home/css/styles_home.css' %}?v={{ STATIC_VERSION }}">
   <link rel="stylesheet" href="{% static 'home/css/navbar_home.css' %}?v={{ STATIC_VERSION }}">
   <link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}">
+  
+  <style>
+    .side-cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1040; display: none; backdrop-filter: blur(2px); }
+    .side-cart { 
+        position: fixed; right: -380px; top: 0; width: 380px; height: 100vh; 
+        background: white; z-index: 1050; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
+        padding: 0; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    }
+    .side-cart.visible { right: 0; }
+    .side-cart-header { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
+    .cart-items-container { flex: 1; overflow-y: auto; padding: 20px; }
+    .text-orange { color: #ff6000 !important; }
+    .btn-temu { background-color: #ff6000; color: white; border: none; transition: 0.3s; }
+    .btn-temu:hover { background-color: #e65600; color: white; }
+    
+    /* Diseño de item en mini-carrito */
+    .cart-item-row { display: flex; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dotted #ccc; }
+    .cart-item-row img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
+    .cart-item-details { flex: 1; }
+    .cart-item-details h6 { font-size: 0.95rem; margin-bottom: 3px; font-weight: 600; }
+    .cart-item-details p { font-size: 0.8rem; color: #666; margin: 0; }
+  </style>
 
-  <!-- 📦 Estilos adicionales por página -->
   {% block extra_css %}{% endblock %}
 </head>
 
 <body>
 
-  <!-- 🔔 Mensajes del sistema -->
-  {% if messages %}
-    <div class="container mt-3">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-      {% endfor %}
+  <div id="sideCartOverlay" class="side-cart-overlay" onclick="cerrarSideCart()"></div>
+  <div id="sideCart" class="side-cart">
+    <div class="side-cart-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-bag-check-fill me-2"></i>Mi Selección</h5>
+        <button class="btn-close" onclick="cerrarSideCart()"></button>
     </div>
-  {% endif %}
+    <div id="sideCartContent" class="cart-items-container">
+        </div>
+    <div class="side-cart-footer border-top p-4 bg-light">
+        <div class="d-flex justify-content-between mb-3">
+            <span class="h6 mb-0">Subtotal Estimado:</span>
+            <span id="sideCartTotal" class="h5 mb-0 text-orange fw-bold">$0</span>
+        </div>
+        <a href="{% url 'store:ver_carrito' %}" class="btn btn-temu w-100 py-3 rounded-pill fw-bold">CONTINUAR COMPRA</a>
+        <p class="text-center text-muted small mt-2"><i class="bi bi-shield-check"></i> Pago 100% seguro</p>
+    </div>
+  </div>
 
-  <!-- 🧭 NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
+      <div id="contenidoProducto"></div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-xl">
-      <!-- 🏠 Logo -->
       <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">JascStore</a>
 
-      <!-- 📱 Botón móvil -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <!-- 📂 Menú -->
       <div class="collapse navbar-collapse" id="navbarContenido">
         <ul class="navbar-nav me-auto gap-2">
           <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
@@ -75,67 +96,66 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a></li>
         </ul>
 
-        <!-- 👤 Usuario -->
-        <ul class="navbar-nav ms-auto gap-2">
+        <ul class="navbar-nav ms-auto gap-3 align-items-center">
           {% if user.is_authenticated %}
-            <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
+            <li class="nav-item d-none d-lg-block">
+                <span class="nav-link text-white small">Hola, <strong>{{ user.first_name|default:user.username }}</strong></span>
+            </li>
 
-            <!-- 🛒 Carrito -->
-            <li class="nav-item position-relative">
-              <a class="nav-link" href="{% url 'store:ver_carrito' %}">
-                <i class="bi bi-cart"></i> Carrito
-                {% if total_items_carrito > 0 %}
-                  <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill">
-                    {{ total_items_carrito }}
-                  </span>
-                {% endif %}
+            <li class="nav-item">
+              <a class="nav-link position-relative px-2" href="javascript:void(0)" onclick="abrirSideCart()">
+                <i class="bi bi-cart3 h5"></i>
+                <span class="cart-count badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill">
+                  {{ total_items_carrito|default:0 }}
+                </span>
               </a>
             </li>
 
-            <!-- ⚙️ Cuenta -->
-            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Contraseña</a></li>
-
-            <!-- 🔓 Logout -->
-            <li class="nav-item">
-              <form action="{% url 'logout' %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
-              </form>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mi Cuenta</a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li><a class="dropdown-item" href="{% url 'password_change' %}">Seguridad</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="px-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm w-100">Cerrar Sesión</button>
+                        </form>
+                    </li>
+                </ul>
             </li>
           {% else %}
             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-            <li class="nav-item"><a class="nav-link text-success fw-bold" href="{% url 'register' %}">Registro</a></li>
+            <li class="nav-item"><a class="btn btn-outline-success btn-sm fw-bold px-3" href="{% url 'register' %}">Registro</a></li>
           {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
-  <!-- 🖼️ Banner -->
   {% block banner_full %}{% endblock %}
 
-  <!-- 🧱 Contenido -->
-  <div class="contenedor-tienda">
+  <main class="contenedor-tienda">
     {% block content %}{% endblock %}
-  </div>
+  </main>
 
-  <!-- ⚙️ Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+  
+  <script src="{% static 'store/js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 
   {% block extra_js %}{% endblock %}
 
-  <!-- 🌐 Footer -->
-  <footer class="bg-dark text-white mt-5 py-4">
+  <footer class="bg-dark text-white mt-5 py-5 border-top border-secondary">
     <div class="container text-center">
-      <p class="mb-2">© 2026 JascStore. Todos los derechos reservados.</p>
-      <div class="d-flex justify-content-center gap-4">
-        <a href="#" class="text-white text-decoration-none">Política de privacidad</a>
-        <a href="#" class="text-white text-decoration-none">Términos y condiciones</a>
-        <a href="#" class="text-white text-decoration-none">Ayuda</a>
+      <p class="mb-4">© 2026 JascStore. Todos los derechos reservados.</p>
+      <div class="d-flex justify-content-center gap-4 mb-4">
+        <a href="#" class="text-secondary text-decoration-none">Privacidad</a>
+        <a href="#" class="text-secondary text-decoration-none">Términos</a>
+        <a href="#" class="text-secondary text-decoration-none">Ayuda</a>
       </div>
-      <div class="mt-3">
+      <div class="h4">
         <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
         <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
         <a href="#" class="text-white"><i class="bi bi-whatsapp"></i></a>

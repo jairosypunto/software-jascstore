@@ -218,18 +218,37 @@ class Banner(models.Model):
     
     
 # 📦 Modelo de imágenes adicionales
+# store/models.py
+
 class ProductImage(models.Model):
-    """Galería de imágenes adicionales para un producto."""
+    """
+    Galería de imágenes adicionales. 
+    Aquí es donde sucede la magia para que la foto active el color.
+    """
     product = models.ForeignKey(
-        Product,
-        related_name="images",
+        Product, 
+        related_name="images", 
         on_delete=models.CASCADE
     )
     image = models.ImageField(
-        upload_to="products/",
-        blank=True,
+        upload_to="products/", 
+        blank=True, 
         null=True
+    )
+    
+    # --- NUEVO CAMPO ---
+    # Este campo guardará el nombre del color (ej: "Negro").
+    # Al ser un CharField, tú escribirás el nombre manualmente en el Admin.
+    color_vinculado = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True, 
+        help_text="Escribe el color exacto (ej: Negro) para que esta foto lo active al hacer clic."
     )
 
     def __str__(self):
-        return f"{self.product.name} - {self.id}"
+        # Mejoramos el nombre en el admin para que sepas qué foto tiene color
+        return f"{self.product.name} - Color: {self.color_vinculado or 'General'}"
+    
+    
+    

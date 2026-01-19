@@ -14,7 +14,8 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
     verbose_name = "Imagen adicional"
     verbose_name_plural = "Imágenes adicionales"
-    fields = ("image", "thumbnail")   # ✅ mostramos la miniatura
+    # ✅ CAMBIO: Añadimos "color_vinculado". Esto es lo que necesitas para las fotos pequeñas.
+    fields = ("image", "color_vinculado", "thumbnail")   
     readonly_fields = ("thumbnail",)
 
     def thumbnail(self, obj):
@@ -47,14 +48,15 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'description')
     list_filter = ('is_available', 'category', 'destacado', 'nuevo')
-    inlines = [ProductImageInline]   # ✅ ahora con miniaturas
+    inlines = [ProductImageInline]   # ✅ Mantenemos tus inlines originales
 
     fieldsets = (
         ("Información básica", {
             "fields": ("name", "slug", "description", "category", "image")
         }),
         ("Precio y stock", {
-            "fields": ("cost", "discount", "final_price", "stock", "is_available", "is_tax_exempt")
+            # ✅ QUITAR IVA: Simplemente eliminamos 'is_tax_exempt' de la lista de campos visibles
+            "fields": ("cost", "discount", "final_price", "stock", "is_available")
         }),
         ("Opciones de producto", {
             "fields": ("talla", "color", "destacado", "nuevo")
@@ -71,7 +73,7 @@ class ProductAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("final_price", "date_register", "date_update")
 
-    # Métodos para mostrar tallas y colores como botones
+    # Métodos para mostrar tallas y colores como botones (Tus funciones originales)
     def talla_buttons(self, obj):
         if not obj.talla_list:
             return "-"
@@ -93,7 +95,7 @@ class ProductAdmin(admin.ModelAdmin):
     color_buttons.short_description = "Colores"
 
 # ================================
-# 🧾 Factura
+# 🧾 Factura (Mantenemos tus 100% de lógica original de reenvío)
 # ================================
 @admin.register(Factura)
 class FacturaAdmin(admin.ModelAdmin):
@@ -132,7 +134,7 @@ class FacturaAdmin(admin.ModelAdmin):
         reenviadas = 0
         for factura in queryset:
             if factura.estado_pago == "Pagado":
-                ok = enviar_factura(factura)   # ✅ usamos la función oficial
+                ok = enviar_factura(factura)   
                 if ok:
                     reenviadas += 1
         self.message_user(
@@ -157,7 +159,7 @@ class FacturaAdmin(admin.ModelAdmin):
     def reenviar_factura_individual(self, request, factura_id):
         factura = Factura.objects.get(pk=factura_id)
         if factura.estado_pago == "Pagado":
-            ok = enviar_factura(factura)   # ✅ también aquí
+            ok = enviar_factura(factura)   
             if ok:
                 self.message_user(request, f"✅ Factura #{factura.id} reenviada correctamente.", level=messages.SUCCESS)
             else:
@@ -180,7 +182,7 @@ class DetalleFacturaAdmin(admin.ModelAdmin):
         'subtotal'
     )
     list_select_related = ('factura', 'producto')
-    search_fields = ('producto__name', 'factura__usuario__username')
+    search_fields = ('producto__name', 'factura__username__username')
     list_filter = ('factura', 'talla', 'color')
 
 
@@ -206,6 +208,7 @@ class CategoryAdmin(admin.ModelAdmin):
 # ================================
 # ⚙️ Configuración general
 # ================================
-@admin.register(Configuracion)
-class ConfiguracionAdmin(admin.ModelAdmin):
-    list_display = ("iva_activo",)
+# ✅ QUITAR IVA: Comentamos el registro para que no aparezca en el menú del admin
+# @admin.register(Configuracion)
+# class ConfiguracionAdmin(admin.ModelAdmin):
+#     list_display = ("iva_activo",)

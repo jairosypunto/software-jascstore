@@ -15,15 +15,19 @@ urlpatterns = [
     path('agregar/<int:product_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('vaciar/', views.vaciar_carrito, name='vaciar_carrito'),
-    path('carrito/actualizar/<int:product_id>/', views.actualizar_cantidad, name='actualizar_cantidad'),
+    
+    # IMPORTANTE: Cambiamos a <str:item_key> para que el botón +/- funcione con colores/tallas
+    path('carrito/actualizar/<str:item_key>/', views.actualizar_cantidad, name='actualizar_cantidad'),
     
     # 🛒 Modal de carrito (contenido dinámico)
-    path('carrito/<int:product_id>/', views.carrito_modal, name='carrito_modal'),
+    path('carrito-modal/<int:product_id>/', views.carrito_modal, name='carrito_modal'),
 
-    # 💳 Pago
+    # 💳 Pago / Checkout
     path('checkout/', views.checkout, name='checkout'),
     path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),
-    path('pago-banco/', views.pago_banco_widget, name='pago_banco'),
+    
+    # ✅ CORREGIDO: El name ahora es 'pago_banco_widget' para que generar_factura no de error
+    path('pago-banco/', views.pago_banco_widget, name='pago_banco_widget'),
     path('confirmacion-pago/', views.confirmacion_pago, name='confirmacion_pago'),
 
     # 📄 Facturación
@@ -39,6 +43,6 @@ urlpatterns = [
     path('nosotros/', views.nosotros, name='nosotros'),
     path('contacto/', views.contacto, name='contacto'),
 
-    # 📦 Pedidos
+    # 📦 Pedidos (asegúrate de que la app 'pedidos' exista en INSTALLED_APPS)
     path('pedidos/', include('pedidos.urls')),
 ]

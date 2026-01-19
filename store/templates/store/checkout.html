@@ -20,51 +20,38 @@
           <th>Subtotal</th>
         </tr>
       </thead>
-      <tbody>
-        {% for item in items %}
-        <tr>
-          <!-- 🖼️ Imagen del producto -->
-          <td>
-            {% if item.producto.image %}
-              <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" width="60" class="img-thumbnail">
-            {% else %}
-              <img src="{% static 'store/img/default.jpg' %}" alt="Sin imagen" width="60" class="img-thumbnail">
-            {% endif %}
-          </td>
+<tbody>
+  {% for item in items %}
+  <tr>
+    <td>
+      {% if item.imagen %}
+        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" width="60" class="img-thumbnail">
+      {% elif item.producto.image %}
+        <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" width="60" class="img-thumbnail">
+      {% else %}
+        <img src="{% static 'store/img/default.jpg' %}" alt="Sin imagen" width="60" class="img-thumbnail">
+      {% endif %}
+    </td>
 
-          <!-- 🏷️ Nombre y variantes -->
-          <td>
-            {{ item.producto.name }}
-            {% if item.talla or item.color %}
-              <div class="small text-muted">
-                {% if item.talla %}Talla: {{ item.talla }}{% endif %}
-                {% if item.talla and item.color %} | {% endif %}
-                {% if item.color %}Color: {{ item.color }}{% endif %}
-              </div>
-            {% endif %}
-          </td>
+    <td>
+      {{ item.nombre }}
+      {% if item.talla or item.color %}
+        <div class="small text-muted">
+          {% if item.talla %}Talla: {{ item.talla }}{% endif %}
+          {% if item.talla and item.color %} | {% endif %}
+          {% if item.color %}Color: {{ item.color }}{% endif %}
+        </div>
+      {% endif %}
+    </td>
 
-          <!-- 🔢 Cantidad -->
-          <td>{{ item.cantidad }}</td>
+    <td>{{ item.cantidad }}</td>
 
-          <!-- 💰 Precio unitario y descuento -->
-          <td>
-            {% if item.producto.discount > 0 %}
-              ${{ item.producto.final_price|floatformat:0|intcomma }}
-              <small class="text-muted d-block">
-                <span class="text-decoration-line-through">${{ item.producto.cost|floatformat:0|intcomma }}</span>
-                (-{{ item.producto.discount }}%)
-              </small>
-            {% else %}
-              ${{ item.producto.cost|floatformat:0|intcomma }}
-            {% endif %}
-          </td>
+    <td>${{ item.precio|floatformat:0|intcomma }}</td>
 
-          <!-- 📊 Subtotal -->
-          <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+    <td>${{ item.total_item|floatformat:0|intcomma }}</td>
+  </tr>
+  {% endfor %}
+</tbody>
     </table>
 
     <!-- 📊 Totales y confirmación -->

@@ -9,21 +9,27 @@
 {% block title %}Carrito - JascStore{% endblock %}
 
 {% block content %}
-<section class="cart-section">
-  <h1>Tu carrito de compras</h1>
+<section class="cart-section container py-5">
+  <h1 class="mb-4">Tu carrito de compras</h1>
 
   {% if items %}
-    <ul class="list-group mb-3">
+    <div class="list-group mb-3">
       {% for it in items %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{{ it.nombre }}</strong>
+        <div class="list-group-item d-flex align-items-center py-3">
+          
+          <div class="cart-item-img me-3" style="width: 100px; height: 100px;">
+            <img src="{{ it.imagen }}" alt="{{ it.nombre }}" 
+                 class="img-fluid rounded" style="object-fit: cover; width: 100%; height: 100%;">
+          </div>
+
+          <div class="flex-grow-1">
+            <h5 class="mb-1">{{ it.nombre }}</h5>
 
             {% if it.talla or it.color %}
-              <div class="small text-muted">
-                {% if it.talla %}Talla: {{ it.talla }}{% endif %}
+              <div class="small text-muted mb-1">
+                {% if it.talla %}<strong>Talla:</strong> {{ it.talla }}{% endif %}
                 {% if it.talla and it.color %} | {% endif %}
-                {% if it.color %}Color: {{ it.color }}{% endif %}
+                {% if it.color %}<strong>Color:</strong> {{ it.color }}{% endif %}
               </div>
             {% endif %}
 
@@ -34,66 +40,63 @@
 
           <div class="text-end">
             <form method="POST"
-                  action="{% url 'store:actualizar_cantidad' it.producto_id %}"
-                  class="d-flex align-items-center gap-2">
+                  action="{% url 'store:actualizar_cantidad' it.item_key %}"
+                  class="d-flex align-items-center justify-content-end gap-2">
               {% csrf_token %}
               <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm">–</button>
-              <input type="text" value="{{ it.cantidad }}" class="form-control text-center" style="width:60px" readonly>
+              <input type="text" value="{{ it.cantidad }}" class="form-control text-center" style="width:50px" readonly>
               <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm">+</button>
             </form>
 
             <div class="mt-2">
               Subtotal:
-              <strong>${{ it.total_item|floatformat:0|intcomma }}</strong>
+              <strong class="text-primary">${{ it.total_item|floatformat:0|intcomma }}</strong>
             </div>
           </div>
-        </li>
+        </div>
       {% endfor %}
 
-      <li class="list-group-item d-flex justify-content-between">
+      <div class="list-group-item d-flex justify-content-between mt-3">
         <span>Subtotal</span>
         <span>${{ subtotal|floatformat:0|intcomma }}</span>
-      </li>
+      </div>
 
       {% if iva > 0 %}
-      <li class="list-group-item d-flex justify-content-between">
+      <div class="list-group-item d-flex justify-content-between">
         <span>IVA</span>
         <span>${{ iva|floatformat:0|intcomma }}</span>
-      </li>
+      </div>
       {% endif %}
 
       {% if descuento > 0 %}
-      <li class="list-group-item d-flex justify-content-between text-success">
-        <span>Descuento</span>
+      <div class="list-group-item d-flex justify-content-between text-success">
+        <span>Ahorro total</span>
         <span>-${{ descuento|floatformat:0|intcomma }}</span>
-      </li>
+      </div>
       {% endif %}
 
-      <li class="list-group-item d-flex justify-content-between fw-bold">
+      <div class="list-group-item d-flex justify-content-between fw-bold fs-5 bg-light">
         <span>Total a pagar</span>
-        <span>${{ total_final|floatformat:0|intcomma }}</span>
-      </li>
+        <span class="text-primary">${{ total_final|floatformat:0|intcomma }}</span>
+      </div>
+    </div>
 
-      <li class="list-group-item d-flex justify-content-between">
-        <strong>Total de productos</strong>
-        <strong>{{ total_items }}</strong>
-      </li>
-    </ul>
-
-    <div class="d-flex gap-2">
-      <a href="{% url 'store:store' %}" class="btn btn-secondary">Continuar comprando</a>
-
-      <form method="post" action="{% url 'store:vaciar_carrito' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-outline-danger">Vaciar carrito</button>
-      </form>
-
-      <a href="{% url 'store:checkout' %}" class="btn btn-primary">Ir a pagar</a>
+    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <div>
+        <a href="{% url 'store:store' %}" class="btn btn-outline-secondary">Continuar comprando</a>
+        <form method="post" action="{% url 'store:vaciar_carrito' %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-link text-danger text-decoration-none">Vaciar carrito</button>
+        </form>
+      </div>
+      <a href="{% url 'store:checkout' %}" class="btn btn-orange btn-lg px-5" style="background-color: #ff5722; color: white;">Ir a pagar</a>
     </div>
 
   {% else %}
-    <p>Tu carrito está vacío.</p>
-    <a class="btn btn-primary" href="{% url 'store:store' %}">Ir a la tienda</a>
+    <div class="text-center py-5">
+        <p class="fs-4">Tu carrito está vacío.</p>
+        <a class="btn btn-primary" href="{% url 'store:store' %}">Ir a la tienda</a>
+    </div>
   {% endif %}
 </section>
 {% endblock %}
