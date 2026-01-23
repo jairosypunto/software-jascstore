@@ -22,7 +22,7 @@ from django.core.mail import EmailMessage
 # ============================
 # Modelos propios
 # ============================
-from .models import Product, Factura, DetalleFactura, Banner, Category
+from .models import Product, Factura, DetalleFactura, Banner, Category, ProductVariant
 from .forms import CheckoutForm
 
 # ============================
@@ -61,9 +61,11 @@ def _precio_final(producto: Product) -> Decimal:
 # 🛒 Función auxiliar: construir lista de ítems del carrito
 # ============================================================
 def _items_carrito(request):
-    """Construye la lista de ítems manteniendo la imagen y variantes de la sesión."""
+    """Construye la lista de ítems sincronizando imagen, stock real y variantes."""
     carrito = request.session.get('carrito', {})
     items = []
+    
+    # Obtenemos los productos de la DB de forma eficiente
     ids = [item['producto_id'] for item in carrito.values()]
     productos_db = Product.objects.in_bulk(ids)
 
@@ -74,144 +76,287 @@ def _items_carrito(request):
 
         precio_unitario = Decimal(str(item.get('precio', 0)))
         cantidad = int(item.get('cantidad', 0))
+        talla = item.get('talla', '')
+        color = item.get('color', '')
         
-        # Recuperamos la imagen específica de la variante guardada en la sesión
-        # Si por algún motivo no está, usamos la del producto por defecto
-        imagen_url = item.get('imagen') or (producto.image.url if producto.image else "")
+        # 1. CORRECCIÓN DE IMAGEN: 
+        # Buscamos 'imagen_url' (que es como lo guarda tu views.py)
+        imagen_final = item.get('imagen_url') or item.get('imagen') or (producto.image.url if producto.image else "")
+
+        # 2. VALIDACIÓN DE STOCK REAL (Variante):
+        # Buscamos la variante en la tabla de stock para habilitar botones y quitar el "Agotado"
+        variante = ProductVariant.objects.filter(
+            product=producto, 
+            talla=talla, 
+            color=color
+        ).first()
+        
+        stock_max = variante.stock if variante else 0
 
         items.append({
             'producto_id': item['producto_id'],
             'item_key': key,
             'nombre': item.get('nombre', producto.name),
-            'talla': item.get('talla', ''),
-            'color': item.get('color', ''),
+            'talla': talla,
+            'color': color,
             'cantidad': cantidad,
-            'precio': precio_unitario,  # Cambiado de 'precio_unitario' para coincidir con tu HTML
-            'imagen': imagen_url,
-            'total_item': precio_unitario * cantidad, # Cambiado para coincidir con tu HTML
+            'precio': precio_unitario,
+            'subtotal': precio_unitario * cantidad, # Usamos 'subtotal' para tu carrito.html
+            'imagen_url': imagen_final,             # Cambiado a 'imagen_url' para tu carrito.html
+            'stock_max': stock_max,                 # Para habilitar el botón "+"
+            'disponible': stock_max > 0,            # Para quitar el mensaje "Agotado"
             'producto': producto,
         })
     return items
 
-
-
 # ============================================================
-# 📋 Ver carrito (Corregido)
+# 📋 Vista: Ver carrito (ACTUALIZADA Y BLINDADA)
 # ============================================================
+from django.shortcuts import render
+from django.contrib import messages
+from decimal import Decimal
+from store.models import Product, ProductVariant 
 
 def ver_carrito(request):
-    """Vista del carrito con validación completa de totales e imágenes."""
-    items = _items_carrito(request)
-    
-    # Objeto fake para reutilizar la lógica de calcular_totales
-    class DetalleFake:
-        def __init__(self, it):
-            self.producto = it['producto']
-            self.cantidad = it['cantidad']
-            self.subtotal = it['total_item']
-
-    factura_fake = type("FacturaFake", (), {"detalles": []})()
-    factura_fake.detalles = [DetalleFake(i) for i in items]
-    
-    totales = calcular_totales(factura_fake)
-
-    context = {
-        'items': items,
-        'subtotal': totales.get('subtotal', 0),
-        'descuento': totales.get('ahorro_total', 0),
-        'iva': totales.get('iva', 0),
-        'total_final': totales.get('total_final', 0),
-        'total_items': sum(i['cantidad'] for i in items)
-    }
-    return render(request, 'store/carrito.html', context)
-
-
-
-@require_POST
-def agregar_al_carrito(request, product_id):
-    producto = get_object_or_404(Product, id=product_id)
-
-    # 1. Recibimos los 3 datos del formulario
-    talla = request.POST.get("selected_size_hidden", "")
-    color = request.POST.get("selected_color_hidden", "")
-    imagen_url = request.POST.get("imagen_seleccionada_url", "")
-
     carrito = request.session.get("carrito", {})
-    
-    # Llave única por variante
-    item_key = f"{product_id}|{talla}|{color}"
+    total = Decimal("0")
+    productos_carrito = []
+    carrito_valido = True 
 
-    if item_key not in carrito:
-        precio = producto.final_price
-        # Si el JS no mandó imagen por algún error, usamos la del producto
-        foto_final = imagen_url if imagen_url else (producto.image.url if producto.image else "")
+    if not carrito:
+        carrito_valido = False
 
-        carrito[item_key] = {
-            "producto_id": product_id,
-            "nombre": producto.name,
-            "precio": str(precio),
-            "cantidad": 0,
-            "talla": talla,
-            "color": color,
-            "imagen": foto_final, # <-- ESTO ES LO QUE VERÁ EL RESUMEN
-        }
-    
-    carrito[item_key]["cantidad"] += 1
-    request.session["carrito"] = carrito
-    request.session.modified = True
+    for key, item in carrito.items():
+        p_id = item.get("producto_id")
+        talla_val = str(item.get("talla", "")).strip()
+        color_val = str(item.get("color", "")).strip()
 
-    # 🟢 CONSTRUCCIÓN DE RESPUESTA PARA SIDE CART JS
-    lista_completa = []
-    total_acumulado = Decimal("0")
-    for key, val in carrito.items():
-        sub = Decimal(val["precio"]) * val["cantidad"]
-        total_acumulado += sub
-        lista_completa.append({
-            "nombre": val["nombre"],
-            "talla": val["talla"],
-            "color": val["color"],
-            "cantidad": val["cantidad"],
-            "precio_formateado": formatear_numero(Decimal(val["precio"])),
-            "imagen_url": val["imagen"],
+        # 1. Intento de búsqueda precisa (Producto + Talla + Color)
+        variante = ProductVariant.objects.filter(
+            product_id=p_id, 
+            talla__iexact=talla_val, 
+            color__iexact=color_val
+        ).first()
+
+        # 2. Si falla (por ser Color Único o estar vacío), buscamos solo por Talla
+        if not variante:
+            variante = ProductVariant.objects.filter(
+                product_id=p_id, 
+                talla__iexact=talla_val
+            ).first()
+
+        # Validación de stock
+        if not variante or variante.stock <= 0:
+            disponible = False
+            carrito_valido = False
+            stock_actual = 0
+        else:
+            disponible = True
+            stock_actual = variante.stock
+            if item["cantidad"] > stock_actual:
+                item["cantidad"] = stock_actual
+                request.session.modified = True
+
+        precio = Decimal(str(item.get("precio", 0)))
+        subtotal = precio * item["cantidad"]
+        total += subtotal
+
+        productos_carrito.append({
+            "item_key": key,
+            "nombre": item.get("nombre"),
+            "precio": precio,
+            "cantidad": item["cantidad"],
+            "talla": talla_val,
+            "color": color_val,
+            "imagen_url": item.get("imagen_url"),
+            "subtotal": subtotal,
+            "disponible": disponible,
+            "stock_max": stock_actual
         })
 
-    return JsonResponse({
-        "status": "ok",
-        "cart_count": sum(i["cantidad"] for i in carrito.values()),
-        "total_carrito": formatear_numero(total_acumulado),
-        "carrito_completo": lista_completa
-    })
+    context = {
+        "carrito": productos_carrito,
+        "total_carrito": total,
+        "carrito_valido": carrito_valido,
+    }
+    return render(request, "store/carrito.html", context)
+
+
 
 # ============================================================
-# 🔄 Actualizar cantidad (NUEVA FUNCIÓN)
+# 🔄 Vista: agregar al carrito (CORREGIDA PARA IMÁGENES)
 # ============================================================
-@require_POST
-def actualizar_cantidad(request):
-    """
-    Suma o resta cantidad desde la vista del carrito.
-    """
-    item_key = request.POST.get('item_key')
-    action = request.POST.get('action')
-    carrito = request.session.get('carrito', {})
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Product
 
-    if item_key in carrito:
-        if action == 'add':
-            carrito[item_key]['cantidad'] += 1
-        elif action == 'remove':
-            carrito[item_key]['cantidad'] -= 1
-            if carrito[item_key]['cantidad'] <= 0:
-                del carrito[item_key]
+def agregar_al_carrito(request, product_id):
+    if request.method == 'POST':
+        producto = get_object_or_404(Product, id=product_id)
         
+        # 1. Captura de datos enviados por AJAX
+        talla = request.POST.get('talla', 'Única').strip()
+        color = request.POST.get('color', 'Único').strip()
+        imagen_url = request.POST.get('imagen_seleccionada_url', '').strip()
+
+        # Respaldo: si no hay imagen seleccionada, usar la principal del producto
+        if not imagen_url or imagen_url == "undefined":
+            imagen_url = producto.image.url if producto.image else "/static/icons/no-image.png"
+
+        carrito = request.session.get('carrito', {})
+
+        # 2. LLAVE ÚNICA: ID + Talla + Color (Permite variantes separadas)
+        item_key = f"{product_id}|{talla}|{color}"
+
+        precio = float(producto.final_price)
+
+        if item_key in carrito:
+            carrito[item_key]['cantidad'] += 1
+            carrito[item_key]['subtotal'] = carrito[item_key]['cantidad'] * precio
+        else:
+            carrito[item_key] = {
+                'item_key': item_key,
+                'producto_id': producto.id,
+                'nombre': producto.name,
+                'precio': precio,
+                'talla': talla,
+                'color': color,
+                'imagen_url': imagen_url,
+                'cantidad': 1,
+                'subtotal': precio,
+                'disponible': True # Asegúrate de que tu lógica de stock actualice esto
+            }
+
+        request.session['carrito'] = carrito
+        request.session.modified = True
+        
+        return JsonResponse({
+            'status': 'ok', 
+            'cart_count': sum(item['cantidad'] for item in carrito.values())
+        })
+    
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=400)
+
+
+# ============================================================
+# 🔄 Vista: actualizar cantidad (Mantiene la imagen)
+# ============================================================
+def actualizar_cantidad(request, item_key):
+    carrito = request.session.get('carrito', {})
+    accion = request.POST.get('accion')
+    
+    if item_key in carrito:
+        if accion == 'sumar':
+            carrito[item_key]['cantidad'] += 1
+        elif accion == 'restar' and carrito[item_key]['cantidad'] > 1:
+            carrito[item_key]['cantidad'] -= 1
+        
+        # Al actualizar cantidad, nos aseguramos de no tocar 'imagen_url' 
+        # para que no se borre lo que ya estaba.
         request.session['carrito'] = carrito
         request.session.modified = True
 
+    return redirect('store:ver_carrito') 
+
+
+
+# ============================================================
+# 🗑️ Vista: eliminar un item específico
+# ============================================================
+def eliminar_del_carrito(request, item_key):
+    """Elimina una combinación específica de producto/talla/color."""
+    carrito = request.session.get("carrito", {})
+    
+    if item_key in carrito:
+        nombre_producto = carrito[item_key].get('nombre', 'Producto')
+        del carrito[item_key]
+        request.session["carrito"] = carrito
+        request.session.modified = True
+        messages.warning(request, f"{nombre_producto} fue eliminado del carrito.")
+    else:
+        messages.error(request, "El producto que intentas eliminar no existe en tu carrito.")
+
+    # Soporte para AJAX (si usas carrito lateral o modal)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        return JsonResponse({
+            "status": "ok", 
+            "cart_count": sum(i["cantidad"] for i in carrito.values()),
+            "message": "Producto eliminado"
+        })
+    
     return redirect('store:ver_carrito')
+    """Muestra la página del carrito validando disponibilidad real en DB."""
+    from .models import ProductVariant # Importación local para evitar ciclos
+    
+    carrito = request.session.get("carrito", {})
+    total = Decimal("0")
+    productos_carrito = []
+    carrito_modificado = False
 
-# ============================================================
-# 📋 Ver carrito
-# ============================================================
+    # Copiamos las llaves para poder borrar items si es necesario sin error de iteración
+    keys_to_check = list(carrito.keys())
 
+    for key in keys_to_check:
+        item = carrito[key]
+        product_id = item["producto_id"]
+        talla = item.get("talla", "")
+        color = item.get("color", "")
 
+        # 🔍 BUSQUEDA DE STOCK REAL EN LA NUEVA TABLA
+        # Buscamos la variante específica
+        variante = ProductVariant.objects.filter(
+            product_id=product_id, 
+            talla=talla, 
+            color=color
+        ).first()
+
+        # 🚨 VALIDACIÓN PROFESIONAL
+        if not variante or variante.stock <= 0:
+            # Si ya no existe o no hay stock, lo marcamos para revisión o lo quitamos
+            # En este caso, lo dejamos pero marcamos 'disponible': False para el HTML
+            item_disponible = False
+            stock_actual = 0
+        else:
+            item_disponible = True
+            stock_actual = variante.stock
+            # Si el usuario pide más de lo que hay, ajustamos su carrito al máximo disponible
+            if item["cantidad"] > stock_actual:
+                item["cantidad"] = stock_actual
+                carrito_modificado = True
+
+        # Cálculos de dinero
+        subtotal = Decimal(item["precio"]) * item["cantidad"]
+        total += subtotal
+        
+        productos_carrito.append({
+            "item_key": key,
+            "producto_id": product_id,
+            "nombre": item["nombre"],
+            "precio": Decimal(item["precio"]),
+            "cantidad": item["cantidad"],
+            "talla": talla,
+            "color": color,
+            "imagen": item.get("imagen", ""),
+            "subtotal": subtotal,
+            "disponible": item_disponible, # 👈 Nuevo: Para mostrar alerta en el HTML
+            "stock_max": stock_actual      # 👈 Nuevo: Para limitar los botones +/-
+        })
+
+    # Si ajustamos cantidades por falta de stock, guardamos la sesión
+    if carrito_modificado:
+        request.session["carrito"] = carrito
+        request.session.modified = True
+        messages.warning(request, "Algunas cantidades se ajustaron por disponibilidad de stock.")
+
+    context = {
+        "carrito": productos_carrito,
+        "total_carrito": total,
+        "total_formateado": formatear_numero(total) if 'formatear_numero' in globals() else total,
+        "carrito_vacio": len(productos_carrito) == 0
+    }
+    
+    return render(request, "store/carrito.html", context)
 
 # ============================================================
 # 🛒 Vista: vaciar carrito
@@ -324,168 +469,174 @@ def productos_por_categoria(request, category_slug):
     return render(request, "store/productos_por_categoria.html", context)
 
 # ============================================================
-# 🧾 Vista: checkout
+# 🧾 Vista: checkout (ESTABILIZADA Y ORGANIZADA)
 # ============================================================
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from decimal import Decimal
+from .models import ProductVariant, ProductImage, Product
+
+@login_required(login_url='/account/login/') # Sincronizado con JascEcommerce/urls.py
 def checkout(request):
-    """Vista de pago corregida para evitar KeyError."""
-    items = _items_carrito(request)
-    if not items:
-        messages.warning(request, "Tu carrito está vacío.")
+    carrito_data = request.session.get("carrito", {})
+    
+    if not carrito_data:
         return redirect('store:ver_carrito')
 
-    # CORRECCIÓN: Usamos 'total_item' que es lo que genera _items_carrito
-    # Esto elimina el KeyError en el servidor
-    subtotal_puro = sum(item['total_item'] for item in items)
-    
-    # Usamos el helper de totales para ser consistentes
-    class DetalleFake:
-        def __init__(self, it):
-            self.producto = it['producto']
-            self.cantidad = it['cantidad']
-            self.subtotal = it['total_item']
+    items_confirmados = []
+    subtotal_acumulado = Decimal("0")
 
-    factura_fake = type("FacturaFake", (), {"detalles": []})()
-    factura_fake.detalles = [DetalleFake(i) for i in items]
-    totales = calcular_totales(factura_fake)
+    for key, it in carrito_data.items():
+        p_id = it.get('producto_id')
+        color_val = str(it.get('color', '')).strip()
+        talla_val = str(it.get('talla', '')).strip()
+
+        # 🔎 LÓGICA DE LA LUPA: Buscar imagen específica por color
+        img_color = ProductImage.objects.filter(
+            product_id=p_id, 
+            color_vinculado__iexact=color_val
+        ).first()
+
+        # Si existe imagen para ese color la usa, si no, usa la del item o una por defecto
+        url_imagen = img_color.image.url if img_color else it.get('imagen_url', '/static/icons/no-image.png')
+
+        precio = Decimal(str(it.get('precio', 0)))
+        cantidad = it.get('cantidad', 1)
+        total_item = precio * cantidad
+        subtotal_acumulado += total_item
+
+        items_confirmados.append({
+            'nombre': it.get('nombre'),
+            'cantidad': cantidad,
+            'precio': precio,
+            'total_item': total_item,
+            'talla': talla_val,
+            'color': color_val,
+            'imagen': url_imagen
+        })
+
+    # Cálculos finales
+    iva = subtotal_acumulado * Decimal("0.19")
+    total_final = subtotal_acumulado + iva
 
     context = {
-        'items': items,
-        'subtotal': totales.get('subtotal', 0),
-        'descuento': totales.get('ahorro_total', 0),
-        'iva': totales.get('iva', 0),
-        'total': totales.get('total_final', 0), # Cambiado a 'total' para tu HTML
+        'items': items_confirmados,
+        'subtotal': subtotal_acumulado,
+        'iva': iva,
+        'total': total_final,
     }
+    
     return render(request, 'store/checkout.html', context)
 
 # ============================================================
-# 🧾 Vista: generar factura (actualizada con datos de envío)
+# 🧾 Vista: generar factura (VERSION FINAL - BLINDADA)
 # ============================================================
-@login_required(login_url='/accounts/login/')
+@login_required(login_url='/account/login/')
 def generar_factura(request):
-    """
-    Genera una factura a partir del carrito:
-    - Usa 'total_item' y 'precio' para evitar KeyErrors.
-    - Mantiene variantes de color/talla e imágenes.
-    - Reduce stock y envía correo.
-    """
+    from .models import ProductVariant, Factura, DetalleFactura, ProductImage, Product
+    from decimal import Decimal
+    from django.contrib import messages
+
     if request.method != "POST":
         return redirect("store:checkout")
 
-    metodo_pago = request.POST.get("metodo_pago")
-    if not metodo_pago:
-        messages.error(request, "Debes seleccionar un método de pago.")
-        return redirect("store:checkout")
-
-    # Obtenemos los items con el nuevo formato (total_item, precio, etc.)
-    items = _items_carrito(request)
-    if not items:
+    # 1. Obtenemos el carrito directamente de la sesión (Evita el ImportError)
+    carrito_session = request.session.get("carrito", {})
+    if not carrito_session:
         messages.error(request, "Tu carrito está vacío.")
         return redirect("store:ver_carrito")
 
-    # 🧮 Calcular totales usando las nuevas llaves del diccionario
-    # Usamos 'total_item' en lugar de 'subtotal' para evitar el KeyError
-    subtotal_carrito = sum(i["total_item"] for i in items)
-    
-    # Calculamos descuento basado en la diferencia de precios si existe
-    descuento = sum(
-        (i["precio_original"] - i["precio"]) * i["cantidad"]
-        for i in items if i.get("discount", 0) > 0
-    )
-    
-    iva = Decimal("0.00")
-    if getattr(settings, "IVA_ACTIVO", False):
-        iva = subtotal_carrito * Decimal("0.19")
-    
-    total_final = subtotal_carrito + iva
-
-    # ✅ Captura de datos de envío del formulario
-    nombre = request.POST.get("nombre")
-    email = request.POST.get("email")
+    # 2. Captura de datos del formulario de envío
+    nombre_cliente = request.POST.get("nombre")
     telefono = request.POST.get("telefono")
     direccion = request.POST.get("direccion")
     ciudad = request.POST.get("ciudad")
     departamento = request.POST.get("departamento")
+    metodo_pago = request.POST.get("metodo_pago", "Contra Entrega")
 
-    # 🧾 Crear factura principal en la base de datos
+    # 3. --- Cálculos Financieros (IVA ELIMINADO TOTALMENTE) ---
+    total_final = Decimal("0")
+    items_para_facturar = []
+
+    for key, item in carrito_session.items():
+        precio = Decimal(str(item.get('precio', 0)))
+        cantidad = int(item.get('cantidad', 1))
+        subtotal_item = precio * cantidad
+        total_final += subtotal_item
+        
+        items_para_facturar.append({
+            'id': item.get('producto_id'),
+            'cantidad': cantidad,
+            'subtotal': subtotal_item,
+            'talla': item.get('talla', ''),
+            'color': item.get('color', ''),
+            'imagen_url': item.get('imagen_url')
+        })
+
+    # 🧾 4. Crear Factura Principal (El total ya no lleva IVA)
     factura = Factura.objects.create(
         usuario=request.user,
         total=total_final,
         metodo_pago=metodo_pago,
-        estado_pago="Pendiente",
-        banco="Banco de prueba" if metodo_pago == "banco" else None,
-        nombre=nombre,
-        email=email,
+        estado_pago="Aprobado", # Sincronizado con tu alerta verde en el HTML
+        nombre=nombre_cliente,
+        email=request.user.email,
         telefono=telefono,
         direccion=direccion,
         ciudad=ciudad,
         departamento=departamento
     )
 
-    # 🧾 Crear detalles de la factura y actualizar Stock
-    for i in items:
-        producto = i["producto"]
-        talla = i.get("talla", "")
-        color = i.get("color", "")
+    # 🧾 5. Procesar cada Item y persistir la imagen (Lupa)
+    for i in items_para_facturar:
+        try:
+            prod = Product.objects.get(id=i['id'])
+        except Product.DoesNotExist:
+            continue
 
-        # Verificación de Stock
-        if producto.stock < i["cantidad"]:
-            messages.warning(request, f"Stock insuficiente para {producto.name}. Se procesará lo disponible.")
-            # Opcional: podrías cancelar la operación aquí si es crítico
+        # Descuento de stock en variantes
+        variante = ProductVariant.objects.filter(
+            product=prod, 
+            talla__iexact=i['talla'], 
+            color__iexact=i['color']
+        ).first()
+
+        if variante and variante.stock >= i["cantidad"]:
+            variante.stock -= i["cantidad"]
+            variante.save()
+
+        # Captura la imagen de la Lupa (por color) para que el resumen la muestre
+        img_lupa = ProductImage.objects.filter(
+            product=prod, 
+            color_vinculado__iexact=i['color']
+        ).first()
         
-        producto.stock -= i["cantidad"]
-        producto.save()
+        foto_final = img_lupa.image.url if img_lupa else i['imagen_url']
 
-        # Guardamos el detalle con el subtotal correcto ('total_item')
+        # Crear detalle de factura
         DetalleFactura.objects.create(
             factura=factura,
-            producto=producto,
+            producto=prod,
             cantidad=i["cantidad"],
-            subtotal=i["total_item"], 
-            talla=talla,
-            color=color
+            subtotal=i["subtotal"], 
+            talla=i['talla'],
+            color=i['color'],
+            imagen_url=foto_final
         )
 
-    # 🛒 Limpiar sesión
+    # 🛒 6. Limpiar Carrito
     request.session["carrito"] = {}
-    request.session["factura_id"] = factura.id
-
-    # 📨 Envío de Email
-    try:
-        enviar_factura(factura, {
-            "factura": factura,
-            "items": items,
-            "subtotal": subtotal_carrito,
-            "descuento": descuento,
-            "iva": iva,
-            "total_final": total_final,
-            "fecha_local": localtime(factura.fecha),
-        })
-        messages.success(request, "Pedido confirmado. Se ha enviado un correo con el detalle.")
-    except Exception as e:
-        messages.warning(request, f"Pedido guardado, pero no se pudo enviar el correo: {e}")
-
-    # 🔀 Redirección según el pago
-    if metodo_pago == "banco":
-        return redirect("store:pago_banco_widget") # O tu vista de banco específica
-
-    # 📄 Mostrar resumen final al cliente
-    context = {
-        "factura": factura,
-        "items": items,
-        "subtotal": subtotal_carrito,
-        "descuento": descuento,
-        "iva": iva,
-        "total_final": total_final,
-    }
-    return render(request, "store/factura_detalle.html", context)
-
-
-
-
+    request.session.modified = True
+    
+    # 7. Redirección al template que me mostraste
+    return render(request, "store/confirmacion_pago.html", {
+        "factura": factura
+    })
+    
 # ============================================================
 # 🧾 Vista: ver factura
 # ============================================================
-@login_required(login_url='/accounts/login/')
+@login_required(login_url='/account/login/')
 def ver_factura(request, factura_id):
     """
     Permite al usuario autenticado ver una factura específica.
@@ -507,14 +658,31 @@ def ver_factura(request, factura_id):
 # ============================================================
 # 🧾 Vista: historial de facturas
 # ============================================================
-@login_required(login_url='/accounts/login/')
+from django.core.paginator import Paginator
+
+@login_required(login_url='/account/login/')
 def mis_facturas(request):
     """
-    Muestra todas las facturas del usuario autenticado.
+    Muestra el historial de compras optimizado con precarga de detalles
+    y paginación profesional.
     """
-    facturas = Factura.objects.filter(usuario=request.user).order_by('-fecha')
-    return render(request, 'store/mis_facturas.html', {'facturas': facturas})
+    from django.core.paginator import Paginator
+    from .models import Factura
 
+    # Usamos prefetch_related('detalles') para cargar los productos de una vez
+    facturas_list = Factura.objects.filter(usuario=request.user).prefetch_related('detalles').order_by('-fecha')
+
+    # Paginación: 8 por página para que no se vea muy cargado
+    paginator = Paginator(facturas_list, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'facturas': page_obj,
+        'total_pedidos': facturas_list.count()
+    }
+
+    return render(request, 'store/mis_facturas.html', context)
 
 # ============================================================
 # 📄 Vista: generar factura en PDF
@@ -587,6 +755,8 @@ def generar_factura_pdf(request, factura_id):
     response["Content-Disposition"] = f'inline; filename="factura_{factura.id}.pdf"'
     response.write(pdf)
     return response
+
+
 
 # ============================================================
 # 🏦 Vista: simulación de pago por banco
@@ -686,40 +856,56 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
 # ============================================================
 # 👁️ Vista: vista rápida de producto
 # ============================================================
-@login_required(login_url='/accounts/login/')
+@login_required(login_url='/account/login/')
 def vista_rapida(request, id):
     producto = get_object_or_404(Product, id=id)
     return render(request, 'store/vista_rapida.html', {'producto': producto})
 
 # ============================================================
-# 🏦 Vista: widget de pago bancario (pre-Wompi)
+# 🏦 Vista: widget de pago bancario (VERSION ESTABILIZADA)
 # ============================================================
 def pago_banco_widget(request):
+    """Prepara el entorno de pago y asegura que el monto sea exacto."""
     factura_id = request.session.get("factura_id")
+    
     if not factura_id:
-        messages.error(request, "No hay factura en sesión.")
+        messages.error(request, "Sesión de pago expirada o no encontrada.")
         return redirect("store:ver_carrito")
 
     factura = Factura.objects.filter(id=factura_id).first()
+    
     if not factura:
+        messages.error(request, "La factura no existe en nuestra base de datos.")
         return redirect("store:ver_carrito")
+
+    # Seguridad: Si ya está pagada, enviarlo directo a confirmación
+    if factura.estado_pago == "Pagado":
+        return redirect(f"{reverse('store:confirmacion_pago')}?status=APPROVED&reference={factura.id}")
 
     if request.method == "POST":
         banco = request.POST.get("banco")
         factura.banco = banco
         factura.save()
 
+        # Simulación de respuesta exitosa
         redirect_url = reverse("store:confirmacion_pago")
         redirect_url += f"?status=APPROVED&reference={factura.id}"
         return redirect(redirect_url)
 
+    # Preparación para Wompi o Pasarela Real
+    # Nota: Las pasarelas suelen pedir el monto en centavos (Ej: 1000 pesos = 100000)
+    monto_en_centavos = int(factura.total * 100)
+
     context = {
+        "factura": factura,
         "public_key": getattr(settings, "WOMPI_PUBLIC_KEY", "pub_test_simulada"),
+        "amount_in_cents": monto_en_centavos, # Para evitar errores de redondeo
         "amount": int(factura.total),
         "currency": "COP",
         "reference": str(factura.id),
-        "redirect_url": request.build_absolute_uri("/store/confirmacion-pago/"),
+        "redirect_url": request.build_absolute_uri(reverse("store:confirmacion_pago")),
     }
+    
     return render(request, "store/pago_banco_widget.html", context)
 
 # ============================================================
@@ -786,6 +972,21 @@ def actualizar_cantidad(request, item_key):
 
     return redirect('store:ver_carrito')
 
+
+# views.py
+from django.http import JsonResponse
+
+def obtener_carrito_json(request):
+    carrito = request.session.get("carrito", {})
+    total = sum(float(item['precio']) * item['cantidad'] for item in carrito.values())
+    
+    return JsonResponse({
+        "carrito_completo": list(carrito.values()),
+        "total_carrito": f"{total:,.0f}".replace(",", "."),
+        "cart_count": sum(item['cantidad'] for item in carrito.values()),
+        "status": "ok"
+    })
+    
 # ============================================================
 # 🌐 Vistas informativas
 # ============================================================
@@ -801,3 +1002,4 @@ def contacto(request):
     Página de contacto.
     """
     return render(request, 'store/contacto.html')
+

@@ -5,7 +5,7 @@ console.log("🔥 STORE.JS CARGADO - Modo Sincronización Temu PRO Full");
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
     initEventosGlobales();
-    initSliders(); // El slider de destacados se inicializa aquí
+    initSliders(); 
     initHoverVideoEnGrid();
     inicializarCarritoModal();
 });
@@ -15,21 +15,28 @@ function getCSRFToken() {
 }
 
 function mostrarToast(msg) {
-    const toastsPrevios = document.querySelectorAll(".toast-carrito");
-    toastsPrevios.forEach(t => t.remove());
-
-    const t = document.createElement("div");
+    let t = document.getElementById("toast-carrito");
+    if (!t) {
+        t = document.createElement("div");
+        t.id = "toast-carrito";
+        document.body.appendChild(t);
+    }
     t.className = "toast-carrito visible";
+    t.style.backgroundColor = "#0f087e"; 
+    t.style.color = "#ffffff";
+    t.style.position = "fixed";
+    t.style.bottom = "20px";
+    t.style.right = "20px";
+    t.style.padding = "15px 25px";
+    t.style.borderRadius = "8px";
+    t.style.zIndex = "9999";
     t.innerText = msg;
-    document.body.appendChild(t);
-    setTimeout(() => {
-        t.style.opacity = "0";
-        setTimeout(() => t.remove(), 500);
-    }, 3000);
+
+    setTimeout(() => { t.className = "toast-carrito"; }, 3000);
 }
 
 /* =====================================================
-    GESTIÓN DEL SIDE CART (CARRITO LATERAL TIPO TEMU)
+    GESTIÓN DEL SIDE CART (TIPO TEMU)
 ===================================================== */
 function abrirSideCart() {
     const cart = document.getElementById("sideCart");
@@ -38,6 +45,8 @@ function abrirSideCart() {
         cart.classList.add("visible");
         overlay.style.display = "block";
         document.body.style.overflow = "hidden";
+        // --- AGREGAR ESTA LÍNEA PARA ACTUALIZAR AL ABRIR ---
+        obtenerCarritoActualizado(); 
     }
 }
 
@@ -64,21 +73,51 @@ function renderizarSideCart(items, total) {
 
     let html = "";
     items.forEach(item => {
+        const variantInfo = (item.talla || item.color) 
+            ? `<p class="mb-1 small text-muted">${item.talla ? 'Talla: '+item.talla : ''} ${item.color ? '| Color: '+item.color : ''}</p>`
+            : '';
+
         html += `
-            <div class="cart-item-row">
-                <img src="${item.imagen_url}" alt="${item.nombre}">
-                <div class="cart-item-details">
-                    <h6>${item.nombre}</h6>
-                    <p>Talla: ${item.talla} | Color: ${item.color}</p>
-                    <div class="d-flex justify-content-between align-items-center mt-1">
+            <div class="cart-item-row d-flex align-items-center mb-3 border-bottom pb-2">
+                <img src="${item.imagen_url}" alt="${item.nombre}" style="width:60px; height:60px; object-fit:cover;" class="rounded">
+                <div class="cart-item-details flex-grow-1 ms-3">
+                    <h6 class="mb-0" style="font-size: 0.9rem;">${item.nombre}</h6>
+                    ${variantInfo}
+                    <div class="d-flex justify-content-between align-items-center">
                         <span class="text-orange fw-bold">$${item.precio_formateado}</span>
-                        <small class="text-muted">Cant: ${item.cantidad}</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <small class="text-muted">x${item.cantidad}</small>
+                            <button onclick="eliminarItemCarrito('${item.item_key}')" class="btn btn-sm text-danger p-1" title="Quitar">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>`;
     });
     contenedor.innerHTML = html;
     if (totalElemento) totalElemento.innerText = `$${total}`;
+}
+
+function eliminarItemCarrito(itemKey) {
+    if(!confirm("¿Deseas eliminar este producto?")) return;
+    const encodedKey = encodeURIComponent(itemKey);
+
+    fetch(`/store/carrito/eliminar/${encodedKey}/`, {
+        method: "GET",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            mostrarToast("Producto eliminado 🗑️");
+            const badge = document.querySelector(".cart-count");
+            if (badge) badge.innerText = data.cart_count;
+            renderizarSideCart(data.carrito_completo, data.total_carrito);
+            if(window.location.pathname.includes('carrito')) location.reload();
+        }
+    })
+    .catch(err => console.error("Error al eliminar:", err));
 }
 
 /* =====================================================
@@ -91,11 +130,7 @@ function abrirVistaRapida(id) {
 
     panel.classList.replace("hidden", "visible");
     document.body.style.overflow = "hidden";
-    cont.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center p-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <span class="ms-2">Cargando producto...</span>
-        </div>`;
+    cont.innerHTML = `<div class="d-flex justify-content-center p-5"><div class="spinner-border text-primary"></div></div>`;
 
     fetch(`/store/vista-rapida/${id}/`)
         .then(res => res.text())
@@ -104,8 +139,7 @@ function abrirVistaRapida(id) {
             setTimeout(() => window.initVistaRapida(cont), 50);
         })
         .catch(err => {
-            console.error("❌ Error al cargar Vista Rápida:", err);
-            cont.innerHTML = "<p class='p-5 text-danger'>Error al cargar el producto.</p>";
+            cont.innerHTML = "<p class='p-5 text-danger'>Error al cargar producto.</p>";
         });
 }
 
@@ -118,19 +152,32 @@ function cerrarVistaRapida() {
 }
 
 /* =====================================================
-    SINCRONIZACIÓN TIPO TEMU (IMAGEN -> COLOR -> FORM)
+   SINCRONIZACIÓN TIPO TEMU (IMAGEN -> COLOR -> FORM)
 ===================================================== */
 window.initVistaRapida = function(cont) {
     const contenedor = cont || document.getElementById("contenidoProducto");
     if (!contenedor) return;
 
-    const btnAgregar = contenedor.querySelector(".btn-agregar") || document.getElementById("agregarDesdeModal");
+    // 1. Detección de Botones
+    const btnAgregar = contenedor.querySelector(".btn-agregar") || 
+                       document.getElementById("btnAgregarModal") ||
+                       document.getElementById("agregarDesdeModal") || 
+                       document.getElementById("btnAgregarFinal");
+
     const chipsTallas = contenedor.querySelectorAll(".size-chip");
     const chipsColores = contenedor.querySelectorAll(".color-chip");
-    const visor = contenedor.querySelector("#imagen-principal");
+    const visor = contenedor.querySelector("#imagen-principal") || 
+                  contenedor.querySelector("#imagen-principal-modal") ||
+                  contenedor.querySelector(".imagen-principal img"); // Tercer intento por si acaso
+    
     const inputFoto = contenedor.querySelector("#imagen_seleccionada_url");
-    const inputColorHidden = contenedor.querySelector("#selected_color_hidden");
-    const inputTallaHidden = contenedor.querySelector("#selected_size_hidden");
+    const inputColorHidden = contenedor.querySelector("#selected_color_hidden") || contenedor.querySelector("input[name='color']");
+    const inputTallaHidden = contenedor.querySelector("#selected_size_hidden") || contenedor.querySelector("input[name='talla']");
+
+    // Sincronización Inicial: Si el visor ya tiene imagen, la mandamos al input para que no vaya vacío
+    if (visor && inputFoto && visor.src) {
+        inputFoto.value = visor.src;
+    }
 
     let tallaOK = chipsTallas.length === 0 || (inputTallaHidden && inputTallaHidden.value !== "");
     let colorOK = chipsColores.length === 0 || (inputColorHidden && inputColorHidden.value !== "");
@@ -140,78 +187,119 @@ window.initVistaRapida = function(cont) {
         if (tallaOK && colorOK) {
             btnAgregar.disabled = false;
             btnAgregar.style.opacity = "1";
-            btnAgregar.style.backgroundColor = "#ff6000"; 
+            btnAgregar.style.backgroundColor = "#0f087e"; 
             btnAgregar.style.cursor = "pointer";
             btnAgregar.innerHTML = "🛒 Agregar al carrito";
         } else {
             btnAgregar.disabled = true;
             btnAgregar.style.opacity = "0.5";
-            btnAgregar.style.cursor = "not-allowed";
             btnAgregar.innerHTML = "Selecciona Talla y Color";
         }
     };
 
+    // --- Tallas ---
     chipsTallas.forEach(t => {
         t.onclick = function() {
             chipsTallas.forEach(x => x.classList.remove("seleccionado", "btn-dark"));
             this.classList.add("seleccionado", "btn-dark");
-            if(inputTallaHidden) inputTallaHidden.value = this.innerText.trim();
+            const valor = this.getAttribute("data-value") || this.innerText.trim();
+            if(inputTallaHidden) inputTallaHidden.value = valor;
             tallaOK = true;
             actualizarEstadoBoton();
         }
     });
 
+    // --- Colores ---
     chipsColores.forEach(c => {
         c.onclick = function() {
             chipsColores.forEach(x => x.classList.remove("seleccionado", "btn-dark"));
             this.classList.add("seleccionado", "btn-dark");
-            if(inputColorHidden) inputColorHidden.value = this.innerText.trim();
+            const valorColor = this.getAttribute("data-value") || this.getAttribute("data-color") || this.innerText.trim();
+            if(inputColorHidden) inputColorHidden.value = valorColor;
             colorOK = true;
             actualizarEstadoBoton();
         }
     });
 
-    contenedor.querySelectorAll(".miniatura").forEach(miniatura => {
+    // --- Miniaturas (Sincronización Reforzada) ---
+    const miniaturas = contenedor.querySelectorAll(".miniatura");
+    miniaturas.forEach(miniatura => {
         miniatura.onclick = function() {
-            const src = this.dataset.src;
-            const colorAsociado = this.dataset.color;
-            if(visor) visor.src = src;
-            if(inputFoto) inputFoto.value = src;
+            // Buscamos la URL: 1. data-src, 2. src de la imagen interna, 3. src del elemento mismo
+            const imgInterna = this.querySelector('img');
+            const src = this.dataset.src || (imgInterna ? imgInterna.src : this.src);
+            const colorAsociado = this.dataset.color || this.dataset.value;
+            
+            if(visor) {
+                visor.src = src;
+                console.log("✅ Visor actualizado:", src);
+            }
+            
+            if(inputFoto) {
+                inputFoto.value = src; // SE ENVÍA ESTA URL AL SERVIDOR
+                console.log("✅ Input de imagen actualizado:", src);
+            }
 
-            contenedor.querySelectorAll(".miniatura").forEach(m => m.classList.remove("activa", "activa-azul"));
-            this.classList.add("activa", "activa-azul");
+            // Estilo visual de miniatura activa
+            miniaturas.forEach(m => m.classList.remove("activa", "activa-azul", "border-primary"));
+            this.classList.add("activa", "activa-azul", "border-primary");
 
+            // Sincronización Automática con Colores
             if (colorAsociado && colorAsociado !== 'base') {
                 chipsColores.forEach(chip => {
-                    if (chip.innerText.trim().toLowerCase() === colorAsociado.toLowerCase()) {
-                        chip.click(); 
+                    const textoChip = (chip.getAttribute("data-value") || chip.innerText.trim()).toLowerCase();
+                    if (textoChip === colorAsociado.toLowerCase()) {
+                        // Solo hacemos clic si no está seleccionado para evitar bucles
+                        if(!chip.classList.contains("seleccionado")) chip.click(); 
                     }
                 });
             }
         };
     });
+
     actualizarEstadoBoton();
 };
 
+
 /* =====================================================
     CONTROLADOR MAESTRO DE AGREGAR AL CARRITO (AJAX)
+    Estado: Blindaje Total - Liberación de Checkout
 ===================================================== */
 document.addEventListener("click", (e) => {
-    const btn = e.target.closest("#agregarDesdeModal");
+    // 1. VALIDACIÓN DE CHECKOUT (PRIORIDAD 0)
+    // Buscamos si el clic fue en el botón de finalizar o cualquier enlace que contenga 'checkout'
+    const isCheckout = e.target.closest(".btn-pagar") || 
+                       e.target.closest("#btn-finalizar-checkout") || 
+                       (e.target.tagName === 'A' && e.target.href.includes('checkout'));
+
+    if (isCheckout) {
+        console.log("🚀 Redirigiendo a Checkout... Bypass AJAX activo.");
+        return; // Detenemos el script aquí para que el navegador cargue la página
+    }
+
+    // 2. BUSCAR BOTÓN DE AGREGAR
+    const btn = e.target.closest("#agregarDesdeModal") || 
+                e.target.closest("#btnAgregarModal") || 
+                e.target.closest("#btnAgregarFinal") ||
+                e.target.closest(".btn-agregar");
+
+    // Si no es un botón de compra, ignorar
     if (!btn || btn.disabled) return;
 
+    // 3. PROCESO AJAX (Solo para agregar productos)
     e.preventDefault();
+    
     const form = btn.closest("form");
     if (!form) return;
 
-    const id = btn.dataset.id;
+    const productId = btn.dataset.id || btn.dataset.productId;
     const formData = new FormData(form);
     const textoOriginal = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Agregando...`;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
 
-    fetch(`/store/agregar/${id}/`, {
+    fetch(`/store/agregar/${productId}/`, {
         method: "POST",
         headers: { "X-CSRFToken": getCSRFToken(), "X-Requested-With": "XMLHttpRequest" },
         body: formData
@@ -219,22 +307,16 @@ document.addEventListener("click", (e) => {
     .then(res => res.json())
     .then(data => {
         if (data.status === 'ok') {
-            mostrarToast("¡Producto añadido con éxito! ✅");
-            const badge = document.querySelector(".cart-count");
-            if (badge) badge.innerText = data.cart_count;
-
-            renderizarSideCart(data.carrito_completo, data.total_carrito);
+            mostrarToast("¡Añadido! ✅");
+            document.querySelectorAll(".cart-count").forEach(b => b.innerText = data.cart_count);
+            if (typeof renderizarSideCart === "function") renderizarSideCart(data.carrito_completo, data.total_carrito);
             cerrarVistaRapida();
             cerrarCarritoModal();
             abrirSideCart();
-        } else {
-            alert("Error: " + (data.error || "No se pudo agregar"));
         }
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
     })
-    .catch(err => {
-        console.error("❌ Error en Fetch:", err);
+    .catch(err => console.error("Error:", err))
+    .finally(() => {
         btn.disabled = false;
         btn.innerHTML = textoOriginal;
     });
@@ -267,7 +349,7 @@ function abrirCarritoModal(id) {
     document.body.style.overflow = "hidden";
     cont.innerHTML = "<div class='p-4 text-center'><div class='spinner-border'></div></div>";
 
-    fetch(`/store/carrito/${id}/`)
+    fetch(`/store/carrito-modal/${id}/`)
         .then(res => res.text())
         .then(html => { 
             cont.innerHTML = html; 
@@ -292,34 +374,23 @@ function inicializarCarritoModal() {
 }
 
 /* =====================================================
-    EXTRAS: VIDEO HOVER Y SWIPER (FIXED)
+    EXTRAS: VIDEO HOVER Y SWIPER
 ===================================================== */
 function initSliders() {
     if (typeof Swiper === "undefined") return;
     
     new Swiper(".bannerSwiper", { 
         loop: true, 
-        autoplay: { delay: 5000, disableOnInteraction: false }, 
+        autoplay: { delay: 5000 }, 
         pagination: { el: ".swiper-pagination", clickable: true } 
     });
 
-    // Slider de Productos Destacados - CORREGIDO
-    new Swiper(".destacados-swiper", { 
+    const destacadosSwiper = new Swiper(".destacados-swiper", { 
         slidesPerView: 1.2, 
         spaceBetween: 15,
-        grabCursor: true,
-        observer: true, 
-        observeParents: true,
-        watchOverflow: true,
-        navigation: {
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev",
-        },
-        breakpoints: { 
-            480: { slidesPerView: 2.2 },
-            768: { slidesPerView: 3.5 }, 
-            1200: { slidesPerView: 5 } 
-        } 
+        autoplay: { delay: 3000 },
+        navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+        breakpoints: { 480: { slidesPerView: 2.2 }, 768: { slidesPerView: 3.5 }, 1200: { slidesPerView: 5 } } 
     });
 }
 
@@ -343,4 +414,27 @@ function initHoverVideoEnGrid() {
             if (videoEl) { videoEl.remove(); videoEl = null; } 
         });
     });
+}
+
+/* Refresca los datos del Side Cart sin recargar la página */
+// store.js
+function obtenerCarritoActualizado() {
+    fetch('/store/carrito-json/', { 
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(res => {
+        // Verificamos si la respuesta es realmente JSON antes de procesar
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return res.json();
+        } else {
+            throw new Error("El servidor no devolvió JSON. Revisa tus URLs.");
+        }
+    })
+    .then(data => {
+        if (data.carrito_completo) {
+            renderizarSideCart(data.carrito_completo, data.total_carrito);
+        }
+    })
+    .catch(err => console.error("Error al refrescar el carrito:", err));
 }

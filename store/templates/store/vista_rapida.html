@@ -1,92 +1,207 @@
 {% load static humanize %}
 
+<style>
+    /* Estilos específicos para que se vea Premium */
+    .option-chip {
+        border: 2px solid #dce0e4;
+        background: white;
+        padding: 8px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    .option-chip:hover { border-color: #1a237e; color: #1a237e; }
+    
+    /* Clase de selección - Azul JascStore */
+    .option-chip.selected {
+        background-color: #1a237e !important;
+        color: white !important;
+        border-color: #1a237e !important;
+        box-shadow: 0 4px 10px rgba(26, 35, 126, 0.3);
+    }
+
+    .btn-agregar {
+        width: 100%;
+        padding: 15px;
+        border-radius: 50px;
+        border: none;
+        background-color: #1a237e;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        margin-top: 1rem;
+    }
+    .btn-agregar:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+    .miniatura.activa { border: 2px solid #1a237e; }
+</style>
+
 <div class="vista-rapida-contenido" data-mode="quick" id="contenidoProducto">
+    <button class="cerrar-panel" onclick="cerrarVistaRapida()" aria-label="Cerrar">✕</button>
 
-  <button class="cerrar-panel" aria-label="Cerrar">✕</button>
+    <div class="galeria-producto">
+        <div class="imagen-principal" id="visor-principal">
+            <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'icons/no-image.png' %}{% endif %}" 
+                 id="imagen-principal-modal" class="big-image" alt="{{ producto.name }}">
+        </div>
 
-  <div class="galeria-producto">
-
-    <div class="imagen-principal" id="visor-principal">
-      {% if producto.image %}
-        <img src="{{ producto.image.url }}" id="imagen-principal"
-             class="big-image" alt="{{ producto.name }}">
-      {% else %}
-        <img src="{% static 'icons/no-image.png' %}" id="imagen-principal"
-             class="big-image" alt="Sin imagen">
-      {% endif %}
+        <div class="miniaturas-horizontal">
+            {% if producto.image %}
+                <div class="miniatura activa" data-src="{{ producto.image.url }}">
+                    <img src="{{ producto.image.url }}" alt="Principal">
+                </div>
+            {% endif %}
+            {% for img in producto.images.all %}
+                <div class="miniatura" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado|default:'' }}">
+                    <img src="{{ img.image.url }}" alt="Extra">
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
-    <div class="miniaturas-horizontal">
-      {% if producto.image %}
-        <div class="miniatura activa activa-azul" 
-             data-type="image" 
-             data-src="{{ producto.image.url }}"
-             data-color="base">
-          <img src="{{ producto.image.url }}" alt="Imagen principal">
-        </div>
-      {% endif %}
+    <div class="info-producto">
+        <h3 class="titulo" style="color: #1a237e; font-weight: 800;">{{ producto.name }}</h3>
+        <p class="descripcion text-muted">{{ producto.description }}</p>
 
-      {% for img in producto.images.all %}
-        <div class="miniatura" 
-             data-type="image" 
-             data-src="{{ img.image.url }}"
-             data-color="{{ img.color_vinculado|default:'' }}">
-          <img src="{{ img.image.url }}" alt="Imagen extra">
+        <div class="precio mb-3">
+            <span class="precio-final" style="font-size: 1.8rem; color: #1a237e; font-weight: 900;">
+                ${{ producto.final_price|floatformat:0|intcomma }}
+            </span>
+            {% if producto.discount > 0 %}
+                <span class="precio-original text-decoration-line-through ms-2 text-muted">
+                    ${{ producto.cost|floatformat:0|intcomma }}
+                </span>
+            {% endif %}
         </div>
-      {% endfor %}
+
+        {% if producto.talla_list %}
+        <div class="bloque-opciones mb-3">
+            <label class="fw-bold small d-block mb-2">ELIGE TU TALLA</label>
+            <div class="opciones d-flex flex-wrap" id="contenedor-tallas">
+                {% for talla in producto.talla_list %}
+                    <button type="button" class="option-chip size-chip" data-value="{{ talla }}">{{ talla }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if producto.color_list %}
+        <div class="bloque-opciones mb-4">
+            <label class="fw-bold small d-block mb-2">ELIGE COLOR</label>
+            <div class="opciones d-flex flex-wrap" id="contenedor-colores">
+                {% for color in producto.color_list %}
+                    <button type="button" class="option-chip color-chip" data-value="{{ color }}">{{ color }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <form id="form-add-cart-modal">
+            {% csrf_token %}
+            <input type="hidden" name="imagen_seleccionada_url" id="imagen_seleccionada_url" value="{{ producto.image.url }}">
+            <input type="hidden" name="talla" id="selected_size_hidden" value="">
+            <input type="hidden" name="color" id="selected_color_hidden" value="">
+            <input type="hidden" name="cantidad" value="1">
+
+            <button type="button" id="btnAgregarModalPropio" class="btn-agregar" data-id="{{ producto.id }}" disabled>
+                🛒 Agregar al carrito
+            </button>
+        </form>
     </div>
-  </div>
-
-  <div class="info-producto">
-    <h3 class="titulo">{{ producto.name }}</h3>
-    <p class="descripcion">{{ producto.description }}</p>
-
-    <div class="precio">
-      {% if producto.discount > 0 %}
-        <span class="precio-final">${{ producto.final_price|floatformat:0|intcomma }}</span>
-        <span class="precio-original">${{ producto.cost|floatformat:0|intcomma }}</span>
-        <span class="badge-descuento">-{{ producto.discount }}%</span>
-      {% else %}
-        <span class="precio-final">${{ producto.cost|floatformat:0|intcomma }}</span>
-      {% endif %}
-    </div>
-
-    {% if producto.talla_list %}
-      <div class="bloque-opciones">
-        <label class="label-opcion">Tallas</label>
-        <div class="opciones">
-          {% for talla in producto.talla_list %}
-            <button type="button" class="option-chip size-chip">{{ talla }}</button>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-
-    {% if producto.color_list %}
-      <div class="bloque-opciones">
-        <label class="label-opcion">Colores</label>
-        <div class="opciones">
-          {% for color in producto.color_list %}
-            <button type="button" class="option-chip color-chip">{{ color }}</button>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-
-    <form id="form-add-cart">
-      {% csrf_token %}
-      <input type="hidden" name="selected_size_hidden" id="selected_size_hidden">
-      <input type="hidden" name="selected_color_hidden" id="selected_color_hidden">
-      <input type="hidden" name="imagen_seleccionada_url" id="imagen_seleccionada_url" value="{{ producto.image.url }}">
-      <input type="hidden" name="cantidad" value="1">
-
-      <button type="button" 
-              id="agregarDesdeModal" 
-              data-id="{{ producto.id }}"
-              class="btn-agregar" 
-              disabled>
-        🛒 Agregar al carrito
-      </button>
-    </form>
-  </div>
 </div>
+
+<script>
+(function() {
+    const contenedor = document.getElementById('contenidoProducto');
+    const btnAgregar = contenedor.querySelector('#btnAgregarModalPropio');
+    const inputTalla = contenedor.querySelector('#selected_size_hidden');
+    const inputColor = contenedor.querySelector('#selected_color_hidden');
+    const inputImagen = contenedor.querySelector('#imagen_seleccionada_url');
+    const imgPrincipal = contenedor.querySelector('#imagen-principal-modal');
+
+    function validarSeleccion() {
+        const tieneTallas = contenedor.querySelectorAll('.size-chip').length > 0;
+        const tieneColores = contenedor.querySelectorAll('.color-chip').length > 0;
+        
+        const tallaOk = !tieneTallas || (inputTalla.value !== "");
+        const colorOk = !tieneColores || (inputColor.value !== "");
+        
+        btnAgregar.disabled = !(tallaOk && colorOk);
+        if(!btnAgregar.disabled) {
+            btnAgregar.innerText = "🛒 ¡Listo para añadir!";
+        }
+    }
+
+    // 1. Manejo de Miniaturas
+    contenedor.querySelectorAll('.miniatura').forEach(thumb => {
+        thumb.onclick = function() {
+            const src = this.dataset.src;
+            imgPrincipal.src = src;
+            inputImagen.value = src;
+            
+            contenedor.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa'));
+            this.classList.add('activa');
+
+            const color = this.dataset.color;
+            if (color) seleccionarColorAuto(color);
+        };
+    });
+
+    // 2. Selección de Chips
+    contenedor.querySelectorAll('.option-chip').forEach(btn => {
+        btn.onclick = function() {
+            const parent = this.parentElement;
+            parent.querySelectorAll('.option-chip').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            if (this.classList.contains('size-chip')) inputTalla.value = this.dataset.value;
+            if (this.classList.contains('color-chip')) inputColor.value = this.dataset.value;
+            
+            validarSeleccion();
+        };
+    });
+
+    function seleccionarColorAuto(color) {
+        contenedor.querySelectorAll('.color-chip').forEach(btn => {
+            if(btn.dataset.value.toLowerCase() === color.toLowerCase()) btn.click();
+        });
+    }
+
+    // 3. Envío AJAX
+    btnAgregar.onclick = function() {
+        const formData = new FormData(contenedor.querySelector('#form-add-cart-modal'));
+        btnAgregar.disabled = true;
+        btnAgregar.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Añadiendo...';
+
+        fetch(`/store/agregar/{{ producto.id }}/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': contenedor.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                // Actualizar contador del carrito global si existe
+                const cartCount = document.querySelector('.cart-count');
+                if(cartCount) cartCount.innerText = data.cart_count;
+                
+                // Redirigir o abrir el side cart
+                window.location.href = "{% url 'store:ver_carrito' %}";
+            }
+        })
+        .catch(err => {
+            alert("Error al añadir al carrito");
+            btnAgregar.disabled = false;
+        });
+    };
+})();
+</script>

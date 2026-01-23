@@ -5,29 +5,26 @@ from store.views import generar_factura_pdf
 app_name = 'store'
 
 urlpatterns = [
-    # 🏬 Tienda
+    # 🏬 Tienda y Productos
     path('', views.store, name='store'),
-    path('category/<str:category_slug>/', views.productos_por_categoria, name='productos_por_categoria'),
-    path('vista-rapida/<int:id>/', views.vista_rapida, name='vista_rapida'),
+    path('category/<slug:category_slug>/', views.productos_por_categoria, name='productos_por_categoria'),
     path('producto/<slug:slug>/', views.detalle_producto, name='detalle_producto'),
+    path('vista-rapida/<int:id>/', views.vista_rapida, name='vista_rapida'),
 
-    # 🛒 Carrito
+    # 🛒 Carrito (Gestión Principal)
+    path('carrito/', views.ver_carrito, name='ver_carrito'), # Siempre poner la lista antes que las acciones con parámetros
     path('agregar/<int:product_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
-    path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('vaciar/', views.vaciar_carrito, name='vaciar_carrito'),
-    
-    # IMPORTANTE: Cambiamos a <str:item_key> para que el botón +/- funcione con colores/tallas
+    path('carrito/eliminar/<str:item_key>/', views.eliminar_del_carrito, name='eliminar_del_carrito'),
     path('carrito/actualizar/<str:item_key>/', views.actualizar_cantidad, name='actualizar_cantidad'),
-    
-    # 🛒 Modal de carrito (contenido dinámico)
+    path('carrito-json/', views.obtener_carrito_json, name='carrito_json'),
     path('carrito-modal/<int:product_id>/', views.carrito_modal, name='carrito_modal'),
 
-    # 💳 Pago / Checkout
-    path('checkout/', views.checkout, name='checkout'),
-    path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),
-    
-    # ✅ CORREGIDO: El name ahora es 'pago_banco_widget' para que generar_factura no de error
+    # 💳 Proceso de Pago (Checkout)
+    # Si te da 404, asegúrate de que el enlace en el HTML sea {% url 'store:checkout' %}
+    path('checkout/', views.checkout, name='checkout'), 
     path('pago-banco/', views.pago_banco_widget, name='pago_banco_widget'),
+    path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),
     path('confirmacion-pago/', views.confirmacion_pago, name='confirmacion_pago'),
 
     # 📄 Facturación
@@ -36,13 +33,8 @@ urlpatterns = [
     path('factura/<int:factura_id>/', views.ver_factura, name='ver_factura'),
     path('factura/pdf/<int:factura_id>/', generar_factura_pdf, name='generar_factura_pdf'),
 
-    # 👤 Usuario
-    path('login/', views.login_view, name='login'),
-
-    # 📄 Info
+    # 👤 Información y Cuentas
     path('nosotros/', views.nosotros, name='nosotros'),
     path('contacto/', views.contacto, name='contacto'),
-
-    # 📦 Pedidos (asegúrate de que la app 'pedidos' exista en INSTALLED_APPS)
-    path('pedidos/', include('pedidos.urls')),
+    path('pedidos/', include('pedidos.urls')), # Verifica que pedidos.urls no tenga rutas que choquen
 ]

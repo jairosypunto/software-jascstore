@@ -1,0 +1,39 @@
+/* Colores de Marca JascStore */
+:root {
+    --azul-premium: #1a237e;
+    --gris-suave: #f8f9fa;
+}
+
+/* Estilo para la Factura (Pantalla y PDF) */
+.factura-container {
+    padding: 2rem;
+    background: white;
+}
+
+.header-factura {
+    border-bottom: 2px solid var(--azul-premium);
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+}
+
+.table-jasc {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-jasc th {
+    background-color: var(--azul-premium);
+    color: white;
+    padding: 12px;
+}
+
+.table-jasc td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.total-destacado {
+    color: var(--azul-premium);
+    font-size: 1.5rem;
+    font-weight: 900;
+}

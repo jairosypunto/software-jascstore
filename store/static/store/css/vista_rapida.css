@@ -59,11 +59,11 @@
 
 .miniatura:hover {
   transform: scale(1.05);
-  border-color: #ff4d00;
+  border-color: #0f087e;
 }
 
 .miniatura.activa {
-  border: 2px solid #ff4d00;
+  border: 2px solid #0f087e;
 }
 
 /* IMAGEN PRINCIPAL */
@@ -112,7 +112,7 @@
 .precio-final {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #ff4d00;
+  color: #0f087e;
 }
 
 .precio-original {
@@ -122,7 +122,7 @@
 }
 
 .badge-descuento {
-  background: #ff4d00;
+  background: #0f087e;
   color: #fff;
   padding: 2px 6px;
   font-size: 0.7rem;
@@ -161,14 +161,14 @@
 }
 
 .option-chip:hover {
-  border-color: #ff4d00;
-  color: #ff4d00;
+  border-color: #0f087e;
+  color: #0f087e;
 }
 
 .option-chip.seleccionado {
-  border-color: #ff4d00;
+  border-color: #0f087e;
   background: #fff1eb;
-  color: #ff4d00;
+  color: #0f087e;
   font-weight: 600;
 }
 
@@ -180,7 +180,7 @@
   padding: 10px;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(to right, #ff4d00, #ff8000);
+  background: linear-gradient(to right, #0f087e, #ff8000);
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
@@ -272,7 +272,7 @@
 }
 
 .cerrar-panel:hover {
-  color: #ff4d00;
+  color: #0f087e;
 }
  
 /* =================================================

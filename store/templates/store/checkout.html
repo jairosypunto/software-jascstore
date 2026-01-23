@@ -2,133 +2,94 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Checkout{% endblock %}
+{% block title %}Finalizar Compra - JascStore{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center mb-4">🧾 Resumen de tu compra</h2>
+<style>
+    .checkout-container { margin-top: 3rem; margin-bottom: 5rem; }
+    .card-checkout { border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .step-title { color: #1a237e; font-weight: 800; border-left: 5px solid #1a237e; padding-left: 15px; margin-bottom: 1.5rem; }
+    .form-control { border-radius: 8px; padding: 12px; border: 1px solid #dce0e4; }
+    .form-control:focus { border-color: #3949ab; box-shadow: 0 0 0 0.25rem rgba(57, 73, 171, 0.1); }
+    .resumen-item { border-bottom: 1px dashed #eee; padding: 10px 0; }
+    .btn-confirmar { background-color: #1a237e; color: white; border-radius: 50px; padding: 15px; font-weight: 700; transition: all 0.3s; border: none; width: 100%; }
+    .btn-confirmar:hover { background-color: #3949ab; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3); }
+    .img-checkout { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; border: 1px solid #eee; }
+</style>
 
-  {% if items %}
-    <!-- 📋 Tabla de productos en el carrito -->
-    <table class="table table-bordered table-hover text-center align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>Imagen</th>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio unitario</th>
-          <th>Subtotal</th>
-        </tr>
-      </thead>
-<tbody>
-  {% for item in items %}
-  <tr>
-    <td>
-      {% if item.imagen %}
-        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" width="60" class="img-thumbnail">
-      {% elif item.producto.image %}
-        <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" width="60" class="img-thumbnail">
-      {% else %}
-        <img src="{% static 'store/img/default.jpg' %}" alt="Sin imagen" width="60" class="img-thumbnail">
-      {% endif %}
-    </td>
-
-    <td>
-      {{ item.nombre }}
-      {% if item.talla or item.color %}
-        <div class="small text-muted">
-          {% if item.talla %}Talla: {{ item.talla }}{% endif %}
-          {% if item.talla and item.color %} | {% endif %}
-          {% if item.color %}Color: {{ item.color }}{% endif %}
-        </div>
-      {% endif %}
-    </td>
-
-    <td>{{ item.cantidad }}</td>
-
-    <td>${{ item.precio|floatformat:0|intcomma }}</td>
-
-    <td>${{ item.total_item|floatformat:0|intcomma }}</td>
-  </tr>
-  {% endfor %}
-</tbody>
-    </table>
-
-    <!-- 📊 Totales y confirmación -->
-    <div class="text-end">
-      <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
-      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
-      <p><strong>Descuento:</strong> -${{ descuento|floatformat:0|intcomma }}</p>
-      <h4>Total: <span class="text-success">${{ total|floatformat:0|intcomma }}</span></h4>
-
-      <!-- 🏦 Formulario de confirmación -->
-      <form method="POST" action="{% url 'store:generar_factura' %}" class="mt-4">
-        {% csrf_token %}
-
-        <!-- Nombre -->
-        <div class="mb-3 text-start">
-          <label for="nombre" class="form-label">Nombre completo:</label>
-          <input type="text" name="nombre" id="nombre" class="form-control" placeholder="Ej: Juan Pérez" required>
+<div class="container checkout-container">
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card card-checkout p-4 mb-4">
+                <h3 class="step-title">Información de Envío</h3>
+                <form id="checkout-form" method="POST" action="{% url 'store:generar_factura' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Jairo Salazar" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Teléfono de contacto</label>
+                            <input type="text" name="telefono" class="form-control" placeholder="300 000 0000" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Dirección de entrega</label>
+                            <input type="text" name="direccion" class="form-control" placeholder="Calle, Número, Apto/Casa" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Ciudad</label>
+                            <input type="text" name="ciudad" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Departamento</label>
+                            <input type="text" name="departamento" class="form-control" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <!-- Email -->
-        <div class="mb-3 text-start">
-          <label for="email" class="form-label">Correo electrónico:</label>
-          <input type="email" name="email" id="email" class="form-control" placeholder="ejemplo@correo.com" required>
-        </div>
+        <div class="col-lg-5">
+            <div class="card card-checkout p-4 bg-light">
+                <h4 class="mb-4 fw-bold" style="color: #1a237e;">Resumen del Pedido</h4>
+                
+                {# CAMBIO CLAVE: Usamos 'items' en lugar de 'carrito' para conectar con tu vista Python #}
+                {% for it in items %}
+                <div class="resumen-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        {# Mostramos la imagen procesada por la lógica de la Lupa #}
+                        <img src="{{ it.imagen }}" class="img-checkout" alt="{{ it.nombre }}">
+                        <div>
+                            <span class="fw-bold">{{ it.cantidad }}x</span> {{ it.nombre }}
+                            <div class="small text-muted">Talla: {{ it.talla }} | Color: {{ it.color }}</div>
+                        </div>
+                    </div>
+                    <span class="fw-bold">${{ it.total_item|floatformat:0|intcomma }}</span>
+                </div>
+                {% endfor %}
 
-        <!-- Teléfono -->
-        <div class="mb-3 text-start">
-          <label for="telefono" class="form-label">Teléfono de contacto:</label>
-          <input type="tel" name="telefono" id="telefono" class="form-control" placeholder="3016173378" required>
-        </div>
+                <div class="mt-4">
+                    {# Subtotal e IVA para que el cliente sepa qué paga #}
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Subtotal:</span>
+                        <span>${{ subtotal|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-2">
+                        <span>IVA (19%):</span>
+                        <span>${{ iva|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between fs-5 fw-bold mt-2 pt-2 border-top">
+                        <span>Total a pagar:</span>
+                        <span style="color: #1a237e;">${{ total|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
 
-        <!-- Dirección -->
-        <div class="mb-3 text-start">
-          <label for="direccion" class="form-label">Dirección de entrega:</label>
-          <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Calle 123 #45-67" required>
+                <button type="submit" form="checkout-form" class="btn btn-confirmar mt-4">
+                    CONFIRMAR Y REALIZAR PEDIDO <i class="bi bi-check-circle ms-2"></i>
+                </button>
+            </div>
         </div>
-
-        <!-- Ciudad -->
-        <div class="mb-3 text-start">
-          <label for="ciudad" class="form-label">Ciudad:</label>
-          <select name="ciudad" id="ciudad" class="form-select" required>
-            <option value="">-- Selecciona --</option>
-            <option value="Medellín" selected>Medellín</option>
-            <option value="Envigado">Envigado</option>
-            <option value="Bello">Bello</option>
-            <option value="Itagüí">Itagüí</option>
-          </select>
-        </div>
-
-        <!-- Departamento -->
-        <div class="mb-3 text-start">
-          <label for="departamento" class="form-label">Departamento:</label>
-          <input type="text" name="departamento" id="departamento" class="form-control" value="Antioquia" required>
-        </div>
-
-        <!-- Método de pago -->
-        <div class="mb-3 text-start">
-          <label for="metodo_pago" class="form-label">Selecciona el método de pago:</label>
-          <select name="metodo_pago" id="metodo_pago" class="form-select" required>
-            <option value="">-- Selecciona --</option>
-            <option value="banco">Pago por banco</option>
-            <option value="contraentrega">Contraentrega</option>
-          </select>
-        </div>
-
-        <!-- Botón -->
-        <div class="text-center">
-          <button type="submit" class="btn btn-success btn-lg">
-            Confirmar pago
-          </button>
-        </div>
-      </form>
     </div>
-
-  {% else %}
-    <!-- 🛒 Carrito vacío -->
-    <p class="text-muted text-center">Tu carrito está vacío.</p>
-  {% endif %}
 </div>
 {% endblock %}

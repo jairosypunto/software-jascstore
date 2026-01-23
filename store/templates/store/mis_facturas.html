@@ -1,101 +1,105 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load humanize %}
 
 {% block content %}
+<style>
+    :root {
+        --azul-premium: #1a237e; /* Azul Navy profundo */
+        --azul-claro: #3949ab;
+    }
+    .header-historial {
+        background: linear-gradient(135deg, var(--azul-premium) 0%, var(--azul-claro) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(26, 35, 126, 0.2);
+    }
+    .card-factura {
+        border: none;
+        border-left: 5px solid var(--azul-premium);
+        transition: transform 0.2s;
+        border-radius: 10px;
+    }
+    .card-factura:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .badge-estado {
+        background-color: var(--azul-premium);
+        font-weight: 400;
+    }
+</style>
+
 <div class="container mt-5">
+    <div class="header-historial text-center">
+        <h2 class="fw-bold mb-0"><i class="bi bi-bag-check me-2"></i>Mis Pedidos</h2>
+        <p class="mb-0 opacity-75">Has realizado {{ total_pedidos }} compras en nuestra tienda</p>
+    </div>
 
-  <!-- 🧾 Encabezado -->
-  <h2 class="mb-4 text-primary">Mis facturas</h2>
+    {% if facturas %}
+        <div class="row">
+            {% for factura in facturas %}
+            <div class="col-md-6 mb-4">
+                <div class="card card-factura shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0" style="color: var(--azul-premium);">
+                                Pedido #{{ factura.id }}
+                            </h5>
+                            <span class="badge badge-estado rounded-pill px-3 py-2">
+                                {{ factura.estado_pago }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-calendar3 me-2"></i>{{ factura.fecha|date:"d M, Y" }}
+                        </p>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="imagenes-miniatura d-flex">
+                                {% for detalle in factura.detalles.all|slice:":3" %}
+                                    <img src="{{ detalle.imagen_url }}" class="rounded-circle border me-1" width="35" height="35" title="{{ detalle.producto.name }}" style="object-fit: cover;">
+                                {% endfor %}
+                                {% if factura.detalles.count > 3 %}
+                                    <span class="ms-2 text-muted small">+{{ factura.detalles.count|add:"-3" }} más</span>
+                                {% endif %}
+                            </div>
+                        </div>
 
-  <!-- 📋 Tabla de facturas -->
-  <table class="table table-bordered table-hover align-middle" aria-label="Listado de facturas">
-    <thead class="table-dark">
-      <tr>
-        <th>ID</th>
-        <th>Fecha</th>
-        <th>Estado de pago</th>
-        <th>Estado del pedido</th>
-        <th>Método de pago</th>
-        <th>Total</th>
-        <th>Productos</th>
-        <th>Variantes</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for factura in facturas %}
-        <tr>
-          <td>#{{ factura.id }}</td>
-          <td>{{ factura.fecha|date:"d/m/Y H:i" }}</td>
-
-          <!-- Estado de pago -->
-          <td>
-            {% if factura.estado_pago == "Pagado" %}
-              <span class="badge bg-success">✅ Pagado</span>
-            {% elif factura.estado_pago == "Simulado" %}
-              <span class="badge bg-warning text-dark">🟡 Simulado</span>
-            {% else %}
-              <span class="badge bg-secondary">🕒 Pendiente</span>
-            {% endif %}
-          </td>
-
-          <!-- Estado del pedido -->
-          <td>
-            {% if factura.estado_pedido == "pendiente" %}
-              <span class="badge bg-danger">🟡 Pendiente</span>
-            {% elif factura.estado_pedido == "preparacion" %}
-              <span class="badge bg-warning text-dark">🧰 En preparación</span>
-            {% elif factura.estado_pedido == "enviado" %}
-              <span class="badge bg-primary">🚚 Enviado</span>
-            {% elif factura.estado_pedido == "entregado" %}
-              <span class="badge bg-success">✅ Entregado</span>
-            {% else %}
-              <span class="badge bg-secondary">Sin estado</span>
-            {% endif %}
-          </td>
-
-          <td>{{ factura.metodo_pago|title }}</td>
-          <td>${{ factura.total|intcomma }}</td>
-          <td>{{ factura.detalles.count }} ítem(s)</td>
-
-          <!-- Variantes -->
-          <td class="small">
-            {% for det in factura.detalles.all %}
-              {% if det.talla %}
-                <span class="badge bg-info me-1 mb-1">👕 {{ det.talla }}</span>
-              {% endif %}
-              {% if det.color %}
-                <span class="badge bg-secondary me-1 mb-1">🎨 {{ det.color }}</span>
-              {% endif %}
-            {% empty %}
-              <span class="text-muted">Sin detalles</span>
+                        <div class="d-flex justify-content-between align-items-end">
+                            <div>
+                                <small class="text-muted d-block">Total pagado:</small>
+                                <span class="h5 fw-bold text-dark">${{ factura.total|floatformat:0|intcomma }}</span>
+                            </div>
+                            <a href="{% url 'store:detalle_factura' factura.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                                Ver Detalle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-          </td>
+        </div>
 
-          <!-- Acciones -->
-          <td>
-            <a href="{% url 'store:ver_factura' factura.id %}" class="btn btn-sm btn-outline-primary">
-              Ver detalle
-            </a>
-            <a href="{% url 'store:generar_factura_pdf' factura.id %}" class="btn btn-sm btn-outline-secondary ms-1">
-              📄 PDF
-            </a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="9" class="text-center text-muted">
-            No tienes facturas registradas.
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if facturas.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ facturas.previous_page_number }}" style="color: var(--azul-premium);">Anterior</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link" style="background-color: var(--azul-premium); border-color: var(--azul-premium);">{{ facturas.number }}</span></li>
+                {% if facturas.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ facturas.next_page_number }}" style="color: var(--azul-premium);">Siguiente</a></li>
+                {% endif %}
+            </ul>
+        </nav>
 
-  <!-- 🔗 Botón volver -->
-  <div class="mt-3">
-    <a href="{% url 'store:store' %}" class="btn btn-outline-secondary">← Volver a la tienda</a>
-  </div>
-
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">Aún no tienes pedidos.</h4>
+            <a href="{% url 'store:store' %}" class="btn btn-primary mt-3 px-5 rounded-pill">Ir a comprar</a>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

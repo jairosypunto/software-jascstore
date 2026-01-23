@@ -188,7 +188,7 @@
 
 /* ✅ Botón agregar al carrito dentro del modal */
 .vista-rapida-panel .btn-agregar {
-  background: linear-gradient(to right, #ff4d00, #ff8000);
+  background: linear-gradient(to right, #0f087e, #ff8000);
   color: white;
   font-weight: bold;
   border: none;
@@ -318,9 +318,9 @@
 }
 
 .option-chip.seleccionado {
-  background: #ff4d00;
+  background: #0f087e;
   color: #fff;
-  border-color: #ff4d00;
+  border-color: #0f087e;
 }
 
 /* =====================================================

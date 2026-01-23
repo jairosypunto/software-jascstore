@@ -1,22 +1,29 @@
-# pedidos/admin.py
 from django.contrib import admin
-from .models import Order, Product
+from .models import Order
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'price', 'image', 'tallas', 'colores')
-    search_fields = ('name',)
-    list_filter = ('price',)
-    ordering = ('name',)
-    fields = ('name', 'price', 'image', 'tallas', 'colores')  # ✅ editable en admin
+# ❌ ELIMINADO: @admin.register(Product) 
+# Ya que Product se administra desde store/admin.py para evitar el error AlreadyRegistered.
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    # Mostramos los campos que tenías, asegurándonos de que coincidan con tu modelo Order
     list_display = (
-        'id', 'user', 'created_at', 'total',
-        'payment_method', 'is_paid', 'is_confirmed'
+        'id', 
+        'user', 
+        'created_at', 
+        'status', # Usamos status que definimos en models.py
+        'total_display' # Una función para mostrar el total bonito si lo tienes en el modelo
     )
-    list_filter = ('is_paid', 'is_confirmed', 'payment_method')
-    search_fields = ('user__username',)
+    
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username', 'id')
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
+
+    # Esto permite ver los productos dentro del pedido en el admin (Opcional pero recomendado)
+    filter_horizontal = ('products',)
+
+    def total_display(self, obj):
+        # Si tienes un campo o método total en tu modelo Order
+        return f"${obj.id}" # Ajusta esto según el campo de total que tengas
+    total_display.short_description = "Total"

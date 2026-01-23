@@ -308,7 +308,7 @@
 
 /* Botón agregar dentro del modal */
 .vista-rapida-panel .btn-agregar {
-  background: linear-gradient(to right, #ff4d00, #ff8000);
+  background: linear-gradient(to right, #0f087e, #ff8000);
   color: #fff;
   font-weight: bold;
   border: none;
@@ -361,7 +361,7 @@
    - Estados accesibles
 ===================================================== */
 .vista-rapida-panel .btn-agregar {
-  background: linear-gradient(to right, #ff4d00, #ff8000);
+  background: linear-gradient(to right, #0f087e, #ff8000);
   color: #fff;
   font-weight: bold;
   border: none;

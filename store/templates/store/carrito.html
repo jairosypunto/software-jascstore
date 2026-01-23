@@ -2,100 +2,116 @@
 {% load static %}
 {% load humanize %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'store/css/carrito.css' %}">
-{% endblock %}
-
 {% block title %}Carrito - JascStore{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'store/css/carrito.css' %}?v={{ STATIC_VERSION }}">
+  <style>
+    .btn-pagar {
+        background-color: #0f087e !important;
+        color: white !important;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        border: none;
+    }
+    .btn-pagar:hover {
+        background-color: #1a237e !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(15, 8, 126, 0.3);
+    }
+    .cart-item-img img { transition: transform 0.3s ease; }
+    .cart-item-img:hover img { transform: scale(1.05); }
+  </style>
+{% endblock %}
 
 {% block content %}
 <section class="cart-section container py-5">
-  <h1 class="mb-4">Tu carrito de compras</h1>
+  <h1 class="mb-4 fw-bold" style="color: #0f087e;">Tu carrito de compras</h1>
 
-  {% if items %}
-    <div class="list-group mb-3">
-      {% for it in items %}
-        <div class="list-group-item d-flex align-items-center py-3">
+  {% if carrito %}
+    <div class="cart-container shadow-sm bg-white mb-4" style="border-radius: 15px; overflow: hidden;">
+      {% for it in carrito %}
+        <div class="cart-item d-flex align-items-center py-4 px-3 position-relative {% if not it.disponible %}bg-light border-danger{% endif %}" style="border-bottom: 1px solid #eee;">
           
-          <div class="cart-item-img me-3" style="width: 100px; height: 100px;">
-            <img src="{{ it.imagen }}" alt="{{ it.nombre }}" 
-                 class="img-fluid rounded" style="object-fit: cover; width: 100%; height: 100%;">
+          <a href="{% url 'store:eliminar_del_carrito' it.item_key %}" 
+             class="position-absolute top-0 end-0 m-3 text-muted" 
+             style="text-decoration: none;"
+             onclick="return confirm('¿Eliminar {{ it.nombre }}?')">
+            <i class="bi bi-x-circle-fill" style="font-size: 1.2rem; color: #ccc;"></i>
+          </a>
+
+          <div class="cart-item-img me-4" style="width: 100px; height: 100px; flex-shrink: 0;">
+            <img src="{{ it.imagen_url|default:'/static/icons/no-image.png' }}" 
+                 alt="{{ it.nombre }}" 
+                 class="img-fluid rounded-3 shadow-sm border" 
+                 style="object-fit: cover; width: 100%; height: 100%;">
           </div>
 
           <div class="flex-grow-1">
-            <h5 class="mb-1">{{ it.nombre }}</h5>
-
-            {% if it.talla or it.color %}
-              <div class="small text-muted mb-1">
-                {% if it.talla %}<strong>Talla:</strong> {{ it.talla }}{% endif %}
-                {% if it.talla and it.color %} | {% endif %}
-                {% if it.color %}<strong>Color:</strong> {{ it.color }}{% endif %}
-              </div>
-            {% endif %}
-
-            <div class="small text-muted">
-              Precio unitario: ${{ it.precio|floatformat:0|intcomma }}
+            <h5 class="mb-1 fw-bold {% if not it.disponible %}text-muted{% endif %}" style="color: #333;">{{ it.nombre }}</h5>
+            <div class="mb-2">
+              {% if it.talla %}<span class="badge bg-light text-dark border">Talla: {{ it.talla }}</span>{% endif %}
+              {% if it.color %}<span class="badge bg-light text-dark border">Color: {{ it.color }}</span>{% endif %}
             </div>
+            <div class="small text-muted mb-2">
+              Precio unitario: <span class="fw-bold text-dark">${{ it.precio|floatformat:0|intcomma }}</span>
+            </div>
+
+            {% if not it.disponible %}
+              <div class="badge bg-danger rounded-pill">AGOTADO</div>
+            {% elif it.cantidad >= it.stock_max %}
+               <div class="badge-stock fw-bold" style="color: #e67e22; font-size: 0.8rem;">¡Últimas unidades!</div>
+            {% endif %}
           </div>
 
-          <div class="text-end">
-            <form method="POST"
-                  action="{% url 'store:actualizar_cantidad' it.item_key %}"
-                  class="d-flex align-items-center justify-content-end gap-2">
+          <div class="text-end" style="min-width: 180px;">
+            <form method="POST" action="{% url 'store:actualizar_cantidad' it.item_key %}" class="d-flex align-items-center justify-content-end gap-2 mb-2">
               {% csrf_token %}
-              <button type="submit" name="accion" value="restar" class="btn btn-outline-secondary btn-sm">–</button>
-              <input type="text" value="{{ it.cantidad }}" class="form-control text-center" style="width:50px" readonly>
-              <button type="submit" name="accion" value="sumar" class="btn btn-outline-secondary btn-sm">+</button>
+              <button type="submit" name="accion" value="restar" class="btn btn-sm btn-outline-secondary rounded-circle" {% if it.cantidad <= 1 %}disabled{% endif %}>–</button>
+              <span class="fw-bold px-2">{{ it.cantidad }}</span>
+              <button type="submit" name="accion" value="sumar" class="btn btn-sm btn-outline-secondary rounded-circle" {% if it.cantidad >= it.stock_max %}disabled{% endif %}>+</button>
             </form>
-
-            <div class="mt-2">
-              Subtotal:
-              <strong class="text-primary">${{ it.total_item|floatformat:0|intcomma }}</strong>
+            <div>
+              <span class="text-muted small d-block">Subtotal</span>
+              <span class="subtotal-price fs-4" style="color: #0f087e; font-weight: 800;">${{ it.subtotal|floatformat:0|intcomma }}</span>
             </div>
           </div>
         </div>
       {% endfor %}
 
-      <div class="list-group-item d-flex justify-content-between mt-3">
-        <span>Subtotal</span>
-        <span>${{ subtotal|floatformat:0|intcomma }}</span>
-      </div>
-
-      {% if iva > 0 %}
-      <div class="list-group-item d-flex justify-content-between">
-        <span>IVA</span>
-        <span>${{ iva|floatformat:0|intcomma }}</span>
-      </div>
-      {% endif %}
-
-      {% if descuento > 0 %}
-      <div class="list-group-item d-flex justify-content-between text-success">
-        <span>Ahorro total</span>
-        <span>-${{ descuento|floatformat:0|intcomma }}</span>
-      </div>
-      {% endif %}
-
-      <div class="list-group-item d-flex justify-content-between fw-bold fs-5 bg-light">
-        <span>Total a pagar</span>
-        <span class="text-primary">${{ total_final|floatformat:0|intcomma }}</span>
+      <div class="total-section d-flex justify-content-between align-items-center py-4 px-4" style="background-color: #f8f9fa;">
+        <span class="fs-5 fw-bold text-muted">Total a pagar</span>
+        <span class="total-amount fs-1" style="color: #0f087e; font-weight: 900;">${{ total_carrito|floatformat:0|intcomma }}</span>
       </div>
     </div>
 
-    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-      <div>
-        <a href="{% url 'store:store' %}" class="btn btn-outline-secondary">Continuar comprando</a>
-        <form method="post" action="{% url 'store:vaciar_carrito' %}" class="d-inline">
+    <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mt-4">
+      <a href="{% url 'store:store' %}" class="btn btn-link text-dark fw-bold text-decoration-none p-0">
+          <i class="bi bi-arrow-left"></i> Seguir comprando
+      </a>
+      
+      <div class="d-flex align-items-center gap-4">
+        <form method="post" action="{% url 'store:vaciar_carrito' %}">
           {% csrf_token %}
-          <button type="submit" class="btn btn-link text-danger text-decoration-none">Vaciar carrito</button>
+          <button type="submit" class="btn btn-link text-danger text-decoration-none p-0" onclick="return confirm('¿Vaciar todo el carrito?')">Vaciar Carrito</button>
         </form>
+
+        <a href="{% url 'store:checkout' %}" class="btn btn-pagar shadow-lg">
+             Finalizar Compra <i class="bi bi-arrow-right ms-2"></i>
+        </a>
       </div>
-      <a href="{% url 'store:checkout' %}" class="btn btn-orange btn-lg px-5" style="background-color: #ff5722; color: white;">Ir a pagar</a>
     </div>
 
   {% else %}
     <div class="text-center py-5">
-        <p class="fs-4">Tu carrito está vacío.</p>
-        <a class="btn btn-primary" href="{% url 'store:store' %}">Ir a la tienda</a>
+        <i class="bi bi-cart-dash display-1 text-muted opacity-25"></i>
+        <p class="fs-4 text-muted mt-3">Tu carrito está vacío.</p>
+        <a class="btn btn-pagar mt-3" href="{% url 'store:store' %}">Ir a la tienda</a>
     </div>
   {% endif %}
 </section>

@@ -1,62 +1,125 @@
 {% load static %}
-<!-- ✅ Carga el CSS específico para la barra de navegación -->
-
 <link rel="stylesheet" href="{% static 'home/css/bootstrap_home.css' %}?v={{ STATIC_VERSION }}">
 
+<style>
+  :root {
+    --azul-premium: #1a237e; /* El Azul Hermoso */
+    --azul-brillante: #3949ab;
+  }
 
-<!-- ✅ Navbar visual principal -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-gradient navbar-fijo shadow">
+  .navbar-fijo {
+    background: linear-gradient(135deg, var(--azul-premium) 0%, #0d1140 100%) !important;
+    padding: 0.8rem 0;
+    transition: all 0.3s ease;
+  }
+
+  .navbar-brand {
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+    color: #ffffff !important; /* Cambiado de text-info a blanco puro */
+  }
+
+  .nav-link {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85) !important;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #ffffff !important;
+  }
+
+  .cart-badge-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .cart-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #ff3d00; /* Rojo vibrante para el contador */
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 50%;
+    font-weight: bold;
+  }
+
+  .btn-registro {
+    background-color: var(--azul-brillante);
+    color: white !important;
+    border-radius: 8px;
+    padding: 6px 15px !important;
+    transition: transform 0.2s;
+  }
+
+  .btn-registro:hover {
+    transform: scale(1.05);
+    background-color: #4444dd;
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-fijo shadow">
   <div class="container-xl">
 
-    <!-- 🔵 Logo -->
-    <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">JascShop</a>
+    <a class="navbar-brand fw-bold" href="{% url 'home:home' %}">
+      <i class="bi bi-shop me-2"></i>JascShop
+    </a>
 
-    <!-- 🍔 Botón hamburguesa -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- 🔗 Contenido colapsable -->
     <div class="collapse navbar-collapse" id="navbarContenido">
-      <!-- 🟡 Navegación pública -->
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-3">
         <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
-       
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'store:nosotros' %}">Nosotros</a>  
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a>
-        </li>
-
+        <li class="nav-item"><a class="nav-link" href="{% url 'store:nosotros' %}">Nosotros</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a></li>
       </ul>
 
-      <!-- 🟢 Usuario y sesión -->
-      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+      <ul class="navbar-nav ms-auto align-items-center mb-2 mb-lg-0 gap-3">
         {% if user.is_authenticated %}
-          <li class="nav-item"><span class="nav-link text-white">Hola {{ user.first_name|default:user.username }}</span></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'store:ver_carrito' %}">🛒 Ver carrito</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Mi Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}">Cambiar contraseña</a></li>
           <li class="nav-item">
-            <form action="{% url 'logout' %}" method="post" class="d-inline">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
-            </form>
+            <a class="nav-link cart-badge-container" href="{% url 'store:ver_carrito' %}">
+              <i class="bi bi-cart3 fs-5"></i>
+              {% if total_items_carrito > 0 %}
+                <span class="cart-count">{{ total_items_carrito }}</span>
+              {% endif %}
+            </a>
+          </li>
+          
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle me-1"></i> {{ user.first_name|default:user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+              <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+              <li><a class="dropdown-item" href="{% url 'store:mis_facturas' %}"><i class="bi bi-receipt me-2"></i>Mis Pedidos</a></li>
+              <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="bi bi-key me-2"></i>Seguridad</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form action="{% url 'logout' %}" method="post" class="px-3">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm w-100 mt-1">Cerrar sesión</button>
+                </form>
+              </li>
+            </ul>
           </li>
         {% else %}
           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-          <li class="nav-item"><a class="nav-link text-success fw-bold" href="{% url 'register' %}">Registro</a></li>
+          <li class="nav-item">
+            <a class="nav-link btn-registro" href="{% url 'register' %}">Registro Gratis</a>
+          </li>
         {% endif %}
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- 🎉 Mensaje de bienvenida en la portada (solo en home) -->
 {% if request.resolver_match.url_name == 'home' %}
-<div class="content text-center mt-4">
-  <h1>Welcome to DevTeam</h1>
-  <p>Tu ecommerce moderno con diseño responsive y profesional</p>
+<div class="container text-center mt-5">
+  <h1 class="fw-black display-4" style="color: var(--azul-premium);">Welcome to DevTeam</h1>
+  <p class="text-muted fs-5">Tu ecommerce moderno con diseño responsive y profesional</p>
 </div>
 {% endif %}

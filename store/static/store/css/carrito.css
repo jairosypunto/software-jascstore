@@ -1,107 +1,175 @@
-/* store/css/carrito.css */
+/* ✅ VARIABLES DE MARCA JASCSTORE */
+:root {
+    --azul-hermoso: #1a237e; 
+    --azul-acento: #3949ab;
+    --azul-claro: #f5f6fa;
+    --gris-suave: #f8f9fa;
+    --rojo-premium: #d32f2f;
+}
 
-/* Sección principal */
+/* Sección principal: Contenedor más limpio */
 .cart-section {
-  padding: 2rem;
-  background-color: #f5f7fa;
-  border-radius: 12px;
-  max-width: 900px;
-  margin: auto;
+    padding: 1.5rem;
+    background-color: transparent; /* El fondo lo da el body o el container */
+    max-width: 1100px;
+    margin: 2rem auto;
 }
 
-/* Título */
-.cart-section h1 {
-  font-weight: 600;
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  color: #333;
+/* Tarjetas de producto en el carrito */
+.cart-item {
+    background-color: #ffffff;
+    border: 1px solid #eef0f2;
+    border-radius: 18px;
+    margin-bottom: 1rem;
+    padding: 1.2rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
-/* Ítems del carrito */
-.list-group-item {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  padding: 1.2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.cart-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(26, 35, 126, 0.08);
+    border-color: var(--azul-acento);
 }
 
-/* Nombre del producto */
-.list-group-item strong {
-  font-size: 1.1rem;
-  color: #222;
+/* Imagen del Producto: Estilo Boutique */
+.cart-item-img {
+    flex-shrink: 0;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fff;
+    width: 100px;
+    height: 100px;
 }
 
-/* Detalles del producto */
-.list-group-item .small {
-  font-size: 0.9rem;
-  color: #666;
+.cart-item-img img {
+    transition: transform 0.5s ease;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
 }
 
-/* Subtotales */
-.list-group-item .mt-2 {
-  font-size: 0.95rem;
-  color: #444;
+.cart-item:hover .cart-item-img img {
+    transform: scale(1.1);
 }
 
-/* Resumen final */
-.list-group-item.fw-bold {
-  background-color: #f0f8ff;
-  font-size: 1.1rem;
-  border-left: 4px solid #007bff;
+/* Tipografía Premium */
+.cart-item h5 {
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
 }
 
-/* Botones */
-.btn {
-  font-weight: 500;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+.subtotal-price {
+    color: var(--azul-hermoso) !important;
+    font-weight: 900;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  border: none;
+/* Botones de cantidad (+ / -) con diseño circular */
+.btn-cantidad {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+    border: 1.5px solid #dee2e6;
+    background: white;
+    transition: all 0.2s;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
+.btn-cantidad:hover:not(:disabled) {
+    background-color: var(--azul-hermoso);
+    border-color: var(--azul-hermoso);
+    color: white;
 }
 
-.btn-outline-danger {
-  border-color: #dc3545;
-  color: #dc3545;
+/* Resumen Final (Total) */
+.total-section {
+    background-color: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #eef0f2;
+    border-left: 10px solid var(--azul-hermoso);
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(26, 35, 126, 0.05);
 }
 
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  color: white;
+/* Botón "Finalizar Compra" */
+.btn-pagar {
+    background-color: var(--azul-hermoso) !important;
+    color: white !important;
+    font-weight: 700;
+    border-radius: 50px;
+    padding: 14px 45px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
 }
 
-.btn-secondary {
-  background-color: #6c757d;
-  border: none;
+.btn-pagar:hover {
+    transform: translateY(-3px) scale(1.02);
+    background-color: var(--azul-acento) !important;
+    box-shadow: 0 10px 25px rgba(26, 35, 126, 0.25);
 }
 
-.btn-secondary:hover {
-  background-color: #5a6268;
+/* Botón Vaciar Carrito */
+.btn-vaciar {
+    color: var(--rojo-premium) !important;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .cart-section {
-    padding: 1rem;
-  }
+    .cart-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    
+    .cart-item-img {
+        margin: 0 auto 1.5rem auto !important;
+        width: 140px;
+        height: 140px;
+    }
 
-  .d-flex.gap-2 {
-    flex-direction: column;
-    gap: 1rem !important;
-  }
+    .text-end {
+        text-align: center !important;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+}
 
-  .btn {
-    width: 100%;
-    text-align: center;
-  }
+/* Esto mata cualquier rastro del color cian brillante */
+.total-amount, 
+.text-cyan, 
+.cart-section h1,
+.checkout-total {
+    color: #1a237e !important; /* El Azul JascStore */
+}
+
+/* El botón debe verse así para ser profesional */
+.btn-pagar, .btn-confirmar-pago {
+    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3) !important;
+}
+
+.btn-pagar:hover {
+    background-color: #3949ab !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
+}
+
+/* Estilo para "VACIAR CARRITO" en rojo según tu imagen */
+.btn-vaciar {
+    color: #ff4d4d !important;
+    font-weight: bold;
+    text-transform: uppercase;
 }

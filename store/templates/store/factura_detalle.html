@@ -3,137 +3,172 @@
 {% load humanize %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
 
-  <!-- 🧾 Encabezado de la factura -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary">Factura #{{ factura.id }}</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
     <div>
-      <!-- Estado de pago -->
-      {% if estado_pago == "Pagado" and es_pago_real %}
-        <span class="badge bg-success">✅ Pago Simulado</span>
-      {% elif factura.estado_pago == "Pagado" %}
-        <span class="badge bg-warning text-dark">🟡 Simulado</span>
+      <h2 class="text-primary mb-0">Factura #{{ factura.id }}</h2>
+      <p class="text-muted small">Fecha: {{ factura.fecha|date:"d/m/Y H:i" }}</p>
+    </div>
+    <div class="text-end">
+      {% if factura.estado_pago == "Pagado" %}
+        <span class="badge bg-success p-2">✅ Pagado</span>
       {% else %}
-        <span class="badge bg-warning text-dark">🕒 Pendiente</span>
+        <span class="badge bg-warning text-dark p-2">🕒 Pago Pendiente</span>
       {% endif %}
 
-      <!-- 📦 Estado del pedido -->
-      {% if factura.estado_pedido == "pendiente" %}
-        <span class="badge bg-danger">🟡 Pendiente</span>
-      {% elif factura.estado_pedido == "preparacion" %}
-        <span class="badge bg-warning text-dark">🧰 En preparación</span>
-      {% elif factura.estado_pedido == "enviado" %}
-        <span class="badge bg-primary">🚚 Enviado</span>
-      {% elif factura.estado_pedido == "entregado" %}
-        <span class="badge bg-success">✅ Entregado</span>
-      {% else %}
-        <span class="badge bg-secondary">Sin estado</span>
-      {% endif %}
+      <div class="mt-2">
+        {% if factura.estado_pedido == "pendiente" %}
+          <span class="badge bg-danger">🟡 Pediente de Procesar</span>
+        {% elif factura.estado_pedido == "preparacion" %}
+          <span class="badge bg-warning text-dark">🧰 En preparación</span>
+        {% elif factura.estado_pedido == "enviado" %}
+          <span class="badge bg-primary">🚚 Enviado</span>
+        {% elif factura.estado_pedido == "entregado" %}
+          <span class="badge bg-success">✅ Entregado</span>
+        {% else %}
+          <span class="badge bg-secondary">{{ factura.estado_pedido|title }}</span>
+        {% endif %}
+      </div>
     </div>
   </div>
 
-  <!-- 📦 Datos del cliente y envío -->
-  <div class="mb-4">
-    <h5>📦 Datos de envío</h5>
-    <p><strong>Nombre:</strong> {{ factura.nombre }}</p>
-    <p><strong>Email:</strong> {{ factura.email }}</p>
-    <p><strong>Teléfono:</strong> {{ factura.telefono }}</p>
-    <p><strong>Dirección:</strong> {{ factura.direccion }}</p>
-    <p><strong>Ciudad:</strong> {{ factura.ciudad }}</p>
-    <p><strong>Departamento:</strong> {{ factura.departamento }}</p>
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-light"><h5>📦 Datos de envío</h5></div>
+        <div class="card-body">
+          <p class="mb-1"><strong>Nombre:</strong> {{ factura.nombre }}</p>
+          <p class="mb-1"><strong>Email:</strong> {{ factura.email }}</p>
+          <p class="mb-1"><strong>Teléfono:</strong> {{ factura.telefono }}</p>
+          <p class="mb-1"><strong>Dirección:</strong> {{ factura.direccion }}</p>
+          <p class="mb-1"><strong>Ubicación:</strong> {{ factura.ciudad }}, {{ factura.departamento }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-light"><h5>💳 Método de Pago</h5></div>
+        <div class="card-body">
+          <p class="mb-1"><strong>Método:</strong> {{ factura.metodo_pago|title }}</p>
+          {% if factura.banco %}
+            <p class="mb-1"><strong>Banco:</strong> {{ factura.banco }}</p>
+          {% endif %}
+          <p class="text-muted small mt-2">ID Transacción: #{{ factura.id|stringformat:"06d" }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- 💳 Método de pago -->
-  <div class="mb-4">
-    <h5>💳 Pago</h5>
-    <p><strong>Método:</strong> {{ factura.metodo_pago }}</p>
-    {% if factura.banco %}
-      <p><strong>Banco:</strong> {{ factura.banco }}</p>
-    {% endif %}
+  <h5 class="mb-3">🛍 Detalle de productos</h5>
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th style="width: 80px;">Imagen</th>
+          <th>Producto</th>
+          <th class="text-center">Cant.</th>
+          <th class="text-end">Precio Unit.</th>
+          <th class="text-end">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if items %}
+          {% for item in items %}
+          <tr>
+            <td>
+              <img src="{{ item.imagen_url }}" class="img-thumbnail" style="width:60px; height:60px; object-fit:cover;" alt="{{ item.nombre }}">
+            </td>
+            <td>
+              <span class="fw-bold">{{ item.nombre }}</span>
+              <div class="small text-muted">
+                Talla: {{ item.talla|default:"N/A" }} | Color: {{ item.color|default:"N/A" }}
+              </div>
+            </td>
+            <td class="text-center">{{ item.cantidad }}</td>
+            <td class="text-end">${{ item.precio|floatformat:0|intcomma }}</td>
+            <td class="text-end fw-bold">${{ item.subtotal|floatformat:0|intcomma }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          {% for det in factura.detalles.all %}
+          <tr>
+            <td>
+              {% if det.producto.image %}
+                <img src="{{ det.producto.image.url }}" class="img-thumbnail" style="width:60px; height:60px; object-fit:cover;">
+              {% else %}
+                <img src="{% static 'icons/no-image.png' %}" class="img-thumbnail" style="width:60px;">
+              {% endif %}
+            </td>
+            <td>
+              <span class="fw-bold">{{ det.producto.name }}</span>
+              <div class="small text-muted">
+                Talla: {{ det.talla|default:"N/A" }} | Color: {{ det.color|default:"N/A" }}
+              </div>
+            </td>
+            <td class="text-center">{{ det.cantidad }}</td>
+            <td class="text-end">${{ det.producto.final_price|floatformat:0|intcomma }}</td>
+            <td class="text-end fw-bold">${{ det.subtotal|floatformat:0|intcomma }}</td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
   </div>
 
-  <!-- 🛍 Detalle de productos -->
-  <h5>🛍 Detalle de productos</h5>
-  <table class="table table-bordered table-hover">
-    <thead class="table-dark">
-      <tr>
-        <th>Producto</th>
-        <th>Cantidad</th>
-        <th>Precio unitario</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% if items %}
-        {% for item in items %}
-        <tr>
-          <td>
-            {{ item.producto.name }}
-            {% if item.talla or item.color %}
-              <div class="small text-muted">
-                {% if item.talla %}Talla: {{ item.talla }}{% endif %}
-                {% if item.talla and item.color %} | {% endif %}
-                {% if item.color %}Color: {{ item.color }}{% endif %}
-              </div>
-            {% endif %}
-          </td>
-          <td>{{ item.cantidad }}</td>
-          <td>${{ item.precio_unitario|floatformat:0|intcomma }}</td>
-          <td>${{ item.subtotal|floatformat:0|intcomma }}</td>
-        </tr>
-        {% endfor %}
-      {% else %}
-        {% for det in factura.detalles.all %}
-        <tr>
-          <td>
-            {{ det.producto.name }}
-            {% if det.talla or det.color %}
-              <div class="small text-muted">
-                {% if det.talla %}Talla: {{ det.talla }}{% endif %}
-                {% if det.talla and det.color %} | {% endif %}
-                {% if det.color %}Color: {{ det.color }}{% endif %}
-              </div>
-            {% endif %}
-          </td>
-          <td>{{ det.cantidad }}</td>
-          <td>${{ det.producto.final_price|floatformat:0|intcomma }}</td>
-          <td>${{ det.subtotal|floatformat:0|intcomma }}</td>
-        </tr>
-        {% endfor %}
-      {% endif %}
-    </tbody>
-  </table>
-
-  <!-- 💰 Totales -->
   <div class="row justify-content-end mt-4">
-    <div class="col-md-4">
-      <ul class="list-group">
-        <li class="list-group-item d-flex justify-content-between">
-          <span>Subtotal</span>
-          <strong>${{ subtotal|floatformat:0|intcomma }}</strong>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span>IVA (19%)</span>
-          <strong>${{ iva|floatformat:0|intcomma }}</strong>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span>Descuento</span>
-          <strong>-${{ descuento|floatformat:0|intcomma }}</strong>
-        </li>
-        <li class="list-group-item d-flex justify-content-between bg-light">
-          <span>Total</span>
-          <strong class="text-primary">${{ total_final|floatformat:0|intcomma }}</strong>
-        </li>
-      </ul>
+    <div class="col-md-5 col-lg-4">
+      <div class="card bg-light">
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Subtotal bruto</span>
+              <span>${{ subtotal|default:factura.total|floatformat:0|intcomma }}</span>
+            </li>
+            {% if iva %}
+            <li class="list-group-item d-flex justify-content-between">
+              <span>IVA (19%)</span>
+              <span>${{ iva|floatformat:0|intcomma }}</span>
+            </li>
+            {% endif %}
+            {% if descuento > 0 %}
+            <li class="list-group-item d-flex justify-content-between text-danger">
+              <span>Descuento aplicado</span>
+              <span>-${{ descuento|floatformat:0|intcomma }}</span>
+            </li>
+            {% endif %}
+            <li class="list-group-item d-flex justify-content-between fw-bold fs-5 border-top">
+              <span>TOTAL PAGADO</span>
+              <span class="text-primary">${{ total_final|default:factura.total|floatformat:0|intcomma }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 🔗 Acciones -->
-  <div class="mt-4 d-flex gap-2">
-    <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-secondary">← Volver a mis facturas</a>
-    <a href="{% url 'store:generar_factura_pdf' factura.id %}" class="btn btn-primary">Descargar PDF</a>
+  <div class="mt-5 d-flex gap-3 no-print">
+    <a href="{% url 'store:store' %}" class="btn btn-outline-dark">
+      <i class="bi bi-cart"></i> Seguir Comprando
+    </a>
+    <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-list-check"></i> Mis Pedidos
+    </a>
+    <button onclick="window.print();" class="btn btn-info text-white">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+    <a href="{% url 'store:generar_factura_pdf' factura.id %}" class="btn btn-primary">
+      <i class="bi bi-file-pdf"></i> Descargar PDF
+    </a>
   </div>
 
 </div>
+
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .container { width: 100% !important; max-width: 100% !important; }
+  }
+</style>
 {% endblock %}

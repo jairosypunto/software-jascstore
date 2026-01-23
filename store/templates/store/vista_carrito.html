@@ -2,33 +2,35 @@
 <div class="carrito-galeria p-3" id="contenidoProducto">
     <div class="imagen-principal text-center mb-3" id="visor-principal">
         <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-             class="img-fluid rounded shadow-sm" id="imagen-principal" style="max-height: 250px;">
+             class="img-fluid rounded shadow-sm" id="imagen-principal-modal" style="max-height: 250px; width: 100%; object-fit: contain;">
     </div>
 
     <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
         {% if producto.image %}
-        <div class="miniatura activa activa-azul" data-type="image" data-src="{{ producto.image.url }}" data-color="base" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd;">
+        <div class="miniatura activa activa-azul" data-src="{{ producto.image.url }}" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #0f087e; border-radius: 4px; overflow: hidden;">
             <img src="{{ producto.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         {% endif %}
         {% for img in producto.images.all %}
-        <div class="miniatura" data-type="image" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado }}" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd;">
+        <div class="miniatura" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado }}" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; overflow: hidden;">
             <img src="{{ img.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         {% endfor %}
     </div>
 
-    <form id="form-add-cart" onsubmit="return false;"> {% csrf_token %}
-        <input type="hidden" name="selected_size_hidden" id="selected_size_hidden">
-        <input type="hidden" name="selected_color_hidden" id="selected_color_hidden">
-        <input type="hidden" name="imagen_seleccionada_url" id="imagen_seleccionada_url" value="{{ producto.image.url }}">
+    <form id="form-add-cart-modal"> 
+        {% csrf_token %}
+        <input type="hidden" name="talla" id="selected_size_hidden" value="">
+        <input type="hidden" name="color" id="selected_color_hidden" value="">
+        <input type="hidden" name="imagen_seleccionada_url" id="imagen_seleccionada_url" value="{% if producto.image %}{{ producto.image.url }}{% endif %}">
+        <input type="hidden" name="cantidad" value="1">
 
         {% if producto.talla_list %}
         <div class="mb-3">
             <label class="fw-bold small d-block mb-1">Talla:</label>
-            <div class="d-flex gap-2 flex-wrap">
+            <div class="d-flex gap-2 flex-wrap" id="modal-tallas">
                 {% for talla in producto.talla_list %}
-                <button type="button" class="option-chip size-chip btn btn-sm btn-outline-dark">{{ talla }}</button>
+                <button type="button" class="option-chip size-chip btn btn-sm btn-outline-dark" data-value="{{ talla }}">{{ talla }}</button>
                 {% endfor %}
             </div>
         </div>
@@ -37,26 +39,86 @@
         {% if producto.color_list %}
         <div class="mb-3">
             <label class="fw-bold small d-block mb-1">Color:</label>
-            <div class="d-flex gap-2 flex-wrap">
+            <div class="d-flex gap-2 flex-wrap" id="modal-colores">
                 {% for color in producto.color_list %}
-                <button type="button" class="option-chip color-chip btn btn-sm btn-outline-dark">{{ color }}</button>
+                <button type="button" class="option-chip color-chip btn btn-sm btn-outline-dark" data-value="{{ color }}">{{ color }}</button>
                 {% endfor %}
             </div>
         </div>
         {% endif %}
 
-        <button type="button" id="agregarDesdeModal" data-id="{{ producto.id }}"
-                class="btn btn-success w-100 py-2 fw-bold btn-agregar" disabled>
+        <button type="button" id="btnAgregarModal" data-id="{{ producto.id }}"
+                class="btn w-100 py-2 fw-bold text-white" disabled 
+                style="background-color: #0f087e; border: none; opacity: 0.5;">
             🛒 Agregar al carrito
         </button>
     </form>
 </div>
 
 <script>
-    (function() {
-        const cont = document.getElementById('contenidoProducto');
-        if (window.initVistaRapida) {
-            window.initVistaRapida(cont);
+document.addEventListener('DOMContentLoaded', function() {
+    const contenedor = document.getElementById('contenidoProducto');
+    const btnAgregar = contenedor.querySelector('#btnAgregarModal');
+    const inputTalla = contenedor.querySelector('#selected_size_hidden');
+    const inputColor = contenedor.querySelector('#selected_color_hidden');
+    const inputImagen = contenedor.querySelector('#imagen_seleccionada_url');
+    const imgPrincipal = contenedor.querySelector('#imagen-principal-modal');
+
+    // 1. Cambio de Imagen al tocar Miniaturas
+    contenedor.querySelectorAll('.miniatura').forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            const nuevaSrc = this.getAttribute('data-src');
+            imgPrincipal.src = nuevaSrc;
+            inputImagen.value = nuevaSrc; // Asegura que la foto viaje al carrito
+            
+            // Si la miniatura tiene color, marcarlo automáticamente
+            const colorAsociado = this.getAttribute('data-color');
+            if (colorAsociado && colorAsociado !== 'None') {
+                seleccionarChip(contenedor.querySelectorAll('.color-chip'), colorAsociado, inputColor);
+            }
+        });
+    });
+
+    // 2. Selección de Talla
+    contenedor.querySelectorAll('.size-chip').forEach(btn => {
+        btn.addEventListener('click', function() {
+            seleccionarChip(contenedor.querySelectorAll('.size-chip'), this.getAttribute('data-value'), inputTalla);
+        });
+    });
+
+    // 3. Selección de Color
+    contenedor.querySelectorAll('.color-chip').forEach(btn => {
+        btn.addEventListener('click', function() {
+            seleccionarChip(contenedor.querySelectorAll('.color-chip'), this.getAttribute('data-value'), inputColor);
+        });
+    });
+
+    function seleccionarChip(chips, valor, inputOculto) {
+        chips.forEach(c => {
+            c.classList.remove('btn-dark', 'active');
+            c.classList.add('btn-outline-dark');
+        });
+        const seleccionado = Array.from(chips).find(c => c.getAttribute('data-value') === valor);
+        if (seleccionado) {
+            seleccionado.classList.remove('btn-outline-dark');
+            seleccionado.classList.add('btn-dark', 'active');
+            inputOculto.value = valor;
         }
-    })();
+        validarFormulario();
+    }
+
+    function validarFormulario() {
+        const tieneTallas = contenedor.querySelector('.size-chip') !== null;
+        const tieneColores = contenedor.querySelector('.color-chip') !== null;
+        
+        let listo = true;
+        if (tieneTallas && !inputTalla.value) listo = false;
+        if (tieneColores && !inputColor.value) listo = false;
+
+        if (listo) {
+            btnAgregar.disabled = false;
+            btnAgregar.style.opacity = "1";
+        }
+    }
+});
 </script>

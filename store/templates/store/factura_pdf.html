@@ -1,130 +1,125 @@
 {% load humanize %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: sans-serif; font-size: 12px; margin: 40px; color: #2c3e50; }
-    h2, h3 { margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-    td, th { border: 1px solid #ccc; padding: 6px; vertical-align: top; word-break: break-word; white-space: normal; }
-    th { background-color: #f2f2f2; text-align: left; }
-    .col-producto { width: 55%; }
-    .col-cantidad { width: 10%; text-align: center; white-space: nowrap; }
-    .col-unitario { width: 20%; white-space: nowrap; }
-    .col-subtotal { width: 15%; text-align: right; white-space: nowrap; }
+    /* Estilos Base actualizados al Azul JascStore */
+    body { font-family: 'Helvetica', Arial, sans-serif; font-size: 12px; margin: 0; padding: 40px; color: #1a237e; }
+    .header-bar { background-color: #1a237e; height: 8px; margin: -40px -40px 30px -40px; }
+    
+    h2 { color: #1a237e; font-size: 22px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; text-transform: uppercase; }
+    h3 { color: #3949ab; font-size: 14px; margin-top: 25px; border-left: 4px solid #1a237e; padding-left: 10px; }
+    
+    /* Grid de Información */
+    .info-container { width: 100%; margin-bottom: 20px; }
+    .info-box { width: 48%; display: inline-block; vertical-align: top; }
+    
+    /* Tabla Estilizada */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
+    th { background-color: #1a237e; color: white; padding: 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+    td { border-bottom: 1px solid #e0e0e0; padding: 10px; vertical-align: middle; }
+    
+    .col-producto { width: 50%; }
+    .col-cantidad { width: 10%; text-align: center; }
+    .col-unitario { width: 20%; text-align: right; }
+    .col-subtotal { width: 20%; text-align: right; font-weight: bold; }
+
+    /* Estados y Colores */
     .text-right { text-align: right; }
-    .text-muted { color: #888; font-size: 11px; }
-    .text-danger { color: #c0392b; }
-    .text-success { color: #27ae60; font-weight: bold; }
-    .text-warning { color: #e67e22; font-weight: bold; }
-    .resumen-descuento { margin-top: 10px; font-size: 11px; color: #555; }
-    .resumen-descuento strong { color: #2c3e50; }
+    .text-muted { color: #7f8c8d; font-size: 10px; }
+    .text-success { color: #27ae60; font-weight: bold; font-size: 16px; }
+    .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; }
+    .bg-pendiente { background-color: #e67e22; }
+    .bg-pagado { background-color: #27ae60; }
+    .bg-fallido { background-color: #c0392b; }
+
     .btn-whatsapp {
       display: inline-block;
       background-color: #25D366;
       color: white;
-      padding: 8px 14px;
-      border-radius: 4px;
+      padding: 10px 20px;
+      border-radius: 50px;
       text-decoration: none;
       font-weight: bold;
-      font-size: 12px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h2>🧾 Factura #{{ factura.id }} – JascStore</h2>
+  <div class="header-bar"></div>
 
-  <h3>📦 Datos de envío</h3>
-  <p><strong>Nombre:</strong> {{ factura.nombre }}</p>
-  <p><strong>Email:</strong> {{ factura.email }}</p>
-  <p><strong>Teléfono:</strong> {{ factura.telefono }}</p>
-  <p><strong>Dirección:</strong> {{ factura.direccion }}</p>
-  <p><strong>Ciudad:</strong> {{ factura.ciudad }}</p>
-  <p><strong>Departamento:</strong> {{ factura.departamento }}</p>
+  <div class="info-container">
+    <div class="info-box">
+      <h1 style="color: #1a237e; margin: 0;">JascStore</h1>
+      <p class="text-muted">NIT: 900.000.000-1<br>Contacto: +57 301 617 3378</p>
+    </div>
+    <div class="info-box text-right">
+      <h2 style="border: none; margin: 0;">Factura #{{ factura.id }}</h2>
+      <p><strong>Fecha:</strong> {{ factura.fecha|date:"d/m/Y H:i" }}</p>
+      <p><strong>Estado:</strong> 
+        <span class="badge-status {% if factura.estado_pago == 'Pagado' %}bg-pagado{% elif factura.estado_pago == 'Pendiente' %}bg-pendiente{% else %}bg-fallido{% endif %}">
+          {{ factura.estado_pago|upper }}
+        </span>
+      </p>
+    </div>
+  </div>
 
-  <p><strong>Fecha:</strong> {{ fecha_local|date:"d/m/Y H:i" }}</p>
-  <p><strong>Método de pago:</strong> {{ factura.metodo_pago }}</p>
-  <p><strong>Estado del pago:</strong>
-    {% if estado_pago == "Pagado" and es_pago_real %}
-      <span class="text-success">✅ Pago Simulado</span>
-    {% elif factura.estado_pago == "Pagado" %}
-      <span class="text-warning">🟡 Simulado</span>
-    {% elif factura.estado_pago == "Pendiente" %}
-      <span class="text-danger">🕒 Pendiente</span>
-    {% elif factura.estado_pago == "Fallido" %}
-      <span class="text-danger">❌ Fallido</span>
-    {% else %}
-      <span class="text-muted">{{ factura.estado_pago }}</span>
-    {% endif %}
-  </p>
-  {% if factura.banco %}
-    <p><strong>Banco utilizado:</strong> {{ factura.banco }}</p>
-  {% endif %}
-  {% if factura.transaccion_id %}
-    <p><strong>ID de transacción:</strong> {{ factura.transaccion_id }}</p>
-  {% endif %}
+  <div class="info-container" style="background-color: #f9f9f9; padding: 15px; border-radius: 8px;">
+    <div class="info-box">
+      <h3>📍 Datos de Envío</h3>
+      <p><strong>Cliente:</strong> {{ factura.nombre }}</p>
+      <p><strong>Dirección:</strong> {{ factura.direccion }}</p>
+      <p><strong>Ciudad:</strong> {{ factura.ciudad }}, {{ factura.departamento }}</p>
+    </div>
+    <div class="info-box">
+      <h3>💳 Detalles de Pago</h3>
+      <p><strong>Método:</strong> {{ factura.metodo_pago|capfirst }}</p>
+      <p><strong>Email:</strong> {{ factura.email }}</p>
+      <p><strong>Teléfono:</strong> {{ factura.telefono }}</p>
+    </div>
+  </div>
 
-  <h3>🛍 Detalles del pedido:</h3>
+  <h3>🛍 Detalles del pedido</h3>
   <table>
     <thead>
       <tr>
         <th class="col-producto">Producto</th>
-        <th class="col-cantidad">Cantidad</th>
-        <th class="col-unitario">Precio unitario</th>
+        <th class="col-cantidad">Cant.</th>
+        <th class="col-unitario">V. Unitario</th>
         <th class="col-subtotal">Subtotal</th>
       </tr>
     </thead>
     <tbody>
-      {% for item in items %}
+      {% for detalle in factura.detalles.all %}
       <tr>
         <td class="col-producto">
-          {{ item.producto.name }}
-          {% if item.talla or item.color %}
-            <div class="text-muted">
-              {% if item.talla %}Talla: {{ item.talla }}{% endif %}
-              {% if item.talla and item.color %} | {% endif %}
-              {% if item.color %}Color: {{ item.color }}{% endif %}
-            </div>
-          {% endif %}
+          <strong>{{ detalle.producto.nombre }}</strong><br>
+          <span class="text-muted">Talla: {{ detalle.talla }} | Color: {{ detalle.color }}</span>
         </td>
-        <td class="col-cantidad">{{ item.cantidad }}</td>
-        <td class="col-unitario">${{ item.precio_unitario|floatformat:0|intcomma }}</td>
-        <td class="col-subtotal">${{ item.subtotal|floatformat:0|intcomma }}</td>
+        <td class="col-cantidad">{{ detalle.cantidad }}</td>
+        <td class="col-unitario">${{ detalle.producto.precio|floatformat:0|intcomma }}</td>
+        <td class="col-subtotal">${{ detalle.subtotal|floatformat:0|intcomma }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <!-- Mostrar solo referencia de descuentos, no recalcular -->
-  {% for item in items %}
-    {% if item.producto.discount > 0 %}
-      <div class="resumen-descuento">
-        <strong>{{ item.producto.name }}</strong>: Antes ${{ item.producto.cost|floatformat:0|intcomma }}
-        ({{ item.producto.discount }}% de descuento aplicado)
-      </div>
-    {% endif %}
-  {% endfor %}
-
-  <!-- Resumen final -->
-  <div class="text-right" style="margin-top: 20px;">
-    <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0|intcomma }}</p>
-    {% if iva > 0 %}
-      <p><strong>IVA (19%):</strong> ${{ iva|floatformat:0|intcomma }}</p>
-    {% endif %}
-    <p><strong>Total:</strong> <span class="text-success">${{ total_final|floatformat:0|intcomma }}</span></p>
-    <p class="text-muted">Los precios unitarios ya incluyen el descuento aplicado.</p>
+  <div class="text-right" style="margin-top: 30px; border-top: 2px solid #1a237e; padding-top: 10px;">
+    <p style="font-size: 14px;"><strong>Total de la compra:</strong></p>
+    <p class="text-success">${{ factura.total|floatformat:0|intcomma }}</p>
+    <p class="text-muted">Precios expresados en Pesos Colombianos (COP).</p>
   </div>
 
-  <p style="margin-top:20px; text-align:center;">
-    <a href="https://wa.me/573016173378?text=Hola%20quiero%20más%20información%20sobre%20mi%20pedido%20{{ factura.id }}"
-       class="btn-whatsapp" target="_blank">
-       💬 Contactar por WhatsApp
+  <div style="text-align: center; margin-top: 40px;">
+    <p>¿Tienes dudas con tu pedido?</p>
+    <a href="https://wa.me/573016173378?text=Hola%20JascStore!%20Tengo%20una%20duda%20sobre%20mi%20factura%20{{ factura.id }}" class="btn-whatsapp">
+      💬 Escríbenos por WhatsApp
     </a>
-  </p>
-
-  <p class="text-muted" style="margin-top: 30px;">
-    Esta factura ha sido generada electrónicamente por JascStore. Válida sin firma. Gracias por tu compra.
-  </p>
+    <p class="text-muted" style="margin-top: 25px;">
+      Esta factura electrónica es un soporte de compra en JascStore.<br>
+      Gracias por confiar en nosotros.
+    </p>
+  </div>
 </body>
 </html>

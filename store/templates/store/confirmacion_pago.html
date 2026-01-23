@@ -1,49 +1,112 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
+{% load humanize %}
 
 {% block content %}
-<div class="container mt-5">
-  <div class="text-center">
-    <h3 class="mb-4">🧾 Resultado del pago</h3>
+<style>
+    :root {
+        --azul-premium: #1a237e; /* El Azul Hermoso */
+        --azul-claro: #e8eaf6;
+    }
+    .card-factura {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .header-premium {
+        background-color: var(--azul-premium);
+        color: white;
+        padding: 25px;
+    }
+    .table-premium thead {
+        background-color: #f8f9fa;
+        color: var(--azul-premium);
+        border-bottom: 2px solid var(--azul-premium);
+    }
+    .img-producto {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        object-fit: cover;
+    }
+    .badge-variante {
+        background-color: var(--azul-claro);
+        color: var(--azul-premium);
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 5px;
+        margin-right: 5px;
+    }
+</style>
 
-    {% if estado == "APPROVED" %}
-      {% if factura and factura.es_pago_real %}
-        <div class="alert alert-success">
-          ✅ Tu pago ha sido aprobado correctamente (Real).
+<div class="container mt-5 mb-5">
+    <div class="card card-factura shadow-lg">
+        <div class="header-premium text-center">
+            <h3 class="fw-bold mb-0">🧾 Resumen de Pedido #{{ factura.id }}</h3>
+            <p class="mb-0 opacity-75">¡Gracias por tu compra, {{ factura.nombre }}!</p>
         </div>
-      {% else %}
-        <div class="alert alert-warning">
-          🟡 Tu pago fue marcado como <strong>Simulado</strong>.
+        
+        <div class="card-body p-4">
+            <div class="alert alert-success border-0 shadow-sm text-center py-3" style="background-color: #e8f5e9; color: #2e7d32;">
+                <i class="bi bi-check-circle-fill me-2"></i> ¡Pago aprobado! Hemos registrado tu pedido correctamente.
+            </div>
+
+            <div class="table-responsive mt-4">
+                <table class="table table-hover align-middle table-premium">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Producto</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in factura.detalles.all %}
+                        <tr>
+                            <td style="width: 80px;">
+                                {% if item.imagen_url %}
+                                    <img src="{{ item.imagen_url }}" width="70" height="70" class="img-producto shadow-sm">
+                                {% else %}
+                                    <div class="bg-light text-center py-3 border rounded" style="width: 70px;">
+                                        <i class="bi bi-image text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold d-block" style="color: var(--azul-premium);">{{ item.producto.name }}</span>
+                                <div class="mt-1">
+                                    <span class="badge-variante">Talla: {{ item.talla }}</span>
+                                    <span class="badge-variante">Color: {{ item.color }}</span>
+                                </div>
+                            </td>
+                            <td class="text-center fw-bold">{{ item.cantidad }}</td>
+                            <td class="text-end fw-bold text-dark">${{ item.subtotal|floatformat:0|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No se encontraron detalles.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end pt-4" style="font-size: 1.1rem;">Total Pagado:</th>
+                            <th class="text-end pt-4 h4 fw-bold" style="color: var(--azul-premium);">${{ factura.total|floatformat:0|intcomma }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <hr class="my-4" style="opacity: 0.1;">
+
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'store:store' %}" class="btn btn-primary px-4 shadow-sm py-2" style="background-color: var(--azul-premium); border: none;">
+                    Seguir Comprando
+                </a>
+                <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-dark px-4 py-2">
+                    Ver Mis Pedidos
+                </a>
+            </div>
         </div>
-      {% endif %}
-    {% elif estado == "DECLINED" %}
-      <div class="alert alert-danger">
-        ❌ El pago fue rechazado o cancelado. Puedes intentar nuevamente o elegir otro método.
-      </div>
-    {% else %}
-      <div class="alert alert-warning">
-        ⚠️ Estado del pago no reconocido: <strong>{{ estado }}</strong>
-      </div>
-    {% endif %}
-
-    {% if referencia %}
-      <p class="mt-3">Factura asociada: <strong>#{{ referencia }}</strong></p>
-    {% endif %}
-
-    {% if factura %}
-      <p>Método de pago: <strong>{{ factura.metodo_pago }}</strong></p>
-      {% if factura.banco %}
-        <p>Banco elegido: <strong>{{ factura.banco }}</strong></p>
-      {% endif %}
-    {% endif %}
-
-    <div class="mt-4">
-      <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-primary me-2">
-        Ver mis facturas
-      </a>
-      <a href="{% url 'store:store' %}" class="btn btn-outline-secondary">
-        Volver a la tienda
-      </a>
     </div>
-  </div>
 </div>
 {% endblock %}

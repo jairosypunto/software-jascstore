@@ -18,7 +18,7 @@ urlpatterns = [
 
     # Usuarios y autenticación
     path("account/", include("usuario.urls")),
-    path("accounts/", include("django.contrib.auth.urls")),  # Login/logout Django
+    path("account/", include("django.contrib.auth.urls")),  # Login/logout Django
 
     # Portada
     path("", home_views.home, name="inicio"),

@@ -1,70 +1,142 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load l10n %}
+{% load humanize %}
 
 {% block title %}Nuestra Tienda - JascStore{% endblock %}
 
 {% block extra_css %}
-<!-- 🎨 ESTILOS DE LA TIENDA -->
 <link rel="stylesheet" href="{% static 'store/css/banner.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/store.css' %}?v={{ STATIC_VERSION }}">
 <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
-<link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}">
 
 <style>
-  /* 💬 BOTÓN FLOTANTE DE WHATSAPP */
-  .btn-whatsapp {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #25D366;
-    color: white;
-    font-size: 24px;
-    padding: 12px 16px;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    z-index: 999;
-    text-decoration: none;
-  }
-  .btn-whatsapp:hover {
-    background-color: #20b858;
-    color: white;
-  }
-
-  /* Responsive: solo mostrar en móviles */
-  @media (min-width: 768px) {
-    .btn-whatsapp {
-      display: none;
+    :root {
+        --azul-premium: #1a237e;
+        --azul-acento: #3949ab;
+        --blanco-puro: #ffffff;
     }
-  }
+
+    /* 💎 BANNER MEJORADO */
+    .banner-caption h2 {
+        font-weight: 800;
+        font-size: 3rem;
+        text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .btn-premium-banner {
+        background-color: var(--azul-premium);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        transition: all 0.3s;
+    }
+
+    .btn-premium-banner:hover {
+        background-color: var(--azul-acento);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* 🔎 BARRA DE BÚSQUEDA PROFESIONAL */
+    .search-container-premium {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(26, 35, 126, 0.08);
+        margin-top: -40px;
+        position: relative;
+        z-index: 100;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #e0e0e0;
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    /* 👟 PRODUCT CARDS ESTILO BOUTIQUE */
+    .product-card {
+        border: none !important;
+        border-radius: 18px !important;
+        transition: all 0.4s ease;
+        background: white;
+        overflow: hidden;
+    }
+
+    .product-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(26, 35, 126, 0.12) !important;
+    }
+
+    .product-image-wrapper {
+        position: relative;
+        background: #f8f9fa;
+        aspect-ratio: 1/1;
+    }
+
+    .product-img {
+        mix-blend-mode: multiply; /* Ideal si tus fotos tienen fondo blanco */
+    }
+
+    /* 🔘 BOTONES FLOTANTES EN CARD */
+    .quick-view, .jasc-cart {
+        background: white !important;
+        color: var(--azul-premium) !important;
+        border: none !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+
+    .quick-view:hover, .jasc-cart:hover {
+        background: var(--azul-premium) !important;
+        color: white !important;
+    }
+
+    /* 💬 WHATSAPP PREMIUM */
+    .btn-whatsapp {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #25D366;
+        color: white;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 30px;
+        box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+    }
+
+    .btn-whatsapp:hover {
+        transform: scale(1.1) rotate(10deg);
+        color: white;
+    }
 </style>
 {% endblock %}
 
 {% block banner_full %}
-<!-- ==================================================
-     🎯 BANNER PRINCIPAL (Swiper)
-================================================== -->
 <div class="full-bleed">
   <div class="swiper bannerSwiper">
     <div class="swiper-wrapper">
       {% for banner in banners %}
       <div class="swiper-slide">
-        <div class="banner-bg"
-             style="background-image:url('{% if banner.image %}{{ banner.image.url }}{% else %}{% static 'imgs/default-banner.jpg' %}{% endif %}')">
-        </div>
-        <div class="banner-caption">
+        <div class="banner-bg" style="background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('{{ banner.image.url }}')"></div>
+        <div class="banner-caption text-center">
+          <span class="text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 3px; color: var(--dorado-suave);">Exclusivo</span>
           <h2>{{ banner.title }}</h2>
-          <p>{{ banner.subtitle }}</p>
-          <a href="#productos" class="btn btn-primary btn-lg mt-3">
-            <i class="bi bi-bag"></i> Ver productos
+          <p class="fs-5 opacity-75">{{ banner.subtitle }}</p>
+          <a href="#productos" class="btn btn-premium-banner btn-lg text-white mt-3 shadow">
+            Explorar Colección <i class="bi bi-arrow-right ms-2"></i>
           </a>
         </div>
       </div>
       {% endfor %}
     </div>
-    <!-- Controles Swiper -->
-    <div class="swiper-button-prev"></div>
-    <div class="swiper-button-next"></div>
     <div class="swiper-pagination"></div>
   </div>
 </div>
@@ -72,133 +144,114 @@
 
 {% block content %}
 <section class="shop-section">
-  <div class="shop-container">
+  <div class="container">
 
-    <!-- 🔎 FILTROS / BÚSQUEDA -->
-    <form method="get" class="search-form d-flex gap-2 mb-4">
-      <input type="text"
-             name="q"
-             value="{{ search_query }}"
-             placeholder="Buscar productos..."
-             class="form-control">
-      <select name="category" class="form-select">
-        <option value="all">Todas las categorías</option>
-        {% for cat in categorias %}
-        <option value="{{ cat.slug }}"
-          {% if categoria_actual and categoria_actual.slug == cat.slug %}selected{% endif %}>
-          {{ cat.name }}
-        </option>
-        {% endfor %}
-      </select>
-      <select name="order" class="form-select">
-        <option value="">Ordenar por...</option>
-        <option value="name" {% if order == 'name' %}selected{% endif %}>Nombre</option>
-        <option value="price" {% if order == 'price' %}selected{% endif %}>Precio ↑</option>
-        <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Precio ↓</option>
-        <option value="recent" {% if order == 'recent' %}selected{% endif %}>Recientes</option>
-      </select>
-      <button class="btn btn-primary">Filtrar</button>
-    </form>
+    <div class="search-container-premium mb-5">
+        <form method="get" class="row g-2">
+          <div class="col-lg-4 col-md-12">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar en la tienda..." class="form-control border-start-0">
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-4">
+            <select name="category" class="form-select border-0 bg-light">
+                <option value="all">Todas las categorías</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.slug }}" {% if categoria_actual.slug == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="col-lg-3 col-md-4">
+            <select name="order" class="form-select border-0 bg-light">
+                <option value="">Ordenar por...</option>
+                <option value="price" {% if order == 'price' %}selected{% endif %}>Menor Precio</option>
+                <option value="price_desc" {% if order == 'price_desc' %}selected{% endif %}>Mayor Precio</option>
+                <option value="recent" {% if order == 'recent' %}selected{% endif %}>Novedades</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <button class="btn btn-premium-banner w-100 text-white fw-bold">Filtrar</button>
+          </div>
+        </form>
+    </div>
 
-    <!-- ⭐ PRODUCTOS DESTACADOS -->
-    <h2 class="section-title">⭐ Productos destacados</h2>
-    <div class="swiper mySwiper destacados-swiper">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <h2 class="section-title mb-0 fw-bold" style="color: var(--azul-premium);">✨ Destacados</h2>
+        <div class="flex-grow-1 border-bottom" style="opacity: 0.1;"></div>
+    </div>
+
+    <div class="swiper destacados-swiper mb-5 pb-4">
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
         <div class="swiper-slide">
-          <div class="destacado-card">
-            <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-                 alt="{{ producto.name }}">
-            <div class="destacado-info">
-              <h4>{{ producto.name }}</h4>
-              <span>${{ producto.final_price|floatformat:2|localize }}</span>
+          <div class="destacado-card border shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="ratio ratio-1x1">
+                <img src="{{ producto.image.url }}" class="object-fit-cover" alt="{{ producto.name }}">
+            </div>
+            <div class="p-3 text-center">
+              <h5 class="fw-bold mb-1 text-truncate">{{ producto.name }}</h5>
+              <span class="text-primary fw-bold h5">${{ producto.final_price|floatformat:0|intcomma }}</span>
             </div>
           </div>
         </div>
         {% endfor %}
       </div>
-      <div class="swiper-button-prev"></div>
-      <div class="swiper-button-next"></div>
     </div>
     
-    <!-- 🛍 GRID DE PRODUCTOS -->
-    <div class="products-grid" id="productos">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <h2 class="section-title mb-0 fw-bold" style="color: var(--azul-premium);">🛒 Catálogo Completo</h2>
+        <div class="flex-grow-1 border-bottom" style="opacity: 0.1;"></div>
+    </div>
+
+    <div class="row g-4" id="productos">
       {% for product in productos %}
-      <article class="product-card">
-        <div class="product-image-wrapper"
-             {% if product.video_file %}
-             data-video-src="{{ product.video_file.url }}"
-             {% if product.video_thumb %}data-video-poster="{{ product.video_thumb.url }}"{% endif %}
-             {% elif product.video_url %}
-             data-video-src="{{ product.video_url }}"
-             {% if product.video_thumb %}data-video-poster="{{ product.video_thumb.url }}"{% endif %}
-             {% endif %}>
-          <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-               class="product-img"
-               alt="{{ product.name }}">
-          <button type="button"
-                  class="quick-view jasc-quick-view"
-                  data-id="{{ product.id }}"
-                  title="Vista rápida">
-            <i class="bi bi-eye"></i>
-          </button>
-          <button type="button"
-                  class="jasc-cart"
-                  data-id="{{ product.id }}"
-                  data-has-variants="{% if product.has_variants %}true{% else %}false{% endif %}"
-                  title="Agregar al carrito">
-            <i class="bi bi-cart-plus"></i>
-          </button>
-          {% if product.discount > 0 %}
-            <span class="badge badge-descuento">-{{ product.discount }}%</span>
-          {% endif %}
-        </div>
-        <div class="product-content">
-          <h3 class="product-title text-truncate">{{ product.name }}</h3>
-          <p class="product-description">
-            {{ product.description|truncatewords:12 }}
-          </p>
-          {% if product.discount > 0 %}
-            <p class="text-danger fw-bold">
-              ${{ product.final_price|floatformat:2|localize }}
-            </p>
-            <small class="text-decoration-line-through">
-              ${{ product.cost|floatformat:2|localize }}
-            </small>
-          {% else %}
-            <span class="fw-bold">
-              ${{ product.cost|floatformat:2|localize }}
-            </span>
-          {% endif %}
-        </div>
-      </article>
+      <div class="col-6 col-md-4 col-lg-3">
+        <article class="product-card shadow-sm h-100">
+          <div class="product-image-wrapper">
+            <img src="{{ product.image.url }}" class="product-img w-100" alt="{{ product.name }}">
+            
+            <div class="product-actions position-absolute bottom-0 start-0 w-100 p-2 d-flex justify-content-center gap-2">
+                <button type="button" class="quick-view jasc-quick-view btn rounded-circle" data-id="{{ product.id }}">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button type="button" class="jasc-cart btn rounded-circle" data-id="{{ product.id }}" data-has-variants="{{ product.has_variants|yesno:'true,false' }}">
+                    <i class="bi bi-cart-plus"></i>
+                </button>
+            </div>
+
+            {% if product.discount > 0 %}
+                <span class="badge bg-danger position-absolute top-0 end-0 m-3 shadow">-{{ product.discount }}%</span>
+            {% endif %}
+          </div>
+
+          <div class="product-content p-3 text-center">
+            <h3 class="h6 fw-bold text-dark text-truncate mb-2">{{ product.name }}</h3>
+            <div class="price-box">
+              {% if product.discount > 0 %}
+                <span class="text-danger fw-bold fs-5">${{ product.final_price|floatformat:0|intcomma }}</span>
+                <small class="text-muted text-decoration-line-through d-block">${{ product.cost|floatformat:0|intcomma }}</small>
+              {% else %}
+                <span class="fw-bold fs-5 text-dark">${{ product.cost|floatformat:0|intcomma }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      </div>
       {% endfor %}
     </div>
 
-    <!-- 🧠 MODAL VISTA RÁPIDA -->
     <div class="vista-rapida-overlay hidden"></div>
-    <div id="vistaRapidaPanel" class="vista-rapida-panel hidden" role="dialog" aria-modal="true" aria-label="Vista rápida">
-      <button type="button" class="cerrar-panel" title="Cerrar" aria-label="Cerrar">&times;</button>
+    <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
+      <button type="button" class="cerrar-panel">&times;</button>
       <div id="contenidoProducto"></div>
-    </div>
-
-    <!-- 🛒 MODAL DE CARRITO -->
-    <div class="carrito-overlay hidden"></div>
-    <div id="carritoModal" class="carrito-panel hidden" role="dialog" aria-modal="true" aria-label="Seleccionar opciones">
-      <button type="button" class="cerrar-carrito" title="Cerrar">&times;</button>
-      <div id="contenidoCarrito"></div>
     </div>
 
   </div>
 </section>
 
-<!-- 💬 BOTÓN FLOTANTE DE WHATSAPP -->
-<a href="https://wa.me/573016173378?text=Hola%20quiero%20más%20información%20sobre%20mi%20pedido"
-   class="btn-whatsapp" target="_blank" aria-label="Chat por WhatsApp">
+<a href="https://wa.me/573016173378?text=Hola!%20Vengo%20de%20la%20tienda%20y%20tengo%20una%20duda."
+   class="btn-whatsapp shadow-lg" target="_blank">
    <i class="bi bi-whatsapp"></i>
 </a>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 {% endblock %}

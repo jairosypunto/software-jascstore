@@ -220,6 +220,12 @@ LOGIN_REDIRECT_URL = "/account/dashboard/"
 LOGOUT_URL = "account:logout"
 LOGOUT_REDIRECT_URL = "/home/"
 
+# Obliga a Django a guardar el carrito en cada movimiento
+SESSION_SAVE_EVERY_REQUEST = True  
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 86400  # Mantiene la sesión activa por 24 horas
+
 # ================================
 # 📧 Mail (SendGrid API)
 # ================================
