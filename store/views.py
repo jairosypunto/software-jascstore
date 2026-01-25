@@ -40,22 +40,27 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 
+from decimal import Decimal
+from .models import Product, ProductVariant
+
 # ============================================================
 # 🧮 Función auxiliar: cálculo de precio final con descuento
 # ============================================================
-def _precio_final(producto: Product) -> Decimal:
+def _precio_final(producto):
     """
     Devuelve el precio final del producto aplicando descuento.
-    Usa la propiedad del modelo si existe; si no, lo calcula aquí.
     """
-    try:
-        return producto.final_price  # ✅ propiedad definida en Product
-    except AttributeError:
-        discount = getattr(producto, 'discount', 0) or 0
-        cost = Decimal(str(producto.cost))
-        if discount > 0:
-            return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
-        return cost
+    # Si el modelo ya tiene la propiedad (como se ve en tus pantallazos), úsala
+    if hasattr(producto, 'final_price'):
+        return producto.final_price
+    
+    # Si no, hacemos el cálculo manual basado en tus campos del Admin
+    cost = Decimal(str(producto.cost or 0))
+    discount = getattr(producto, 'discount', 0) or 0
+    
+    if discount > 0:
+        return cost * (Decimal('1') - Decimal(discount) / Decimal('100'))
+    return cost
 
 # ============================================================
 # 🛒 Función auxiliar: construir lista de ítems del carrito
@@ -65,58 +70,60 @@ def _items_carrito(request):
     carrito = request.session.get('carrito', {})
     items = []
     
-    # Obtenemos los productos de la DB de forma eficiente
-    ids = [item['producto_id'] for item in carrito.values()]
+    # Obtenemos los productos de la DB
+    ids = [item['producto_id'] for item in carrito.values() if 'producto_id' in item]
     productos_db = Product.objects.in_bulk(ids)
 
     for key, item in carrito.items():
-        producto = productos_db.get(item['producto_id'])
+        producto = productos_db.get(item.get('producto_id'))
         if not producto:
             continue
 
+        # Usamos Decimal para evitar errores de precisión en dinero
         precio_unitario = Decimal(str(item.get('precio', 0)))
         cantidad = int(item.get('cantidad', 0))
         talla = item.get('talla', '')
         color = item.get('color', '')
         
-        # 1. CORRECCIÓN DE IMAGEN: 
-        # Buscamos 'imagen_url' (que es como lo guarda tu views.py)
+        # 1. CORRECCIÓN DE IMAGEN: Prioridad a la imagen de la variante
         imagen_final = item.get('imagen_url') or item.get('imagen') or (producto.image.url if producto.image else "")
 
         # 2. VALIDACIÓN DE STOCK REAL (Variante):
-        # Buscamos la variante en la tabla de stock para habilitar botones y quitar el "Agotado"
+        # iexact sirve para que "Negro" coincida con "negro"
         variante = ProductVariant.objects.filter(
             product=producto, 
-            talla=talla, 
-            color=color
+            talla__iexact=talla, 
+            color__iexact=color
         ).first()
         
         stock_max = variante.stock if variante else 0
 
         items.append({
-            'producto_id': item['producto_id'],
+            'producto_id': item.get('producto_id'),
             'item_key': key,
             'nombre': item.get('nombre', producto.name),
             'talla': talla,
             'color': color,
             'cantidad': cantidad,
             'precio': precio_unitario,
-            'subtotal': precio_unitario * cantidad, # Usamos 'subtotal' para tu carrito.html
-            'imagen_url': imagen_final,             # Cambiado a 'imagen_url' para tu carrito.html
-            'stock_max': stock_max,                 # Para habilitar el botón "+"
-            'disponible': stock_max > 0,            # Para quitar el mensaje "Agotado"
+            'subtotal': precio_unitario * cantidad, 
+            'imagen_url': imagen_final,
+            'stock_max': stock_max,
+            'disponible': stock_max > 0,
             'producto': producto,
         })
     return items
 
-# ============================================================
-# 📋 Vista: Ver carrito (ACTUALIZADA Y BLINDADA)
-# ============================================================
+
+
 from django.shortcuts import render
 from django.contrib import messages
 from decimal import Decimal
 from store.models import Product, ProductVariant 
 
+# ============================================================
+# 📋 Vista: Ver carrito (HÍBRIDA: MATRIZ + STOCK GENERAL)
+# ============================================================
 def ver_carrito(request):
     carrito = request.session.get("carrito", {})
     total = Decimal("0")
@@ -128,46 +135,53 @@ def ver_carrito(request):
 
     for key, item in carrito.items():
         p_id = item.get("producto_id")
+        producto_base = get_object_or_404(Product, id=p_id) # Traemos el producto del admin
+        
         talla_val = str(item.get("talla", "")).strip()
         color_val = str(item.get("color", "")).strip()
+        
+        talla_display = None if talla_val in ["Única", "Único", "None", ""] else talla_val
+        color_display = None if color_val in ["Única", "Único", "None", ""] else color_val
 
-        # 1. Intento de búsqueda precisa (Producto + Talla + Color)
+        # 1. Intentamos buscar en la MATRIZ (Variantes)
         variante = ProductVariant.objects.filter(
             product_id=p_id, 
             talla__iexact=talla_val, 
             color__iexact=color_val
         ).first()
 
-        # 2. Si falla (por ser Color Único o estar vacío), buscamos solo por Talla
-        if not variante:
-            variante = ProductVariant.objects.filter(
-                product_id=p_id, 
-                talla__iexact=talla_val
-            ).first()
+        # 2. LÓGICA HÍBRIDA DE STOCK
+        if variante:
+            # Si existe en la matriz, mandan los datos de la matriz
+            stock_actual = variante.stock
+        else:
+            # SI NO HAY MATRIZ (como en tus fotos), mandan los datos del PRODUCTO GENERAL
+            stock_actual = producto_base.stock
 
-        # Validación de stock
-        if not variante or variante.stock <= 0:
+        # 3. Validación final de disponibilidad
+        if stock_actual <= 0:
             disponible = False
             carrito_valido = False
             stock_actual = 0
         else:
             disponible = True
-            stock_actual = variante.stock
             if item["cantidad"] > stock_actual:
                 item["cantidad"] = stock_actual
                 request.session.modified = True
 
         precio = Decimal(str(item.get("precio", 0)))
         subtotal = precio * item["cantidad"]
-        total += subtotal
+        
+        if disponible:
+            total += subtotal
 
         productos_carrito.append({
             "item_key": key,
             "nombre": item.get("nombre"),
             "precio": precio,
             "cantidad": item["cantidad"],
-            "talla": talla_val,
-            "color": color_val,
+            "talla": talla_display, 
+            "color": color_display, 
             "imagen_url": item.get("imagen_url"),
             "subtotal": subtotal,
             "disponible": disponible,
@@ -180,8 +194,6 @@ def ver_carrito(request):
         "carrito_valido": carrito_valido,
     }
     return render(request, "store/carrito.html", context)
-
-
 
 # ============================================================
 # 🔄 Vista: agregar al carrito (CORREGIDA PARA IMÁGENES)
@@ -238,26 +250,56 @@ def agregar_al_carrito(request, product_id):
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=400)
 
 
-# ============================================================
-# 🔄 Vista: actualizar cantidad (Mantiene la imagen)
-# ============================================================
+from django.shortcuts import redirect, get_object_or_404
+from .models import Product, ProductVariant
+from django.contrib import messages
+
 def actualizar_cantidad(request, item_key):
     carrito = request.session.get('carrito', {})
     accion = request.POST.get('accion')
     
     if item_key in carrito:
+        item = carrito[item_key]
+        p_id = item.get("producto_id")
+        talla_val = str(item.get("talla", "")).strip()
+        color_val = str(item.get("color", "")).strip()
+
+        # 1. Intentamos buscar el stock en la MATRIZ (Variantes)
+        variante = ProductVariant.objects.filter(
+            product_id=p_id, 
+            talla__iexact=talla_val, 
+            color__iexact=color_val
+        ).first()
+
+        # 2. Si no hay variante específica, intentamos por talla (respaldo matriz)
+        if not variante:
+            variante = ProductVariant.objects.filter(
+                product_id=p_id, 
+                talla__iexact=talla_val
+            ).first()
+
+        # 3. LÓGICA HÍBRIDA: Si sigue sin haber variante, miramos el STOCK GENERAL del producto
+        if variante:
+            stock_max = variante.stock
+        else:
+            producto_base = get_object_or_404(Product, id=p_id)
+            stock_max = producto_base.stock
+
+        # 4. Procesamos la acción de suma/resta con el stock_max validado
         if accion == 'sumar':
-            carrito[item_key]['cantidad'] += 1
-        elif accion == 'restar' and carrito[item_key]['cantidad'] > 1:
-            carrito[item_key]['cantidad'] -= 1
+            if item['cantidad'] < stock_max:
+                item['cantidad'] += 1
+            else:
+                messages.warning(request, f"Solo hay {stock_max} unidades disponibles de {item['nombre']}.")
+                
+        elif accion == 'restar' and item['cantidad'] > 1:
+            item['cantidad'] -= 1
         
-        # Al actualizar cantidad, nos aseguramos de no tocar 'imagen_url' 
-        # para que no se borre lo que ya estaba.
+        # Guardamos cambios en la sesión sin tocar la imagen_url
         request.session['carrito'] = carrito
         request.session.modified = True
 
-    return redirect('store:ver_carrito') 
-
+    return redirect('store:ver_carrito')
 
 
 # ============================================================
@@ -476,7 +518,7 @@ from django.contrib.auth.decorators import login_required
 from decimal import Decimal
 from .models import ProductVariant, ProductImage, Product
 
-@login_required(login_url='/account/login/') # Sincronizado con JascEcommerce/urls.py
+@login_required(login_url='/account/login/')
 def checkout(request):
     carrito_data = request.session.get("carrito", {})
     
@@ -491,17 +533,45 @@ def checkout(request):
         color_val = str(it.get('color', '')).strip()
         talla_val = str(it.get('talla', '')).strip()
 
-        # 🔎 LÓGICA DE LA LUPA: Buscar imagen específica por color
+        # 1. 🛡️ VALIDACIÓN DE STOCK HÍBRIDA
+        variante = ProductVariant.objects.filter(
+            product_id=p_id, 
+            talla__iexact=talla_val, 
+            color__iexact=color_val
+        ).first()
+
+        if not variante:
+            variante = ProductVariant.objects.filter(product_id=p_id, talla__iexact=talla_val).first()
+
+        # Determinamos stock disponible
+        if variante:
+            stock_disponible = variante.stock
+        else:
+            producto_base = Product.objects.filter(id=p_id).first()
+            stock_disponible = producto_base.stock if producto_base else 0
+
+        # Si el producto se agotó, lo saltamos
+        if stock_disponible <= 0:
+            continue
+
+        # 2. 🔎 LÓGICA DE LA LUPA: Imagen por color
         img_color = ProductImage.objects.filter(
             product_id=p_id, 
             color_vinculado__iexact=color_val
         ).first()
 
-        # Si existe imagen para ese color la usa, si no, usa la del item o una por defecto
         url_imagen = img_color.image.url if img_color else it.get('imagen_url', '/static/icons/no-image.png')
+
+        # 3. Limpieza de nombres (Ocultar "Único/a")
+        talla_display = None if talla_val in ["Única", "Único", "None", ""] else talla_val
+        color_display = None if color_val in ["Única", "Único", "None", ""] else color_val
 
         precio = Decimal(str(it.get('precio', 0)))
         cantidad = it.get('cantidad', 1)
+        
+        if cantidad > stock_disponible:
+            cantidad = stock_disponible
+
         total_item = precio * cantidad
         subtotal_acumulado += total_item
 
@@ -510,129 +580,104 @@ def checkout(request):
             'cantidad': cantidad,
             'precio': precio,
             'total_item': total_item,
-            'talla': talla_val,
-            'color': color_val,
+            'talla': talla_display, 
+            'color': color_display, 
             'imagen': url_imagen
         })
 
-    # Cálculos finales
-    iva = subtotal_acumulado * Decimal("0.19")
-    total_final = subtotal_acumulado + iva
+    if not items_confirmados:
+        from django.contrib import messages
+        messages.error(request, "Los productos en tu carrito ya no están disponibles.")
+        return redirect('store:ver_carrito')
+
+    # Cálculos finales (SIN IVA)
+    total_final = subtotal_acumulado
 
     context = {
         'items': items_confirmados,
         'subtotal': subtotal_acumulado,
-        'iva': iva,
-        'total': total_final,
+        'total': total_final, # El total es igual al subtotal
     }
     
     return render(request, 'store/checkout.html', context)
 
+
+
 # ============================================================
-# 🧾 Vista: generar factura (VERSION FINAL - BLINDADA)
+# 🧾 Vista: generar factura (COMPLETA Y COMPATIBLE)
 # ============================================================
 @login_required(login_url='/account/login/')
 def generar_factura(request):
     from .models import ProductVariant, Factura, DetalleFactura, ProductImage, Product
     from decimal import Decimal
-    from django.contrib import messages
+    from django.db import transaction, models
+    from django.shortcuts import redirect, render
 
     if request.method != "POST":
         return redirect("store:checkout")
 
-    # 1. Obtenemos el carrito directamente de la sesión (Evita el ImportError)
-    carrito_session = request.session.get("carrito", {})
-    if not carrito_session:
-        messages.error(request, "Tu carrito está vacío.")
+    # Usamos tu función auxiliar para procesar el carrito con stock y precios reales
+    items_carrito = _items_carrito(request)
+    
+    if not items_carrito:
         return redirect("store:ver_carrito")
 
-    # 2. Captura de datos del formulario de envío
+    # 1. Captura de datos del formulario
     nombre_cliente = request.POST.get("nombre")
-    telefono = request.POST.get("telefono")
-    direccion = request.POST.get("direccion")
-    ciudad = request.POST.get("ciudad")
-    departamento = request.POST.get("departamento")
-    metodo_pago = request.POST.get("metodo_pago", "Contra Entrega")
+    total_final = sum(item['subtotal'] for item in items_carrito)
 
-    # 3. --- Cálculos Financieros (IVA ELIMINADO TOTALMENTE) ---
-    total_final = Decimal("0")
-    items_para_facturar = []
-
-    for key, item in carrito_session.items():
-        precio = Decimal(str(item.get('precio', 0)))
-        cantidad = int(item.get('cantidad', 1))
-        subtotal_item = precio * cantidad
-        total_final += subtotal_item
-        
-        items_para_facturar.append({
-            'id': item.get('producto_id'),
-            'cantidad': cantidad,
-            'subtotal': subtotal_item,
-            'talla': item.get('talla', ''),
-            'color': item.get('color', ''),
-            'imagen_url': item.get('imagen_url')
-        })
-
-    # 🧾 4. Crear Factura Principal (El total ya no lleva IVA)
-    factura = Factura.objects.create(
-        usuario=request.user,
-        total=total_final,
-        metodo_pago=metodo_pago,
-        estado_pago="Aprobado", # Sincronizado con tu alerta verde en el HTML
-        nombre=nombre_cliente,
-        email=request.user.email,
-        telefono=telefono,
-        direccion=direccion,
-        ciudad=ciudad,
-        departamento=departamento
-    )
-
-    # 🧾 5. Procesar cada Item y persistir la imagen (Lupa)
-    for i in items_para_facturar:
-        try:
-            prod = Product.objects.get(id=i['id'])
-        except Product.DoesNotExist:
-            continue
-
-        # Descuento de stock en variantes
-        variante = ProductVariant.objects.filter(
-            product=prod, 
-            talla__iexact=i['talla'], 
-            color__iexact=i['color']
-        ).first()
-
-        if variante and variante.stock >= i["cantidad"]:
-            variante.stock -= i["cantidad"]
-            variante.save()
-
-        # Captura la imagen de la Lupa (por color) para que el resumen la muestre
-        img_lupa = ProductImage.objects.filter(
-            product=prod, 
-            color_vinculado__iexact=i['color']
-        ).first()
-        
-        foto_final = img_lupa.image.url if img_lupa else i['imagen_url']
-
-        # Crear detalle de factura
-        DetalleFactura.objects.create(
-            factura=factura,
-            producto=prod,
-            cantidad=i["cantidad"],
-            subtotal=i["subtotal"], 
-            talla=i['talla'],
-            color=i['color'],
-            imagen_url=foto_final
+    with transaction.atomic():
+        # 2. Crear Factura Principal
+        factura = Factura.objects.create(
+            usuario=request.user,
+            total=total_final,
+            metodo_pago=request.POST.get("metodo_pago", "Contra Entrega"),
+            estado_pago="Aprobado",
+            nombre=nombre_cliente,
+            email=request.user.email,
+            telefono=request.POST.get("telefono"),
+            direccion=request.POST.get("direccion"),
+            ciudad=request.POST.get("ciudad"),
+            departamento=request.POST.get("departamento")
         )
 
-    # 🛒 6. Limpiar Carrito
+        # 3. Procesar Items y Stock (Usando los datos limpios de tu función auxiliar)
+        for i in items_carrito:
+            prod = i['producto']
+
+            # Descuento de Stock en Matriz (Usando la lógica que ya validamos)
+            variante = ProductVariant.objects.filter(
+                product=prod, 
+                talla__iexact=i['talla'], 
+                color__iexact=i['color']
+            ).first()
+
+            if variante:
+                variante.stock -= i["cantidad"]
+                variante.save()
+                prod.actualizar_stock_total()
+            else:
+                Product.objects.filter(id=prod.id).update(stock=models.F('stock') - i["cantidad"])
+
+            # 4. Crear Detalle
+            # IMPORTANTE: Como el modelo NO tiene precio_unitario, lo omitimos aquí
+            # pero lo calcularemos en el HTML para quitar el "$" vacío.
+            DetalleFactura.objects.create(
+                factura=factura,
+                producto=prod,
+                cantidad=i["cantidad"],
+                subtotal=i["subtotal"],
+                talla=i['talla'],
+                color=i['color'],
+                imagen_url=i['imagen_url']
+            )
+
+    # Limpiar carrito
     request.session["carrito"] = {}
     request.session.modified = True
     
-    # 7. Redirección al template que me mostraste
-    return render(request, "store/confirmacion_pago.html", {
-        "factura": factura
-    })
-    
+    return render(request, "store/confirmacion_pago.html", {"factura": factura})
+
 # ============================================================
 # 🧾 Vista: ver factura
 # ============================================================
@@ -694,18 +739,18 @@ def generar_factura_pdf(request, factura_id):
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
     detalles = DetalleFactura.objects.filter(factura=factura)
 
-    # 🧮 Totales
+    # 🧮 Totales (Sincronizados con Checkout: Sin IVA)
     subtotal = sum(d.subtotal for d in detalles)
+    
+    # El ahorro se calcula sobre el precio base 'cost' vs 'final_price'
     ahorro_total = sum(
         (d.producto.cost - d.producto.final_price) * d.cantidad
         for d in detalles if d.producto.discount > 0
     )
 
+    # IVA en 0.00 según tu requerimiento de no utilizarlo más
     iva = Decimal("0.00")
-    if factura.metodo_pago.lower() != "contra entrega" and getattr(factura, "aplica_iva", False):
-        iva = subtotal * Decimal("0.19")
-
-    total = subtotal + iva
+    total = subtotal # El total es el subtotal directamente
 
     # 🧾 Generar PDF
     buffer = BytesIO()
@@ -713,39 +758,50 @@ def generar_factura_pdf(request, factura_id):
     styles = getSampleStyleSheet()
     elements = []
 
+    # Título y encabezado
     elements.append(Paragraph(f"Factura #{factura.id}", styles['Title']))
+    elements.append(Paragraph(f"Fecha: {localtime(factura.fecha).strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 12))
 
     # Tabla de productos
-    data = [["Producto", "Talla", "Color", "Cantidad", "Precio original", "Precio unitario", "Subtotal"]]
+    data = [["Producto", "Talla", "Color", "Cant.", "P. Unitario", "Subtotal"]]
     for d in detalles:
+        # Limpieza estética para el PDF (No mostrar "Único")
+        t_display = d.talla if d.talla not in ["Única", "Único", "None", ""] else ""
+        c_display = d.color if d.color not in ["Única", "Único", "None", ""] else ""
+        
         data.append([
             d.producto.name,
-            getattr(d, "talla", ""),
-            getattr(d, "color", ""),
+            t_display,
+            c_display,
             d.cantidad,
-            f"${d.producto.cost:.2f}",
-            f"${d.producto.final_price:.2f}",
-            f"${d.subtotal:.2f}",
+            f"${d.producto.final_price:,.0f}",
+            f"${d.subtotal:,.0f}",
         ])
 
-    table = Table(data, hAlign='LEFT')
+    # Configuración de la tabla
+    table = Table(data, hAlign='LEFT', colWidths=[180, 60, 60, 40, 80, 80])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1a237e")),
         ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
     ]))
     elements.append(table)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 20))
 
-    # Totales
-    elements.append(Paragraph(f"Subtotal: ${subtotal:.2f}", styles['Normal']))
+    # Bloque de Totales (A la derecha)
+    style_right = styles['Normal']
+    style_right.alignment = 2 # Right alignment
+
+    elements.append(Paragraph(f"<b>Subtotal:</b> ${subtotal:,.0f}", style_right))
     if ahorro_total > 0:
-        elements.append(Paragraph(f"Ahorro total: ${ahorro_total:.2f}", styles['Normal']))
-    if iva > 0:
-        elements.append(Paragraph(f"IVA: ${iva:.2f}", styles['Normal']))
-    elements.append(Paragraph(f"Total: ${total:.2f}", styles['Normal']))
+        elements.append(Paragraph(f"<b>Usted ahorró:</b> ${ahorro_total:,.0f}", style_right))
+    
+    elements.append(Spacer(1, 5))
+    elements.append(Paragraph(f"<font size=12><b>TOTAL A PAGAR:</b> ${total:,.0f}</font>", style_right))
 
     doc.build(elements)
     pdf = buffer.getvalue()
@@ -755,8 +811,6 @@ def generar_factura_pdf(request, factura_id):
     response["Content-Disposition"] = f'inline; filename="factura_{factura.id}.pdf"'
     response.write(pdf)
     return response
-
-
 
 # ============================================================
 # 🏦 Vista: simulación de pago por banco
@@ -908,23 +962,66 @@ def pago_banco_widget(request):
     
     return render(request, "store/pago_banco_widget.html", context)
 
-# ============================================================
-# ✅ Vista: confirmación de pago
-# ============================================================
+from django.shortcuts import render
+from django.db import transaction
+from django.utils.timezone import localtime
+from .models import Factura, Product, ProductVariant
+
 def confirmacion_pago(request):
     estado = request.GET.get("status")
     referencia = request.GET.get("reference") or request.session.get("factura_id")
     factura = Factura.objects.filter(id=referencia).first() if referencia else None
 
     if factura:
-        if estado == "APPROVED":
-            factura.estado_pago = "Pagado"
+        if estado == "APPROVED" or estado is None: # Si el estado es aprobado o por defecto exitoso
+            # 🛡️ Solo descontamos stock si la factura aún figura como "Pendiente"
+            # Esto evita que si el usuario refresca la página, se descuente doble.
+            if factura.estado_pago == "Pendiente":
+                with transaction.atomic():
+                    for detalle in factura.detalles.all():
+                        p_id = detalle.producto.id
+                        cantidad = detalle.cantidad
+                        # Intentamos limpiar valores para buscar en la matriz
+                        t_val = detalle.talla.strip() if detalle.talla else ""
+                        c_val = detalle.color.strip() if detalle.color else ""
+
+                        # 1. Buscamos en la matriz (Variantes)
+                        variante = ProductVariant.objects.filter(
+                            product_id=p_id, 
+                            talla__iexact=t_val, 
+                            color__iexact=c_val
+                        ).first()
+
+                        if variante:
+                            # 📉 DESCUENTO DOBLE: Restamos de la variante específica
+                            variante.stock -= cantidad
+                            variante.save()
+                            
+                            # 📉 Y restamos también del Stock General del producto
+                            producto_base = detalle.producto
+                            producto_base.stock -= cantidad
+                            producto_base.save()
+                        else:
+                            # 2. Si no hay matriz (ej. Gym), descontamos solo del Stock General
+                            producto = detalle.producto
+                            producto.stock -= cantidad
+                            producto.save()
+
+                    # Marcar como pagado definitivamente tras descontar stock
+                    factura.estado_pago = "Pagado"
+                    
+                    # 🧹 VACIAR EL CARRITO: Compra exitosa, carrito limpio
+                    if 'carrito' in request.session:
+                        del request.session['carrito']
+                        request.session.modified = True
+            
         elif estado == "DECLINED":
             factura.estado_pago = "Fallido"
         else:
             factura.estado_pago = "Pagado"
 
         factura.save()
+        
         if factura.email:
             enviar_factura(factura, {"factura": factura})
 
@@ -942,7 +1039,6 @@ def confirmacion_pago(request):
 
     return render(request, "store/confirmacion_pago.html", {"estado": estado, "referencia": referencia})
 
-
 def detalle_producto(request, slug):
     producto = get_object_or_404(Product, slug=slug)
     context = {
@@ -952,6 +1048,8 @@ def detalle_producto(request, slug):
         'video_url': producto.video_url,
     }
     return render(request, 'store/detalle_producto.html', context)
+
+
 
 # ============================================================
 # 🔄 Vista: actualizar cantidad en carrito

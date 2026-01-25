@@ -54,15 +54,17 @@
             <div class="card card-checkout p-4 bg-light">
                 <h4 class="mb-4 fw-bold" style="color: #1a237e;">Resumen del Pedido</h4>
                 
-                {# CAMBIO CLAVE: Usamos 'items' en lugar de 'carrito' para conectar con tu vista Python #}
                 {% for it in items %}
                 <div class="resumen-item d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        {# Mostramos la imagen procesada por la lógica de la Lupa #}
                         <img src="{{ it.imagen }}" class="img-checkout" alt="{{ it.nombre }}">
                         <div>
                             <span class="fw-bold">{{ it.cantidad }}x</span> {{ it.nombre }}
-                            <div class="small text-muted">Talla: {{ it.talla }} | Color: {{ it.color }}</div>
+                            <div class="small text-muted">
+                                {% if it.talla %}Talla: {{ it.talla }}{% endif %}
+                                {% if it.talla and it.color %} | {% endif %}
+                                {% if it.color %}Color: {{ it.color }}{% endif %}
+                            </div>
                         </div>
                     </div>
                     <span class="fw-bold">${{ it.total_item|floatformat:0|intcomma }}</span>
@@ -70,14 +72,9 @@
                 {% endfor %}
 
                 <div class="mt-4">
-                    {# Subtotal e IVA para que el cliente sepa qué paga #}
                     <div class="d-flex justify-content-between small text-muted mb-1">
                         <span>Subtotal:</span>
                         <span>${{ subtotal|floatformat:0|intcomma }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted mb-2">
-                        <span>IVA (19%):</span>
-                        <span>${{ iva|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="d-flex justify-content-between fs-5 fw-bold mt-2 pt-2 border-top">
                         <span>Total a pagar:</span>

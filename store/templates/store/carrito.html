@@ -26,6 +26,8 @@
     }
     .cart-item-img img { transition: transform 0.3s ease; }
     .cart-item-img:hover img { transform: scale(1.05); }
+    /* Estilo para que el item agotado se vea visualmente desactivado */
+    .item-agotado { opacity: 0.7; border-left: 5px solid #dc3545 !important; }
   </style>
 {% endblock %}
 
@@ -36,7 +38,7 @@
   {% if carrito %}
     <div class="cart-container shadow-sm bg-white mb-4" style="border-radius: 15px; overflow: hidden;">
       {% for it in carrito %}
-        <div class="cart-item d-flex align-items-center py-4 px-3 position-relative {% if not it.disponible %}bg-light border-danger{% endif %}" style="border-bottom: 1px solid #eee;">
+        <div class="cart-item d-flex align-items-center py-4 px-3 position-relative {% if not it.disponible %}item-agotado bg-light{% endif %}" style="border-bottom: 1px solid #eee;">
           
           <a href="{% url 'store:eliminar_del_carrito' it.item_key %}" 
              class="position-absolute top-0 end-0 m-3 text-muted" 
@@ -54,31 +56,41 @@
 
           <div class="flex-grow-1">
             <h5 class="mb-1 fw-bold {% if not it.disponible %}text-muted{% endif %}" style="color: #333;">{{ it.nombre }}</h5>
+            
             <div class="mb-2">
-              {% if it.talla %}<span class="badge bg-light text-dark border">Talla: {{ it.talla }}</span>{% endif %}
+              {# Solo mostramos Talla/Color si tienen valor real (no "Único") #}
+              {% if it.talla %}<span class="badge bg-light text-dark border me-1">Talla: {{ it.talla }}</span>{% endif %}
               {% if it.color %}<span class="badge bg-light text-dark border">Color: {{ it.color }}</span>{% endif %}
             </div>
+
             <div class="small text-muted mb-2">
               Precio unitario: <span class="fw-bold text-dark">${{ it.precio|floatformat:0|intcomma }}</span>
             </div>
 
             {% if not it.disponible %}
               <div class="badge bg-danger rounded-pill">AGOTADO</div>
+              <small class="d-block text-danger mt-1">Este producto no se sumará al total</small>
             {% elif it.cantidad >= it.stock_max %}
                <div class="badge-stock fw-bold" style="color: #e67e22; font-size: 0.8rem;">¡Últimas unidades!</div>
             {% endif %}
           </div>
 
           <div class="text-end" style="min-width: 180px;">
+            {# El formulario de cantidad solo tiene sentido si hay stock #}
+            {% if it.disponible %}
             <form method="POST" action="{% url 'store:actualizar_cantidad' it.item_key %}" class="d-flex align-items-center justify-content-end gap-2 mb-2">
               {% csrf_token %}
               <button type="submit" name="accion" value="restar" class="btn btn-sm btn-outline-secondary rounded-circle" {% if it.cantidad <= 1 %}disabled{% endif %}>–</button>
               <span class="fw-bold px-2">{{ it.cantidad }}</span>
               <button type="submit" name="accion" value="sumar" class="btn btn-sm btn-outline-secondary rounded-circle" {% if it.cantidad >= it.stock_max %}disabled{% endif %}>+</button>
             </form>
+            {% endif %}
+            
             <div>
               <span class="text-muted small d-block">Subtotal</span>
-              <span class="subtotal-price fs-4" style="color: #0f087e; font-weight: 800;">${{ it.subtotal|floatformat:0|intcomma }}</span>
+              <span class="subtotal-price fs-4 {% if not it.disponible %}text-decoration-line-through text-muted{% endif %}" style="color: #0f087e; font-weight: 800;">
+                ${{ it.subtotal|floatformat:0|intcomma }}
+              </span>
             </div>
           </div>
         </div>
@@ -101,7 +113,8 @@
           <button type="submit" class="btn btn-link text-danger text-decoration-none p-0" onclick="return confirm('¿Vaciar todo el carrito?')">Vaciar Carrito</button>
         </form>
 
-        <a href="{% url 'store:checkout' %}" class="btn btn-pagar shadow-lg">
+        {# Solo dejamos avanzar si el carrito es válido (sin productos agotados) o puedes decidir si permites pagar lo demás #}
+        <a href="{% url 'store:checkout' %}" class="btn btn-pagar shadow-lg {% if total_carrito == 0 %}disabled{% endif %}">
              Finalizar Compra <i class="bi bi-arrow-right ms-2"></i>
         </a>
       </div>

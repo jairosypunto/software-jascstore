@@ -31,8 +31,10 @@ class Category(models.Model):
 
 
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F
 from decimal import Decimal
+
+# ... (Configuracion y Category se mantienen igual)
 
 class Product(models.Model):
     """Modelo ÚNICO y principal de productos para JascEcommerce."""
@@ -50,7 +52,6 @@ class Product(models.Model):
     image = models.ImageField(upload_to="products/", blank=True, null=True)
 
     # Stock y disponibilidad
-    # Se sincroniza automáticamente con ProductVariant
     stock = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
 
@@ -70,7 +71,7 @@ class Product(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
 
-    # Variantes (Listas para los chips del modal)
+    # Variantes
     talla = models.CharField(max_length=200, blank=True, help_text="S,M,L,XL")
     color = models.CharField(max_length=200, blank=True, help_text="Blanco,Negro,Azul")
 
@@ -82,32 +83,34 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    # ================= LÓGICA DE SINCRONIZACIÓN =================
+    # ================= LÓGICA DE SINCRONIZACIÓN MEJORADA =================
 
     def actualizar_stock_total(self):
         """
         Suma el stock de todas las variantes vinculadas y actualiza 
-        el stock principal sin entrar en bucle infinito.
+        el stock principal usando update() para evitar recursión.
         """
-        # Verificamos si existen variantes usando el related_name 'variants_stock'
-        if hasattr(self, 'variants_stock'):
+        if self.pk:
+            # Calculamos el total real de la matriz de variantes
             total = self.variants_stock.aggregate(Sum('stock'))['stock__sum'] or 0
-            # Actualizamos directamente en la base de datos para no disparar save() nuevamente
+            
+            # Usamos update() para que el cambio sea directo en DB y se refleje en el Admin
             Product.objects.filter(pk=self.pk).update(stock=total)
+            
+            # Actualizamos la instancia actual para que el template vea el cambio
             self.stock = total
 
     def save(self, *args, **kwargs):
         """Guarda el producto y sincroniza el stock global."""
         super().save(*args, **kwargs)
-        # Una vez que el producto existe (pk asignado), sincronizamos
+        # Sincronización automática al guardar desde el Admin
         if self.pk:
             self.actualizar_stock_total()
 
-    # ================= PROPIEDADES PARA EL TEMPLATE =================
+    # ================= PROPIEDADES (Sin cambios en variables) =================
 
     @property
     def final_price(self):
-        """Calcula el precio aplicando el descuento configurado."""
         try:
             discount_value = Decimal(self.discount)
         except (ValueError, TypeError):
@@ -120,18 +123,17 @@ class Product(models.Model):
 
     @property
     def talla_list(self):
-        """Limpia el string de tallas para el Modal."""
         return [s.strip() for s in self.talla.split(",") if s.strip()] if self.talla else []
 
     @property
     def color_list(self):
-        """Limpia el string de colores para el Modal."""
         return [c.strip() for c in self.color.split(",") if c.strip()] if self.color else []
 
     @property
     def has_variants(self):
-        """Informa al template si debe mostrar el Modal de selección."""
-        return bool(self.talla_list or self.color_list) 
+        return bool(self.talla_list or self.color_list)
+    
+    
     
 # 🧾 Modelo de Factura
 class Factura(models.Model):
@@ -195,6 +197,8 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"{self.producto.name} x {self.cantidad} ({self.variantes()})"
+
+
 
 # 🎯 Modelo de Banner
 class Banner(models.Model):
