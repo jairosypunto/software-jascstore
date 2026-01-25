@@ -78,7 +78,7 @@
         <td>${{ pedido.total|floatformat:0 }}</td>
         <td>
           <!-- Enlace correcto a la factura -->
-          <a href="{% url 'store:ver_factura' pedido.id %}" class="btn btn-sm btn-outline-primary">
+          <a href="{% url 'store:detalle_factura' pedido.id %}" class="btn btn-sm btn-outline-primary">
             Ver factura
           </a>
         </td>

@@ -27,10 +27,11 @@ urlpatterns = [
     path('simular-pago-banco/', views.simular_pago_banco, name='simular_pago_banco'),
     path('confirmacion-pago/', views.confirmacion_pago, name='confirmacion_pago'),
 
-    # 📄 Facturación
+# 📄 Facturación
     path('generar-factura/', views.generar_factura, name='generar_factura'),
     path('mis-facturas/', views.mis_facturas, name='mis_facturas'),
-    path('factura/<int:factura_id>/', views.ver_factura, name='ver_factura'),
+    # Cambiamos el name a 'detalle_factura' para que coincida con tus templates y no de error
+    path('factura/<int:factura_id>/', views.ver_factura, name='detalle_factura'),
     path('factura/pdf/<int:factura_id>/', generar_factura_pdf, name='generar_factura_pdf'),
 
     # 👤 Información y Cuentas
