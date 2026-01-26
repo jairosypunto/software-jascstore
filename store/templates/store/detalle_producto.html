@@ -56,7 +56,7 @@
     </div>
 
     <div class="col-md-6">
-      <h2 class="fw-bold">{{ producto.name }}</h2>
+      <h2 class="fw-bold" style="color: var(--azul-hermoso);">{{ producto.name }}</h2>
       <p class="text-muted">{{ producto.description }}</p>
 
       <div class="precios mb-4">
@@ -65,7 +65,7 @@
           <span class="text-muted text-decoration-line-through ms-2">${{ producto.cost|floatformat:0 }}</span>
           <span class="badge bg-danger ms-2">-{{ producto.discount }}%</span>
         {% else %}
-          <span class="fs-3 fw-bold">${{ producto.cost|floatformat:0 }}</span>
+          <span class="fs-3 fw-bold" style="color: var(--azul-hermoso);">${{ producto.cost|floatformat:0 }}</span>
         {% endif %}
       </div>
 
@@ -124,8 +124,9 @@
 
         <div class="d-grid gap-2">
             <button type="submit"
-                    class="btn btn-primary btn-lg mt-3 btn-agregar"
+                    class="btn btn-lg mt-3 btn-agregar text-white"
                     id="btn-add-main"
+                    style="background-color: var(--azul-hermoso); border: none;"
                     disabled>
               <i class="bi bi-cart-plus"></i> Agregar al carrito
             </button>
@@ -137,24 +138,38 @@
 </div>
 
 <style>
+/* Variables de color */
+:root {
+    --azul-hermoso: #1a237e;
+    --azul-brillante: #3949ab;
+}
+
 /* Efecto de selección para miniaturas */
 .miniatura.activa-azul {
-    border: 3px solid #007bff !important;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+    border: 3px solid var(--azul-hermoso) !important;
+    box-shadow: 0 0 10px rgba(26, 35, 126, 0.5);
     transform: scale(1.05);
 }
 
 /* Efecto visual cuando se selecciona una talla o color */
 input[type="radio"]:checked + span {
-    border-color: #007bff !important;
-    background-color: #007bff !important;
+    border-color: var(--azul-hermoso) !important;
+    background-color: var(--azul-hermoso) !important;
     color: #fff !important;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 5px rgba(26, 35, 126, 0.5);
 }
 
 .size-btn {
     min-width: 45px;
     text-align: center;
+    transition: 0.3s;
+}
+
+/* Estado deshabilitado del botón */
+#btn-add-main:disabled {
+    background-color: #cccccc !important;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 </style>
 {% endblock %}

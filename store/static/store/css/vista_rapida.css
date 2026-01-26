@@ -367,3 +367,18 @@
   transform: scale(1.1);
   border-color: #27ae60;
 }
+
+/* Cambiamos el estilo del botón dentro del modal para que sea Azul Hermoso */
+.btn-agregar-modal {
+    background: linear-gradient(45deg, var(--azul-hermoso), var(--azul-brillante)) !important;
+    border: none !important;
+    border-radius: 50px !important; /* Más redondeado y moderno */
+    font-weight: bold;
+    color: white;
+    transition: 0.3s;
+}
+
+.btn-agregar-modal:hover {
+    box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
+    transform: translateY(-2px);
+}

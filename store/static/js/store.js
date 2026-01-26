@@ -125,33 +125,72 @@ function eliminarItemCarrito(itemKey) {
 }
 
 /* =====================================================
-    VISTA RÁPIDA (PANEL LATERAL / MODAL)
+    VISTA RÁPIDA (PANEL LATERAL / MODAL) - JascStore
+    Mantiene compatibilidad total con Home y Tienda
 ===================================================== */
 function abrirVistaRapida(id) {
     const panel = document.getElementById("vistaRapidaPanel");
     const cont = document.getElementById("contenidoProducto");
+    
     if (!panel || !cont || !id) return;
 
+    // Abrimos el panel y bloqueamos el scroll del fondo
     panel.classList.replace("hidden", "visible");
     document.body.style.overflow = "hidden";
-    cont.innerHTML = `<div class="d-flex justify-content-center p-5"><div class="spinner-border text-primary"></div></div>`;
 
+    // Spinner de carga con el Azul Hermoso de JascStore
+    cont.innerHTML = `
+        <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px;">
+            <div class="spinner-border" style="color: #1a237e; width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>`;
+
+    // Fetch robusto para asegurar que cargue desde Home o Tienda
     fetch(`/store/vista-rapida/${id}/`)
-        .then(res => res.text())
+        .then(res => {
+            if (!res.ok) throw new Error("Producto no encontrado");
+            return res.text();
+        })
         .then(html => {
             cont.innerHTML = html;
-            setTimeout(() => window.initVistaRapida(cont), 50);
+            // Pequeño retardo para asegurar que el DOM esté listo antes de inicializar botones
+            setTimeout(() => {
+                if (typeof window.initVistaRapida === "function") {
+                    window.initVistaRapida(cont);
+                }
+            }, 50);
         })
         .catch(err => {
-            cont.innerHTML = "<p class='p-5 text-danger'>Error al cargar producto.</p>";
+            console.error("Error JascStore:", err);
+            cont.innerHTML = `
+                <div class="text-center p-5">
+                    <i class="bi bi-exclamation-circle text-danger display-4"></i>
+                    <p class='mt-3 text-muted'>Lo sentimos, no pudimos cargar el producto.</p>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="cerrarVistaRapida()">Cerrar</button>
+                </div>`;
         });
 }
 
+/* =====================================================
+    CERRAR VISTA RÁPIDA (PANEL LATERAL / MODAL)
+    Restaura el control del sitio al usuario
+===================================================== */
 function cerrarVistaRapida() {
     const panel = document.getElementById("vistaRapidaPanel");
+    const cont = document.getElementById("contenidoProducto");
+
     if (panel) {
+        // Cambiamos el estado visual del panel a oculto
         panel.classList.replace("visible", "hidden");
+        
+        // Devolvemos el scroll al cuerpo de la página (Home o Tienda)
         document.body.style.overflow = "";
+
+        // Limpiamos el contenido para que la siguiente apertura sea limpia
+        if (cont) {
+            cont.innerHTML = "";
+        }
     }
 }
 
