@@ -3,6 +3,9 @@ from django.contrib.auth import views as auth_views  # Vistas genéricas de aute
 from django.contrib.auth.views import LoginView, LogoutView
 from . import views
 
+# ✅ Agregamos el namespace para que Django reconozca {% url 'usuario:login' %}
+app_name = 'usuario' 
+
 urlpatterns = [
     # 🔐 Login: muestra formulario y redirige al /home/ si ya está autenticado
     path(

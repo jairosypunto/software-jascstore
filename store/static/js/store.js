@@ -77,6 +77,10 @@ function renderizarSideCart(items, total) {
             ? `<p class="mb-1 small text-muted">${item.talla ? 'Talla: '+item.talla : ''} ${item.color ? '| Color: '+item.color : ''}</p>`
             : '';
 
+        // VALIDACIÓN SIN CAMBIAR VARIABLES: Si item.precio_formateado es undefined, 
+        // busca en item.precio o item.precio_unitario
+        const precioAMostrar = item.precio_formateado || item.precio || item.precio_unitario || "0";
+
         html += `
             <div class="cart-item-row d-flex align-items-center mb-3 border-bottom pb-2">
                 <img src="${item.imagen_url}" alt="${item.nombre}" style="width:60px; height:60px; object-fit:cover;" class="rounded">
@@ -84,7 +88,7 @@ function renderizarSideCart(items, total) {
                     <h6 class="mb-0" style="font-size: 0.9rem;">${item.nombre}</h6>
                     ${variantInfo}
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-orange fw-bold">$${item.precio_formateado}</span>
+                        <span class="text-orange fw-bold">$${precioAMostrar}</span>
                         <div class="d-flex align-items-center gap-2">
                             <small class="text-muted">x${item.cantidad}</small>
                             <button onclick="eliminarItemCarrito('${item.item_key}')" class="btn btn-sm text-danger p-1" title="Quitar">

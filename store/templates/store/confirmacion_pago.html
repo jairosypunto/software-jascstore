@@ -57,7 +57,8 @@
                             <th>Imagen</th>
                             <th>Producto</th>
                             <th class="text-center">Cant.</th>
-                            <th class="text-end">Precio Unit.</th> <th class="text-end">Subtotal</th>
+                            <th class="text-end">Precio Unit.</th> 
+                            <th class="text-end">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,7 +83,8 @@
                             <td class="text-center fw-bold">{{ item.cantidad }}</td>
                             
                             <td class="text-end text-muted">
-                                ${{ item.subtotal|floatformat:0|intcomma }}
+                                $ {% widthratio item.subtotal item.cantidad 1 as precio_u %}
+                                {{ precio_u|floatformat:0|intcomma }}
                             </td>
                             
                             <td class="text-end fw-bold text-dark">${{ item.subtotal|floatformat:0|intcomma }}</td>
@@ -115,3 +117,5 @@
         </div>
     </div>
 </div>
+
+{% endblock %}

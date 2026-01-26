@@ -43,9 +43,9 @@ from reportlab.lib import colors
 from decimal import Decimal
 from .models import Product, ProductVariant
 
-# ============================================================
-# 🧮 Función auxiliar: cálculo de precio final con descuento
-# ============================================================
+    # ============================================================
+    # 🧮 Función auxiliar: cálculo de precio final con descuento
+    # ============================================================
 def _precio_final(producto):
     """
     Devuelve el precio final del producto aplicando descuento.
@@ -678,6 +678,8 @@ def generar_factura(request):
     
     return render(request, "store/confirmacion_pago.html", {"factura": factura})
 
+
+
 # ============================================================
 # 🧾 Vista: ver factura
 # ============================================================
@@ -1073,14 +1075,28 @@ def actualizar_cantidad(request, item_key):
 
 # views.py
 from django.http import JsonResponse
-
 def obtener_carrito_json(request):
     carrito = request.session.get("carrito", {})
-    total = sum(float(item['precio']) * item['cantidad'] for item in carrito.values())
+    items_listado = []
+    total_acumulado = 0
+    
+    for key, item in carrito.items():
+        # Convertimos a float para cálculos seguros
+        precio_num = float(item.get('precio', 0))
+        cantidad = int(item.get('cantidad', 0))
+        subtotal_item = precio_num * cantidad
+        total_acumulado += subtotal_item
+        
+        # Creamos una copia para añadir los campos que el JS necesita
+        item_data = item.copy()
+        item_data['item_key'] = key
+        # ESTA VARIABLE ES LA QUE QUITA EL UNDEFINED:
+        item_data['precio_formateado'] = f"{precio_num:,.0f}".replace(",", ".")
+        items_listado.append(item_data)
     
     return JsonResponse({
-        "carrito_completo": list(carrito.values()),
-        "total_carrito": f"{total:,.0f}".replace(",", "."),
+        "carrito_completo": items_listado,
+        "total_carrito": f"{total_acumulado:,.0f}".replace(",", "."),
         "cart_count": sum(item['cantidad'] for item in carrito.values()),
         "status": "ok"
     })

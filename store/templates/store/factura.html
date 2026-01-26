@@ -45,13 +45,12 @@
       <thead class="table-light">
         <tr>
           <th style="width:40%;">Producto</th>
-          <th style="width:15%; text-align:center;">Cantidad</th>
+          <th style="width:15%; text-align:center;">Cant.</th>
           <th style="width:25%; text-align:right;">V. Unitario</th>
           <th style="width:20%; text-align:right;">Subtotal</th>
         </tr>
       </thead>
       <tbody>
-        {# Prioridad a los detalles guardados en la base de datos #}
         {% for det in factura.detalles.all %}
         <tr>
           <td>
@@ -61,10 +60,14 @@
             </div>
           </td>
           <td class="text-center">{{ det.cantidad }}</td>
-          {# SOLUCIÓN AL $ VACÍO: Si no hay precio_unitario, calculamos subtotal/cantidad #}
+          
+          {# --- SOLUCIÓN AL PRECIO UNITARIO --- #}
           <td class="text-end">
-            $ {{ det.subtotal|floatformat:0|intcomma }}
+            {# Si no tienes el filtro 'divide', multiplicamos por 1 y dividimos para forzar el cálculo en la plantilla #}
+            $ {{ det.subtotal|add:"0"|widthratio:det.cantidad,1,det.cantidad|floatformat:0|intcomma }}
           </td>
+          {# ------------------------------------ #}
+
           <td class="text-end fw-bold">
             $ {{ det.subtotal|floatformat:0|intcomma }}
           </td>
@@ -101,6 +104,10 @@
             <style>
               body { padding: 40px; }
               .text-primary { color: #0d6efd !important; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #dee2e6; padding: 8px; }
+              .text-end { text-align: right; }
+              .text-center { text-align: center; }
             </style>
           </head>
           <body onload="window.print(); window.close();">${contenido}</body>

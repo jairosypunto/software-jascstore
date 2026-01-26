@@ -98,7 +98,10 @@
           <span class="text-muted">Talla: {{ detalle.talla }} | Color: {{ detalle.color }}</span>
         </td>
         <td class="col-cantidad">{{ detalle.cantidad }}</td>
-        <td class="col-unitario">${{ detalle.producto.precio|floatformat:0|intcomma }}</td>
+        <td class="col-unitario">
+          {% widthratio detalle.subtotal detalle.cantidad 1 as precio_u %}
+          ${{ precio_u|floatformat:0|intcomma }}
+        </td>
         <td class="col-subtotal">${{ detalle.subtotal|floatformat:0|intcomma }}</td>
       </tr>
       {% endfor %}
