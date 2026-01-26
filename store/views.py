@@ -616,18 +616,15 @@ def generar_factura(request):
     if request.method != "POST":
         return redirect("store:checkout")
 
-    # Usamos tu función auxiliar para procesar el carrito con stock y precios reales
     items_carrito = _items_carrito(request)
     
     if not items_carrito:
         return redirect("store:ver_carrito")
 
-    # 1. Captura de datos del formulario
     nombre_cliente = request.POST.get("nombre")
     total_final = sum(item['subtotal'] for item in items_carrito)
 
     with transaction.atomic():
-        # 2. Crear Factura Principal
         factura = Factura.objects.create(
             usuario=request.user,
             total=total_final,
@@ -641,11 +638,9 @@ def generar_factura(request):
             departamento=request.POST.get("departamento")
         )
 
-        # 3. Procesar Items y Stock (Usando los datos limpios de tu función auxiliar)
         for i in items_carrito:
             prod = i['producto']
 
-            # Descuento de Stock en Matriz (Usando la lógica que ya validamos)
             variante = ProductVariant.objects.filter(
                 product=prod, 
                 talla__iexact=i['talla'], 
@@ -659,9 +654,8 @@ def generar_factura(request):
             else:
                 Product.objects.filter(id=prod.id).update(stock=models.F('stock') - i["cantidad"])
 
-            # 4. Crear Detalle
-            # IMPORTANTE: Como el modelo NO tiene precio_unitario, lo omitimos aquí
-            # pero lo calcularemos en el HTML para quitar el "$" vacío.
+            # 4. Crear Detalle (SIN campos nuevos para evitar el TypeError)
+            # Solo usamos los campos que ya existen en tu modelo
             DetalleFactura.objects.create(
                 factura=factura,
                 producto=prod,
@@ -672,13 +666,10 @@ def generar_factura(request):
                 imagen_url=i['imagen_url']
             )
 
-    # Limpiar carrito
     request.session["carrito"] = {}
     request.session.modified = True
     
     return render(request, "store/confirmacion_pago.html", {"factura": factura})
-
-
 
 # ============================================================
 # 🧾 Vista: ver factura
@@ -738,6 +729,8 @@ def generar_factura_pdf(request, factura_id):
     """
     Genera un PDF de la factura usando ReportLab y lo devuelve como respuesta HTTP.
     """
+    from django.utils.timezone import localtime # Aseguramos la importación
+    
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
     detalles = DetalleFactura.objects.filter(factura=factura)
 
@@ -760,36 +753,51 @@ def generar_factura_pdf(request, factura_id):
     styles = getSampleStyleSheet()
     elements = []
 
-    # Título y encabezado
-    elements.append(Paragraph(f"Factura #{factura.id}", styles['Title']))
+    # Título y encabezado (Usando tu Azul Hermoso #1a237e)
+    titulo_style = styles['Title']
+    titulo_style.textColor = colors.HexColor("#1a237e")
+    
+    elements.append(Paragraph(f"JascStore - Factura #{factura.id}", titulo_style))
     elements.append(Paragraph(f"Fecha: {localtime(factura.fecha).strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Paragraph(f"Cliente: {factura.nombre}", styles['Normal']))
     elements.append(Spacer(1, 12))
 
     # Tabla de productos
     data = [["Producto", "Talla", "Color", "Cant.", "P. Unitario", "Subtotal"]]
+    
     for d in detalles:
         # Limpieza estética para el PDF (No mostrar "Único")
         t_display = d.talla if d.talla not in ["Única", "Único", "None", ""] else ""
         c_display = d.color if d.color not in ["Única", "Único", "None", ""] else ""
         
+        # LÓGICA PODEROSA: Intentamos traer el nombre guardado, o el del producto (name o nombre)
+        nombre_final = d.nombre_producto if hasattr(d, 'nombre_producto') and d.nombre_producto else \
+                       getattr(d.producto, 'name', getattr(d.producto, 'nombre', 'Producto'))
+
+        # Calculamos el unitario real para evitar discrepancias
+        unitario_real = d.subtotal / d.cantidad if d.cantidad > 0 else 0
+        
         data.append([
-            d.producto.name,
+            nombre_final.upper(), # Nombre en mayúsculas para que resalte
             t_display,
             c_display,
             d.cantidad,
-            f"${d.producto.final_price:,.0f}",
+            f"${unitario_real:,.0f}",
             f"${d.subtotal:,.0f}",
         ])
 
-    # Configuración de la tabla
+    # Configuración de la tabla (Manteniendo tus colWidths)
     table = Table(data, hAlign='LEFT', colWidths=[180, 60, 60, 40, 80, 80])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1a237e")),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1a237e")), # Tu Azul Hermoso
         ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('ALIGN', (0,0), (0,-1), 'LEFT'), # Alineamos nombre del producto a la izquierda
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
         ('FONTSIZE', (0,0), (-1,-1), 9),
+        ('BOTTOMPADDING', (0,0), (-1,0), 10),
+        ('TOPPADDING', (0,0), (-1,0), 10),
     ]))
     elements.append(table)
     elements.append(Spacer(1, 20))
@@ -800,10 +808,10 @@ def generar_factura_pdf(request, factura_id):
 
     elements.append(Paragraph(f"<b>Subtotal:</b> ${subtotal:,.0f}", style_right))
     if ahorro_total > 0:
-        elements.append(Paragraph(f"<b>Usted ahorró:</b> ${ahorro_total:,.0f}", style_right))
+        elements.append(Paragraph(f"<font color='#1a237e'><b>Usted ahorró:</b> ${ahorro_total:,.0f}</font>", style_right))
     
     elements.append(Spacer(1, 5))
-    elements.append(Paragraph(f"<font size=12><b>TOTAL A PAGAR:</b> ${total:,.0f}</font>", style_right))
+    elements.append(Paragraph(f"<font size=14 color='#1a237e'><b>TOTAL A PAGAR:</b> ${total:,.0f}</font>", style_right))
 
     doc.build(elements)
     pdf = buffer.getvalue()

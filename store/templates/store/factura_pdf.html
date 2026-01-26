@@ -18,18 +18,17 @@
     th { background-color: #1a237e; color: white; padding: 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
     td { border-bottom: 1px solid #e0e0e0; padding: 10px; vertical-align: middle; }
     
-    /* Columnas ajustadas para incluir imagen */
-    .col-imagen { width: 12%; }
-    .col-producto { width: 38%; }
+    .col-imagen { width: 15%; }
+    .col-producto { width: 35%; }
     .col-cantidad { width: 10%; text-align: center; }
     .col-unitario { width: 20%; text-align: right; }
     .col-subtotal { width: 20%; text-align: right; font-weight: bold; }
 
-    .img-producto { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+    .img-producto { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
 
     .text-right { text-align: right; }
     .text-muted { color: #7f8c8d; font-size: 10px; }
-    .text-success { color: #1a237e; font-weight: bold; font-size: 18px; } /* Usamos Azul Hermoso para el total */
+    .text-success { color: #1a237e; font-weight: bold; font-size: 18px; }
     .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; }
     .bg-pendiente { background-color: #e67e22; }
     .bg-pagado { background-color: #27ae60; }
@@ -59,7 +58,7 @@
       <h2 style="border: none; margin: 0;">Factura #{{ factura.id }}</h2>
       <p><strong>Fecha:</strong> {{ factura.fecha|date:"d/m/Y H:i" }}</p>
       <p><strong>Estado:</strong> 
-        <span class="badge-status {% if factura.estado_pago == 'Pagado' %}bg-pagado{% elif factura.estado_pago == 'Pendiente' %}bg-pendiente{% else %}bg-fallido{% endif %}">
+        <span class="badge-status {% if factura.estado_pago == 'Pagado' or factura.estado_pago == 'Aprobado' %}bg-pagado{% elif factura.estado_pago == 'Pendiente' %}bg-pendiente{% else %}bg-fallido{% endif %}">
           {{ factura.estado_pago|upper }}
         </span>
       </p>
@@ -96,20 +95,28 @@
       {% for detalle in factura.detalles.all %}
       <tr>
         <td class="col-imagen">
-          {% if detalle.producto.imagen %}
+          {% if detalle.imagen_url %}
+            <img src="{{ detalle.imagen_url }}" class="img-producto">
+          {% elif detalle.producto.imagen %}
             <img src="{{ detalle.producto.imagen.url }}" class="img-producto">
           {% else %}
-            <div style="width:50px; height:50px; background:#eee; border-radius:4px;"></div>
+            <div style="width:60px; height:60px; background:#eee; border-radius:6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #999;">Sin Foto</div>
           {% endif %}
         </td>
         <td class="col-producto">
-          <strong style="font-size: 11px;">{{ detalle.producto.nombre|upper }}</strong><br>
+          <strong style="font-size: 11px; color: #1a237e;">
+            {% if detalle.nombre_producto %}
+                {{ detalle.nombre_producto|upper }}
+            {% else %}
+                {{ detalle.producto.name|upper }}{{ detalle.producto.nombre|upper }}
+            {% endif %}
+          </strong><br>
           <span class="text-muted">Talla: {{ detalle.talla }} | Color: {{ detalle.color }}</span>
         </td>
         <td class="col-cantidad">{{ detalle.cantidad }}</td>
         <td class="col-unitario">
           {% widthratio detalle.subtotal detalle.cantidad 1 as precio_u %}
-          ${{ precio_u|floatformat:0|intcomma }}
+          ${{ precio_u|intcomma }}
         </td>
         <td class="col-subtotal">${{ detalle.subtotal|floatformat:0|intcomma }}</td>
       </tr>
