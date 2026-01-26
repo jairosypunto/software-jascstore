@@ -32,7 +32,7 @@ def home(request):
         'search_query': search_query,
         'order': order,
     }
-    return render(request, 'home/home.html', context)
+    return render(request, 'index.html', context)
 
 from django.http import HttpResponse
 
