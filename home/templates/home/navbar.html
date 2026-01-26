@@ -3,12 +3,13 @@
 
 <style>
   :root {
-    --azul-premium: #1a237e; /* El Azul Hermoso */
+    --azul-premium: #1a237e; /* Tu Azul Hermoso */
     --azul-brillante: #3949ab;
+    --azul-oscuro: #0d1140;
   }
 
   .navbar-fijo {
-    background: linear-gradient(135deg, var(--azul-premium) 0%, #0d1140 100%) !important;
+    background: linear-gradient(135deg, var(--azul-premium) 0%, var(--azul-oscuro) 100%) !important;
     padding: 0.8rem 0;
     transition: all 0.3s ease;
   }
@@ -16,19 +17,21 @@
   .navbar-brand {
     font-size: 1.5rem;
     letter-spacing: -0.5px;
-    color: #ffffff !important; /* Cambiado de text-info a blanco puro */
+    color: #ffffff !important;
   }
 
   .nav-link {
     font-weight: 500;
     color: rgba(255, 255, 255, 0.85) !important;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
   }
 
   .nav-link:hover {
     color: #ffffff !important;
+    transform: translateY(-1px);
   }
 
+  /* Ajuste del contador del carrito para que sea vibrante pero elegante */
   .cart-badge-container {
     position: relative;
     display: inline-block;
@@ -38,25 +41,41 @@
     position: absolute;
     top: -5px;
     right: -10px;
-    background-color: #ff3d00; /* Rojo vibrante para el contador */
+    background-color: #ff3d00; /* Rojo vibrante para llamar la atención sobre la venta */
     color: white;
     font-size: 0.7rem;
     padding: 2px 6px;
     border-radius: 50%;
     font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
 
+  /* Botón de registro con el nuevo esquema de azul */
   .btn-registro {
-    background-color: var(--azul-brillante);
+    background-color: rgba(255, 255, 255, 0.15); /* Fondo sutil */
     color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     padding: 6px 15px !important;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
   }
 
   .btn-registro:hover {
+    background-color: #ffffff;
+    color: var(--azul-premium) !important;
     transform: scale(1.05);
-    background-color: #4444dd;
+  }
+
+  /* Estilo para el dropdown de usuario */
+  .dropdown-menu {
+    border-radius: 12px;
+    padding: 0.5rem;
+  }
+  
+  .dropdown-item:hover {
+    background-color: var(--azul-premium);
+    color: white;
+    border-radius: 8px;
   }
 </style>
 
@@ -64,7 +83,7 @@
   <div class="container-xl">
 
     <a class="navbar-brand fw-bold" href="{% url 'home:home' %}">
-      <i class="bi bi-shop me-2"></i>JascShop
+      <i class="bi bi-shop me-2"></i>JascStore
     </a>
 
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
@@ -81,11 +100,9 @@
       <ul class="navbar-nav ms-auto align-items-center mb-2 mb-lg-0 gap-3">
         {% if user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link cart-badge-container" href="{% url 'store:ver_carrito' %}">
+            <a class="nav-link cart-badge-container px-2" href="javascript:void(0)" onclick="abrirSideCart()">
               <i class="bi bi-cart3 fs-5"></i>
-              {% if total_items_carrito > 0 %}
-                <span class="cart-count">{{ total_items_carrito }}</span>
-              {% endif %}
+              <span class="cart-count">{{ total_items_carrito|default:0 }}</span>
             </a>
           </li>
           
@@ -94,12 +111,12 @@
               <i class="bi bi-person-circle me-1"></i> {{ user.first_name|default:user.username }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-              <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+              <li><a class="dropdown-item" href="{% url 'usuario:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
               <li><a class="dropdown-item" href="{% url 'store:mis_facturas' %}"><i class="bi bi-receipt me-2"></i>Mis Pedidos</a></li>
-              <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="bi bi-key me-2"></i>Seguridad</a></li>
+              <li><a class="dropdown-item" href="{% url 'usuario:password_change' %}"><i class="bi bi-key me-2"></i>Seguridad</a></li>
               <li><hr class="dropdown-divider"></li>
               <li>
-                <form action="{% url 'logout' %}" method="post" class="px-3">
+                <form action="{% url 'usuario:logout' %}" method="post" class="px-3">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-danger btn-sm w-100 mt-1">Cerrar sesión</button>
                 </form>
@@ -107,19 +124,12 @@
             </ul>
           </li>
         {% else %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'usuario:login' %}">Login</a></li>
           <li class="nav-item">
-            <a class="nav-link btn-registro" href="{% url 'register' %}">Registro Gratis</a>
+            <a class="nav-link btn-registro" href="{% url 'usuario:register' %}">Registro Gratis</a>
           </li>
         {% endif %}
       </ul>
     </div>
   </div>
 </nav>
-
-{% if request.resolver_match.url_name == 'home' %}
-<div class="container text-center mt-5">
-  <h1 class="fw-black display-4" style="color: var(--azul-premium);">Welcome to DevTeam</h1>
-  <p class="text-muted fs-5">Tu ecommerce moderno con diseño responsive y profesional</p>
-</div>
-{% endif %}

@@ -15,6 +15,26 @@
     .btn-confirmar { background-color: #1a237e; color: white; border-radius: 50px; padding: 15px; font-weight: 700; transition: all 0.3s; border: none; width: 100%; }
     .btn-confirmar:hover { background-color: #3949ab; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3); }
     .img-checkout { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; border: 1px solid #eee; }
+
+    /* ... tus estilos anteriores ... */
+    .form-control:focus { 
+        border-color: #1a237e; 
+        box-shadow: 0 0 0 0.25rem rgba(26, 35, 126, 0.1); 
+    }
+    
+    .card-checkout {
+        transition: transform 0.3s ease;
+    }
+    
+    /* Pequeño sello de pago seguro */
+    .secure-badge {
+        font-size: 0.8rem;
+        color: #2e7d32;
+        background: #e8f5e9;
+        padding: 5px 12px;
+        border-radius: 50px;
+        display: inline-block;
+    }
 </style>
 
 <div class="container checkout-container">
@@ -89,4 +109,14 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('checkout-form').addEventListener('submit', function() {
+        const btn = this.querySelector('.btn-confirmar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> PROCESANDO TU PEDIDO...';
+    });
+</script>
 {% endblock %}

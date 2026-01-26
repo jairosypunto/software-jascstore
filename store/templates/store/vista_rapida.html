@@ -1,25 +1,35 @@
 {% load static humanize %}
 
 <style>
-    /* Estilos específicos para que se vea Premium */
+    :root {
+        --azul-hermoso: #1a237e;
+        --azul-brillante: #3949ab;
+    }
+
+    /* Estilos Premium para JascStore */
     .option-chip {
         border: 2px solid #dce0e4;
         background: white;
         padding: 8px 15px;
         border-radius: 8px;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease-in-out;
         font-weight: 600;
         margin-right: 5px;
         margin-bottom: 5px;
     }
-    .option-chip:hover { border-color: #1a237e; color: #1a237e; }
     
-    /* Clase de selección - Azul JascStore */
+    .option-chip:hover { 
+        border-color: var(--azul-hermoso); 
+        color: var(--azul-hermoso);
+        transform: translateY(-1px);
+    }
+    
+    /* Selección Activa */
     .option-chip.selected {
-        background-color: #1a237e !important;
+        background-color: var(--azul-hermoso) !important;
         color: white !important;
-        border-color: #1a237e !important;
+        border-color: var(--azul-hermoso) !important;
         box-shadow: 0 4px 10px rgba(26, 35, 126, 0.3);
     }
 
@@ -28,18 +38,38 @@
         padding: 15px;
         border-radius: 50px;
         border: none;
-        background-color: #1a237e;
+        background-color: var(--azul-hermoso);
         color: white;
         font-weight: 700;
         font-size: 1.1rem;
         transition: all 0.3s;
         margin-top: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
+
+    .btn-agregar:hover:not(:disabled) {
+        background-color: var(--azul-brillante);
+        box-shadow: 0 6px 15px rgba(26, 35, 126, 0.4);
+        transform: translateY(-2px);
+    }
+
     .btn-agregar:disabled {
         background-color: #ccc;
         cursor: not-allowed;
+        opacity: 0.7;
     }
-    .miniatura.activa { border: 2px solid #1a237e; }
+
+    .miniatura.activa { 
+        border: 2px solid var(--azul-hermoso);
+        box-shadow: 0 0 8px rgba(26, 35, 126, 0.2);
+    }
+
+    .titulo-modal {
+        color: var(--azul-hermoso);
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
 </style>
 
 <div class="vista-rapida-contenido" data-mode="quick" id="contenidoProducto">
@@ -66,15 +96,15 @@
     </div>
 
     <div class="info-producto">
-        <h3 class="titulo" style="color: #1a237e; font-weight: 800;">{{ producto.name }}</h3>
-        <p class="descripcion text-muted">{{ producto.description }}</p>
+        <h3 class="titulo titulo-modal">{{ producto.name }}</h3>
+        <p class="descripcion text-muted small">{{ producto.description|truncatewords:20 }}</p>
 
         <div class="precio mb-3">
-            <span class="precio-final" style="font-size: 1.8rem; color: #1a237e; font-weight: 900;">
+            <span class="precio-final" style="font-size: 1.8rem; color: var(--azul-hermoso); font-weight: 900;">
                 ${{ producto.final_price|floatformat:0|intcomma }}
             </span>
             {% if producto.discount > 0 %}
-                <span class="precio-original text-decoration-line-through ms-2 text-muted">
+                <span class="precio-original text-decoration-line-through ms-2 text-muted small">
                     ${{ producto.cost|floatformat:0|intcomma }}
                 </span>
             {% endif %}
@@ -82,7 +112,7 @@
 
         {% if producto.talla_list %}
         <div class="bloque-opciones mb-3">
-            <label class="fw-bold small d-block mb-2">ELIGE TU TALLA</label>
+            <label class="fw-bold small d-block mb-2 text-uppercase">Talla</label>
             <div class="opciones d-flex flex-wrap" id="contenedor-tallas">
                 {% for talla in producto.talla_list %}
                     <button type="button" class="option-chip size-chip" data-value="{{ talla }}">{{ talla }}</button>
@@ -93,7 +123,7 @@
 
         {% if producto.color_list %}
         <div class="bloque-opciones mb-4">
-            <label class="fw-bold small d-block mb-2">ELIGE COLOR</label>
+            <label class="fw-bold small d-block mb-2 text-uppercase">Color</label>
             <div class="opciones d-flex flex-wrap" id="contenedor-colores">
                 {% for color in producto.color_list %}
                     <button type="button" class="option-chip color-chip" data-value="{{ color }}">{{ color }}</button>
@@ -134,11 +164,13 @@
         
         btnAgregar.disabled = !(tallaOk && colorOk);
         if(!btnAgregar.disabled) {
-            btnAgregar.innerText = "🛒 ¡Listo para añadir!";
+            btnAgregar.innerHTML = "🛒 ¡Todo listo para añadir!";
+        } else {
+            btnAgregar.innerHTML = "🛒 Selecciona tus opciones";
         }
     }
 
-    // 1. Manejo de Miniaturas
+    // Miniaturas e Imagen Principal
     contenedor.querySelectorAll('.miniatura').forEach(thumb => {
         thumb.onclick = function() {
             const src = this.dataset.src;
@@ -153,7 +185,7 @@
         };
     });
 
-    // 2. Selección de Chips
+    // Selección de Chips (Talla/Color)
     contenedor.querySelectorAll('.option-chip').forEach(btn => {
         btn.onclick = function() {
             const parent = this.parentElement;
@@ -173,7 +205,7 @@
         });
     }
 
-    // 3. Envío AJAX
+    // Envío AJAX
     btnAgregar.onclick = function() {
         const formData = new FormData(contenedor.querySelector('#form-add-cart-modal'));
         btnAgregar.disabled = true;
@@ -190,17 +222,23 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'ok') {
-                // Actualizar contador del carrito global si existe
                 const cartCount = document.querySelector('.cart-count');
                 if(cartCount) cartCount.innerText = data.cart_count;
                 
-                // Redirigir o abrir el side cart
-                window.location.href = "{% url 'store:ver_carrito' %}";
+                // Efecto de éxito antes de redirigir
+                btnAgregar.classList.remove('btn-agregar');
+                btnAgregar.style.backgroundColor = '#2e7d32'; // Verde éxito momentáneo
+                btnAgregar.innerHTML = '✅ ¡Añadido con éxito!';
+                
+                setTimeout(() => {
+                    window.location.href = "{% url 'store:ver_carrito' %}";
+                }, 600);
             }
         })
         .catch(err => {
-            alert("Error al añadir al carrito");
+            console.error(err);
             btnAgregar.disabled = false;
+            btnAgregar.innerHTML = '🛒 Reintentar agregar';
         });
     };
 })();

@@ -4,31 +4,32 @@
 <head>
   <meta charset="utf-8">
   <style>
-    /* Estilos Base actualizados al Azul JascStore */
+    /* Estilos Base Azul JascStore */
     body { font-family: 'Helvetica', Arial, sans-serif; font-size: 12px; margin: 0; padding: 40px; color: #1a237e; }
     .header-bar { background-color: #1a237e; height: 8px; margin: -40px -40px 30px -40px; }
     
     h2 { color: #1a237e; font-size: 22px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; text-transform: uppercase; }
     h3 { color: #3949ab; font-size: 14px; margin-top: 25px; border-left: 4px solid #1a237e; padding-left: 10px; }
     
-    /* Grid de Información */
     .info-container { width: 100%; margin-bottom: 20px; }
     .info-box { width: 48%; display: inline-block; vertical-align: top; }
     
-    /* Tabla Estilizada */
     table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
     th { background-color: #1a237e; color: white; padding: 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
     td { border-bottom: 1px solid #e0e0e0; padding: 10px; vertical-align: middle; }
     
-    .col-producto { width: 50%; }
+    /* Columnas ajustadas para incluir imagen */
+    .col-imagen { width: 12%; }
+    .col-producto { width: 38%; }
     .col-cantidad { width: 10%; text-align: center; }
     .col-unitario { width: 20%; text-align: right; }
     .col-subtotal { width: 20%; text-align: right; font-weight: bold; }
 
-    /* Estados y Colores */
+    .img-producto { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+
     .text-right { text-align: right; }
     .text-muted { color: #7f8c8d; font-size: 10px; }
-    .text-success { color: #27ae60; font-weight: bold; font-size: 16px; }
+    .text-success { color: #1a237e; font-weight: bold; font-size: 18px; } /* Usamos Azul Hermoso para el total */
     .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; }
     .bg-pendiente { background-color: #e67e22; }
     .bg-pagado { background-color: #27ae60; }
@@ -84,6 +85,7 @@
   <table>
     <thead>
       <tr>
+        <th class="col-imagen">Foto</th>
         <th class="col-producto">Producto</th>
         <th class="col-cantidad">Cant.</th>
         <th class="col-unitario">V. Unitario</th>
@@ -93,8 +95,15 @@
     <tbody>
       {% for detalle in factura.detalles.all %}
       <tr>
+        <td class="col-imagen">
+          {% if detalle.producto.imagen %}
+            <img src="{{ detalle.producto.imagen.url }}" class="img-producto">
+          {% else %}
+            <div style="width:50px; height:50px; background:#eee; border-radius:4px;"></div>
+          {% endif %}
+        </td>
         <td class="col-producto">
-          <strong>{{ detalle.producto.nombre }}</strong><br>
+          <strong style="font-size: 11px;">{{ detalle.producto.nombre|upper }}</strong><br>
           <span class="text-muted">Talla: {{ detalle.talla }} | Color: {{ detalle.color }}</span>
         </td>
         <td class="col-cantidad">{{ detalle.cantidad }}</td>
@@ -109,7 +118,7 @@
   </table>
 
   <div class="text-right" style="margin-top: 30px; border-top: 2px solid #1a237e; padding-top: 10px;">
-    <p style="font-size: 14px;"><strong>Total de la compra:</strong></p>
+    <p style="font-size: 14px; margin-bottom: 5px;"><strong>Total de la compra:</strong></p>
     <p class="text-success">${{ factura.total|floatformat:0|intcomma }}</p>
     <p class="text-muted">Precios expresados en Pesos Colombianos (COP).</p>
   </div>

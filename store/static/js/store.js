@@ -65,33 +65,46 @@ function renderizarSideCart(items, total) {
     const totalElemento = document.getElementById("sideCartTotal");
     if (!contenedor) return;
 
-    if (!items || items.length === 0) {
-        contenedor.innerHTML = "<p class='text-center p-4'>Tu carrito está vacío</p>";
+    // 1. Limpieza inicial
+    contenedor.innerHTML = "";
+
+    // 2. Convertimos a Array de forma segura (Asegura que no se borre todo si los datos vienen distintos)
+    const listaItems = Array.isArray(items) ? items : Object.values(items || {});
+
+    // 3. Si no hay nada, mostrar mensaje en Azul Hermoso
+    if (listaItems.length === 0) {
+        contenedor.innerHTML = `
+            <div class="text-center py-5">
+                <p class='fw-bold' style='color: #1a237e;'>Tu carrito está vacío</p>
+            </div>`;
         if (totalElemento) totalElemento.innerText = "$0";
         return;
     }
 
+    // 4. Construcción del HTML asegurando que cada producto se dibuje
     let html = "";
-    items.forEach(item => {
+    listaItems.forEach(item => {
+        // Validación de datos para evitar que el script se rompa
+        const nombre = item.nombre || "Producto";
+        const imagen = item.imagen_url || item.imagen || "/static/img/no-image.png";
+        const precio = item.precio_formateado || item.precio || "0";
+        const key = item.key || item.item_key; // La llave para poder borrar individualmente
+
         const variantInfo = (item.talla || item.color) 
             ? `<p class="mb-1 small text-muted">${item.talla ? 'Talla: '+item.talla : ''} ${item.color ? '| Color: '+item.color : ''}</p>`
             : '';
 
-        // VALIDACIÓN SIN CAMBIAR VARIABLES: Si item.precio_formateado es undefined, 
-        // busca en item.precio o item.precio_unitario
-        const precioAMostrar = item.precio_formateado || item.precio || item.precio_unitario || "0";
-
         html += `
             <div class="cart-item-row d-flex align-items-center mb-3 border-bottom pb-2">
-                <img src="${item.imagen_url}" alt="${item.nombre}" style="width:60px; height:60px; object-fit:cover;" class="rounded">
+                <img src="${imagen}" alt="${nombre}" style="width:60px; height:60px; object-fit:cover;" class="rounded">
                 <div class="cart-item-details flex-grow-1 ms-3">
-                    <h6 class="mb-0" style="font-size: 0.9rem;">${item.nombre}</h6>
+                    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1a237e;">${nombre}</h6>
                     ${variantInfo}
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-orange fw-bold">$${precioAMostrar}</span>
+                        <span class="fw-bold" style="color: #1a237e;">$${precio}</span>
                         <div class="d-flex align-items-center gap-2">
                             <small class="text-muted">x${item.cantidad}</small>
-                            <button onclick="eliminarItemCarrito('${item.item_key}')" class="btn btn-sm text-danger p-1" title="Quitar">
+                            <button onclick="eliminarItemCarrito('${key}')" class="btn btn-sm text-danger p-1" title="Quitar">
                                 <i class="bi bi-trash3"></i>
                             </button>
                         </div>
@@ -99,8 +112,15 @@ function renderizarSideCart(items, total) {
                 </div>
             </div>`;
     });
+
+    // 5. Inyectamos todo el HTML de una sola vez para que sea rápido
     contenedor.innerHTML = html;
-    if (totalElemento) totalElemento.innerText = `$${total}`;
+
+    // 6. Actualizamos el Subtotal sin neón
+    if (totalElemento) {
+        totalElemento.innerText = `$${total}`;
+        totalElemento.style.color = "#1a237e";
+    }
 }
 
 function eliminarItemCarrito(itemKey) {
@@ -115,13 +135,25 @@ function eliminarItemCarrito(itemKey) {
     .then(data => {
         if (data.status === 'ok') {
             mostrarToast("Producto eliminado 🗑️");
+            
+            // 1. Actualizamos el contador del navbar
             const badge = document.querySelector(".cart-count");
             if (badge) badge.innerText = data.cart_count;
-            renderizarSideCart(data.carrito_completo, data.total_carrito);
+
+            // 2. LA SOLUCIÓN: En lugar de intentar dibujar nosotros, 
+            // llamamos a la función que ya sabemos que funciona al abrir el carrito.
+            if (typeof abrirSideCart === "function") {
+                abrirSideCart(); 
+            } else {
+                // Si no existe esa función, recargamos la data directamente
+                renderizarSideCart(data.carrito_completo || data.items || {}, data.total_carrito);
+            }
+
+            // 3. Si estás en la página principal de carrito, recarga la web
             if(window.location.pathname.includes('carrito')) location.reload();
         }
     })
-    .catch(err => console.error("Error al eliminar:", err));
+    .catch(err => console.error("Error:", err));
 }
 
 /* =====================================================

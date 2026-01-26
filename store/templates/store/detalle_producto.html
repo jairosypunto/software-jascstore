@@ -176,4 +176,51 @@ input[type="radio"]:checked + span {
 
 {% block extra_js %}
 <script src="{% static 'js/store.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-add-cart');
+    const btnAdd = document.getElementById('btn-add-main');
+    const sizeRadios = document.querySelectorAll('input[name="selected_size"]');
+    const colorRadios = document.querySelectorAll('input[name="selected_color"]');
+    const sizeHidden = document.getElementById('selected_size_hidden');
+    const colorHidden = document.getElementById('selected_color_hidden');
+
+    function checkValidity() {
+        const sizeSelected = Array.from(sizeRadios).some(r => r.checked) || sizeRadios.length === 0;
+        const colorSelected = Array.from(colorRadios).some(r => r.checked) || colorRadios.length === 0;
+
+        if (sizeSelected && colorSelected) {
+            btnAdd.disabled = false;
+            btnAdd.innerHTML = '<i class="bi bi-cart-check-fill"></i> ¡Listo para añadir!';
+        }
+    }
+
+    sizeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            sizeHidden.value = e.target.value;
+            checkValidity();
+        });
+    });
+
+    colorRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            colorHidden.value = e.target.value;
+            checkValidity();
+        });
+    });
+
+    // Manejo de cambio de imagen principal al hacer clic en miniaturas
+    document.querySelectorAll('.miniatura').forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            const mainImg = document.getElementById('main-view');
+            if (this.dataset.type === 'image') {
+                mainImg.src = this.dataset.src;
+            }
+            // Quitar clase activa de todas y poner a esta
+            document.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa-azul'));
+            this.classList.add('activa-azul');
+        });
+    });
+});
+</script>
 {% endblock %}
