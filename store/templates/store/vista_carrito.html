@@ -24,15 +24,16 @@
     </div>
 
 <div class="text-center mb-3">
-    <h6 class="fw-bold mb-1" style="color: #333; font-size: 1.1rem;">{{ producto.nombre }}</h6>
+    <h6 class="fw-bold mb-1" style="color: #333; font-size: 1.1rem;">{{ producto.name }}</h6>
     
     <div class="d-flex justify-content-center align-items-center gap-2">
-        <span class="precio-final h3 fw-bold" style="color: var(--azul-hermoso, #0f087e);">
-            ${{ producto.precio }}
+        <span class="precio-final h3 fw-bold" style="color: #0f087e; font-size: 2.2rem; font-weight: 900;">
+            $ {{ producto.final_price|floatformat:0 }}
         </span>
-        {% if producto.precio_original %}
+        
+        {% if producto.discount > 0 %}
         <span class="text-muted text-decoration-line-through small">
-            ${{ producto.precio_original }}
+            $ {{ producto.cost|floatformat:0 }}
         </span>
         {% endif %}
     </div>

@@ -7,169 +7,93 @@
     --rojo-premium: #d32f2f;
 }
 
-/* Sección principal: Contenedor más limpio */
-.cart-section {
-    padding: 1.5rem;
-    background-color: transparent; /* El fondo lo da el body o el container */
-    max-width: 1100px;
-    margin: 2rem auto;
+/* 🚀 SUPER FUERZA PANEL LATERAL DERECHO (ESTILO TEMU) */
+
+/* 1. Quitamos el centrado de Bootstrap al contenedor principal */
+.modal {
+    padding-right: 0 !important;
+    display: block !important; /* Evita conflictos de alineación */
 }
 
-/* Tarjetas de producto en el carrito */
+/* 2. Anclamos el diálogo a la derecha y quitamos márgenes */
+.modal-dialog {
+    position: fixed !important;
+    margin: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 450px !important; /* Ancho lateral profesional */
+    height: 100vh !important;
+    max-width: 100% !important;
+    z-index: 1060 !important;
+    display: flex !important;
+    align-items: stretch !important;
+}
+
+/* 3. El contenido debe ocupar todo el alto de la pantalla */
+.modal-content {
+    height: 100vh !important;
+    border-radius: 0 !important; /* Sin bordes redondeados para el panel */
+    border: none !important;
+    border-left: 5px solid var(--azul-hermoso) !important;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15) !important;
+    overflow-y: auto !important; /* Scroll interno si hay mucho texto */
+}
+
+/* 4. Animación de entrada lateral */
+.modal.fade .modal-dialog {
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+}
+
+.modal.show .modal-dialog {
+    transform: translateX(0) !important;
+}
+
+/* 5. Fondo casi invisible para poder ver los productos de atrás */
+.modal-backdrop {
+    background-color: rgba(0,0,0,0.1) !important;
+}
+
+/* 🛒 ESTILOS DE INTERIOR (TU DISEÑO ORIGINAL) */
+.cart-section {
+    padding: 1.5rem;
+}
+
 .cart-item {
     background-color: #ffffff;
     border: 1px solid #eef0f2;
     border-radius: 18px;
     margin-bottom: 1rem;
     padding: 1.2rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
-.cart-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(26, 35, 126, 0.08);
-    border-color: var(--azul-acento);
-}
-
-/* Imagen del Producto: Estilo Boutique */
-.cart-item-img {
-    flex-shrink: 0;
-    border: 1px solid #f0f0f0;
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #fff;
-    width: 100px;
-    height: 100px;
-}
-
-.cart-item-img img {
-    transition: transform 0.5s ease;
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-}
-
-.cart-item:hover .cart-item-img img {
-    transform: scale(1.1);
-}
-
-/* Tipografía Premium */
-.cart-item h5 {
-    font-weight: 800;
-    color: #1a1a1a;
-    letter-spacing: -0.5px;
-}
-
-.subtotal-price {
+.subtotal-price, .precio-final {
     color: var(--azul-hermoso) !important;
-    font-weight: 900;
+    font-weight: 900 !important;
+    font-size: 1.8rem !important;
 }
 
-/* Botones de cantidad (+ / -) con diseño circular */
-.btn-cantidad {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50% !important;
-    border: 1.5px solid #dee2e6;
-    background: white;
-    transition: all 0.2s;
-}
-
-.btn-cantidad:hover:not(:disabled) {
-    background-color: var(--azul-hermoso);
-    border-color: var(--azul-hermoso);
-    color: white;
-}
-
-/* Resumen Final (Total) */
-.total-section {
-    background-color: #ffffff;
-    border-radius: 20px;
-    border: 1px solid #eef0f2;
-    border-left: 10px solid var(--azul-hermoso);
-    padding: 25px;
-    box-shadow: 0 10px 30px rgba(26, 35, 126, 0.05);
-}
-
-/* Botón "Finalizar Compra" */
-.btn-pagar {
-    background-color: var(--azul-hermoso) !important;
+/* Botón JascStore Premium */
+.btn-pagar, .btn-agregar, #btnAgregarModalPropio {
+    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%) !important;
     color: white !important;
-    font-weight: 700;
-    border-radius: 50px;
-    padding: 14px 45px;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    border: none;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
+    font-weight: 700 !important;
+    border-radius: 50px !important;
+    padding: 14px !important;
+    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3) !important;
+    border: none !important;
 }
 
-.btn-pagar:hover {
-    transform: translateY(-3px) scale(1.02);
-    background-color: var(--azul-acento) !important;
-    box-shadow: 0 10px 25px rgba(26, 35, 126, 0.25);
-}
-
-/* Botón Vaciar Carrito */
 .btn-vaciar {
     color: var(--rojo-premium) !important;
-    font-weight: 700;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .cart-item {
-        flex-direction: column;
-        text-align: center;
-        padding: 2rem 1rem;
+/* Ajuste móvil */
+@media (max-width: 576px) {
+    .modal-dialog {
+        width: 100% !important;
     }
-    
-    .cart-item-img {
-        margin: 0 auto 1.5rem auto !important;
-        width: 140px;
-        height: 140px;
-    }
-
-    .text-end {
-        text-align: center !important;
-        margin-top: 1.5rem;
-        width: 100%;
-    }
-}
-
-/* Esto mata cualquier rastro del color cian brillante */
-.total-amount, 
-.text-cyan, 
-.cart-section h1,
-.checkout-total {
-    color: #1a237e !important; /* El Azul JascStore */
-}
-
-/* El botón debe verse así para ser profesional */
-.btn-pagar, .btn-confirmar-pago {
-    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%) !important;
-    border: none !important;
-    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3) !important;
-}
-
-.btn-pagar:hover {
-    background-color: #3949ab !important;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
-}
-
-/* Estilo para "VACIAR CARRITO" en rojo según tu imagen */
-.btn-vaciar {
-    color: #ff4d4d !important;
-    font-weight: bold;
-    text-transform: uppercase;
 }

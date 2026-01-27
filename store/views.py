@@ -414,16 +414,18 @@ def vaciar_carrito(request):
 # ============================================================
 # 🛒 Vista: modal de carrito (contenido dinámico)
 # ============================================================
+from django.shortcuts import render, get_object_or_404
+from .models import Product
+
 def carrito_modal(request, product_id):
-    """
-    Devuelve el fragmento HTML para el modal de carrito.
-    Se usa en store.js con fetch() al hacer clic en el ícono 🛒.
-    """
+    # Usamos get_object_or_404 para que si el ID no existe, no explote el servidor
     producto = get_object_or_404(Product, id=product_id)
+    
+    # Enviamos el producto tal cual. 
+    # La lógica de tallas la manejaremos en el HTML para no romper el Python.
     return render(request, 'store/vista_carrito.html', {
         'producto': producto
     })
-
 
 
 
