@@ -1,22 +1,42 @@
 {% load static %}
 <div class="carrito-galeria p-3" id="contenidoProducto">
-    <div class="imagen-principal text-center mb-3" id="visor-principal">
-        <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
-             class="img-fluid rounded shadow-sm" id="imagen-principal-modal" style="max-height: 250px; width: 100%; object-fit: contain;">
+    <div class="imagen-principal text-center mb-3">
+        <div class="marco-premium shadow-sm rounded bg-white">
+            <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'imgs/default-product.jpg' %}{% endif %}"
+                 class="img-fluid" id="imagen-principal-modal" 
+                 style="max-height: 250px; width: 100%; object-fit: contain; padding: 10px;">
+        </div>
     </div>
 
     <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
         {% if producto.image %}
-        <div class="miniatura activa activa-azul" data-src="{{ producto.image.url }}" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #0f087e; border-radius: 4px; overflow: hidden;">
+        <div class="miniatura activa activa-azul" data-src="{{ producto.image.url }}" 
+             style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #0f087e; border-radius: 6px; overflow: hidden;">
             <img src="{{ producto.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         {% endif %}
         {% for img in producto.images.all %}
-        <div class="miniatura" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado }}" style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; overflow: hidden;">
+        <div class="miniatura" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado }}" 
+             style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd; border-radius: 6px; overflow: hidden;">
             <img src="{{ img.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         {% endfor %}
     </div>
+
+<div class="text-center mb-3">
+    <h6 class="fw-bold mb-1" style="color: #333; font-size: 1.1rem;">{{ producto.nombre }}</h6>
+    
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <span class="precio-final h3 fw-bold" style="color: var(--azul-hermoso, #0f087e);">
+            ${{ producto.precio }}
+        </span>
+        {% if producto.precio_original %}
+        <span class="text-muted text-decoration-line-through small">
+            ${{ producto.precio_original }}
+        </span>
+        {% endif %}
+    </div>
+</div>
 
     <form id="form-add-cart-modal"> 
         {% csrf_token %}
@@ -27,7 +47,7 @@
 
         {% if producto.talla_list %}
         <div class="mb-3">
-            <label class="fw-bold small d-block mb-1">Talla:</label>
+            <label class="fw-bold small d-block mb-1 text-muted">TALLA:</label>
             <div class="d-flex gap-2 flex-wrap" id="modal-tallas">
                 {% for talla in producto.talla_list %}
                 <button type="button" class="option-chip size-chip btn btn-sm btn-outline-dark" data-value="{{ talla }}">{{ talla }}</button>
@@ -38,7 +58,7 @@
 
         {% if producto.color_list %}
         <div class="mb-3">
-            <label class="fw-bold small d-block mb-1">Color:</label>
+            <label class="fw-bold small d-block mb-1 text-muted">COLOR:</label>
             <div class="d-flex gap-2 flex-wrap" id="modal-colores">
                 {% for color in producto.color_list %}
                 <button type="button" class="option-chip color-chip btn btn-sm btn-outline-dark" data-value="{{ color }}">{{ color }}</button>
@@ -48,30 +68,43 @@
         {% endif %}
 
         <button type="button" id="btnAgregarModal" data-id="{{ producto.id }}"
-                class="btn w-100 py-2 fw-bold text-white" disabled 
-                style="background-color: #0f087e; border: none; opacity: 0.5;">
-            🛒 Agregar al carrito
+                class="btn w-100 py-3 fw-bold text-white shadow-sm" disabled 
+                style="background-color: #0f087e; border: none; border-radius: 50px; opacity: 0.5;">
+            CONFIRMAR SELECCIÓN
         </button>
     </form>
 </div>
 
+<style>
+    .option-chip.active {
+        background-color: #0f087e !important;
+        color: white !important;
+        border-color: #0f087e !important;
+    }
+    .marco-premium { border: 1px solid #eee; }
+</style>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     const contenedor = document.getElementById('contenidoProducto');
+    if(!contenedor) return;
+
     const btnAgregar = contenedor.querySelector('#btnAgregarModal');
     const inputTalla = contenedor.querySelector('#selected_size_hidden');
     const inputColor = contenedor.querySelector('#selected_color_hidden');
     const inputImagen = contenedor.querySelector('#imagen_seleccionada_url');
     const imgPrincipal = contenedor.querySelector('#imagen-principal-modal');
 
-    // 1. Cambio de Imagen al tocar Miniaturas
+    // 1. Cambio de Imagen
     contenedor.querySelectorAll('.miniatura').forEach(thumb => {
         thumb.addEventListener('click', function() {
             const nuevaSrc = this.getAttribute('data-src');
             imgPrincipal.src = nuevaSrc;
-            inputImagen.value = nuevaSrc; // Asegura que la foto viaje al carrito
+            inputImagen.value = nuevaSrc;
             
-            // Si la miniatura tiene color, marcarlo automáticamente
+            contenedor.querySelectorAll('.miniatura').forEach(m => m.style.borderColor = '#ddd');
+            this.style.borderColor = '#0f087e';
+
             const colorAsociado = this.getAttribute('data-color');
             if (colorAsociado && colorAsociado !== 'None') {
                 seleccionarChip(contenedor.querySelectorAll('.color-chip'), colorAsociado, inputColor);
@@ -79,29 +112,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 2. Selección de Talla
+    // 2. Selección de Talla y Color
     contenedor.querySelectorAll('.size-chip').forEach(btn => {
-        btn.addEventListener('click', function() {
-            seleccionarChip(contenedor.querySelectorAll('.size-chip'), this.getAttribute('data-value'), inputTalla);
-        });
+        btn.addEventListener('click', () => seleccionarChip(contenedor.querySelectorAll('.size-chip'), btn.getAttribute('data-value'), inputTalla));
     });
 
-    // 3. Selección de Color
     contenedor.querySelectorAll('.color-chip').forEach(btn => {
-        btn.addEventListener('click', function() {
-            seleccionarChip(contenedor.querySelectorAll('.color-chip'), this.getAttribute('data-value'), inputColor);
-        });
+        btn.addEventListener('click', () => seleccionarChip(contenedor.querySelectorAll('.color-chip'), btn.getAttribute('data-value'), inputColor));
     });
 
     function seleccionarChip(chips, valor, inputOculto) {
-        chips.forEach(c => {
-            c.classList.remove('btn-dark', 'active');
-            c.classList.add('btn-outline-dark');
-        });
+        chips.forEach(c => c.classList.remove('active', 'btn-dark'));
         const seleccionado = Array.from(chips).find(c => c.getAttribute('data-value') === valor);
         if (seleccionado) {
-            seleccionado.classList.remove('btn-outline-dark');
-            seleccionado.classList.add('btn-dark', 'active');
+            seleccionado.classList.add('active');
             inputOculto.value = valor;
         }
         validarFormulario();
@@ -120,5 +144,5 @@ document.addEventListener('DOMContentLoaded', function() {
             btnAgregar.style.opacity = "1";
         }
     }
-});
+})();
 </script>

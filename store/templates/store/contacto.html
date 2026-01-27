@@ -1,26 +1,73 @@
 {% extends 'base.html' %}
+
 {% block title %}Contacto - JascStore{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center mb-4">Contáctanos</h2>
-  <p class="text-center">¿Tienes preguntas o sugerencias? Escríbenos y te responderemos pronto.</p>
+<style>
+  :root {
+    --azul-premium: #1a237e; /* Tu azul principal */
+    --azul-claro: #3949ab;
+  }
 
-  <form method="post" class="mt-4 mx-auto" style="max-width: 600px;">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="nombre" class="form-label">Nombre</label>
-      <input type="text" class="form-control" id="nombre" name="nombre" required>
+  .titulo-contacto {
+    color: var(--azul-premium);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+  }
+
+  .form-label {
+    color: var(--azul-premium) !important; /* Aquí eliminamos el verde neón */
+    font-weight: 600;
+  }
+
+  .form-control {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 0.8rem;
+  }
+
+  .form-control:focus {
+    border-color: var(--azul-claro);
+    box-shadow: 0 0 0 0.25rem rgba(26, 35, 126, 0.1);
+  }
+
+  .btn-enviar {
+    background: linear-gradient(135deg, var(--azul-premium) 0%, var(--azul-claro) 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 700;
+  }
+</style>
+
+<div class="container mt-5 mb-5">
+  <div class="text-center mb-5">
+    <h2 class="titulo-contacto">Contáctanos</h2>
+    <p class="text-muted">Escríbenos y te responderemos lo antes posible.</p>
+  </div>
+
+  <div class="card border-0 shadow-lg mx-auto" style="max-width: 600px; border-radius: 20px;">
+    <div class="card-body p-4 p-md-5">
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+          <label for="nombre" class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Tu nombre" required>
+        </div>
+        <div class="mb-4">
+          <label for="email" class="form-label">Correo electrónico</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="correo@ejemplo.com" required>
+        </div>
+        <div class="mb-4">
+          <label for="mensaje" class="form-label">Mensaje</label>
+          <textarea class="form-control" id="mensaje" name="mensaje" rows="4" placeholder="¿En qué podemos ayudarte?" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-enviar w-100">
+          Enviar mensaje <i class="bi bi-send ms-2"></i>
+        </button>
+      </form>
     </div>
-    <div class="mb-3">
-      <label for="email" class="form-label">Correo electrónico</label>
-      <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-      <label for="mensaje" class="form-label">Mensaje</label>
-      <textarea class="form-control" id="mensaje" name="mensaje" rows="4" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary w-100">Enviar mensaje</button>
-  </form>
+  </div>
 </div>
 {% endblock %}

@@ -1,7 +1,18 @@
 /* =========================================================
    🛍️ JASC ECOMMERCE – VISTA RÁPIDA & VISTA DIRECTA
-   Estilo Jasc · CSS FINAL PROFESIONAL
+   Estilo Jasc · CSS FINAL PROFESIONAL INTEGRADO
 ========================================================= */
+
+/* ✅ VARIABLES DE MARCA JASCSTORE - UNIFICADAS */
+:root {
+    --azul-hermoso: #1a237e; 
+    --azul-acento: #3949ab;
+    --azul-claro: #f5f6fa;
+    --azul-claro-bg: #e8eaf6;
+    --gris-suave: #f8f9fa;
+    --blanco: #ffffff;
+    --gris-borde: #ddd;
+}
 
 /* ================= RESET LOCAL ================= */
 .vista-rapida-contenido,
@@ -52,18 +63,18 @@
   object-fit: cover;
   border-radius: 8px;
   cursor: pointer;
-  border: 1px solid #ddd;
+  border: 1px solid var(--gris-borde);
   transition: all .2s ease;
-  background: #fff;
+  background: var(--blanco);
 }
 
 .miniatura:hover {
   transform: scale(1.05);
-  border-color: #0f087e;
+  border-color: var(--azul-hermoso);
 }
 
 .miniatura.activa {
-  border: 2px solid #0f087e;
+  border: 2px solid var(--azul-hermoso) !important;
 }
 
 /* IMAGEN PRINCIPAL */
@@ -112,7 +123,7 @@
 .precio-final {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #0f087e;
+  color: var(--azul-hermoso);
 }
 
 .precio-original {
@@ -122,7 +133,7 @@
 }
 
 .badge-descuento {
-  background: #0f087e;
+  background: var(--azul-hermoso);
   color: #fff;
   padding: 2px 6px;
   font-size: 0.7rem;
@@ -157,56 +168,58 @@
   cursor: pointer;
   font-size: 0.75rem;
   transition: all .2s ease;
-  background: #fff;
+  background: var(--blanco);
 }
 
 .option-chip:hover {
-  border-color: #0f087e;
-  color: #0f087e;
+  border-color: var(--azul-hermoso);
+  color: var(--azul-hermoso);
 }
 
 .option-chip.seleccionado {
-  border-color: #0f087e;
-  background: #fff1eb;
-  color: #0f087e;
+  border-color: var(--azul-hermoso) !important;
+  background: var(--azul-claro-bg) !important;
+  color: var(--azul-hermoso) !important;
   font-weight: 600;
 }
 
 /* =================================================
-   🛒 BOTONES DE ACCIÓN
+   🛒 BOTONES DE ACCIÓN (ESTILO PREMIUM JASC)
 ================================================= */
-.btn-agregar {
+.btn-agregar, .btn-agregar-modal {
   width: 100%;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 50px; /* Redondeado tipo Temu */
   border: none;
-  background: linear-gradient(to right, #0f087e, #ff8000);
-  color: #fff;
+  background: var(--azul-hermoso) !important;
+  color: #fff !important;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all .25s ease;
   margin-top: 12px;
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.2);
 }
 
-.btn-agregar:hover {
+.btn-agregar:hover, .btn-agregar-modal:hover {
   transform: scale(1.03);
-  background: linear-gradient(to right, #e84300, #ff6a00);
+  background: var(--azul-acento) !important;
 }
 
 .btn-agregar:disabled {
-  background: #ddd;
+  background: #ddd !important;
   cursor: not-allowed;
-  color: #999;
+  color: #999 !important;
+  box-shadow: none;
 }
 
 /* ⚡ BOTÓN COMPRAR AHORA */
 .btn-comprar {
   width: 100%;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 50px;
   border: none;
-  background: #ff6a00;
+  background: var(--azul-acento);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
@@ -215,51 +228,50 @@
   margin-top: 16px;
 }
 
-.btn-comprar:hover {
-  transform: scale(1.04);
-  background: #e65c00;
-}
-
 /* =================================================
-   🎭 MODAL PANEL & OVERLAY
+   🎭 MODAL PANEL & OVERLAY (MODO SCROLL TEMU)
 ================================================= */
-.vista-rapida-overlay {
+
+/* El fondo ahora permite ver la tienda y hacer scroll */
+.vista-rapida-overlay, .carrito-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(2px);
+  background: rgba(255, 255, 255, 0.4); /* Transparencia clara */
+  backdrop-filter: blur(1px);
   z-index: 999;
   opacity: 0;
   transition: opacity .3s ease;
+  pointer-events: none; /* ESTO PERMITE EL SCROLL DE FONDO */
 }
 
-.vista-rapida-overlay.visible {
+.vista-rapida-overlay.visible, .carrito-overlay.visible {
   opacity: 1;
 }
 
-.vista-rapida-panel {
+/* Panel Central Estilo Temu */
+.vista-rapida-panel, #carritoModal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
+  background: var(--blanco);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
   z-index: 1000;
-  max-width: 980px;
+  max-width: 900px;
   width: 95%;
   padding: 20px;
   opacity: 0;
   transition: opacity .3s ease, transform .3s ease;
 }
 
-.vista-rapida-panel.visible {
+.vista-rapida-panel.visible, #carritoModal:not(.hidden) {
   opacity: 1;
   animation: zoomFadeIn 0.3s ease-out;
 }
 
 /* Botón cerrar */
-.cerrar-panel {
+.cerrar-panel, .cerrar-carrito {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -271,27 +283,12 @@
   transition: color .2s ease;
 }
 
-.cerrar-panel:hover {
-  color: #0f087e;
-}
- 
-/* =================================================
-   ✅ TRANSICIONES SUAVES 
-================================================= */
-#vistaRapidaPanel {
-  transition: opacity 0.3s ease;
-}
-#vistaRapidaPanel.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-#vistaRapidaPanel.visible {
-  opacity: 1;
-  pointer-events: auto;
+.cerrar-panel:hover, .cerrar-carrito:hover {
+  color: var(--azul-hermoso);
 }
 
 /* =================================================
-   📱 RESPONSIVE
+   📱 RESPONSIVE (ADAPTACIÓN MÓVIL)
 ================================================= */
 @media (max-width: 768px) {
   .vista-rapida-contenido {
@@ -312,10 +309,13 @@
     width: 100%;
   }
 
-  .vista-rapida-panel {
+  .vista-rapida-panel, #carritoModal {
     width: 100%;
-    height: 100%;
-    border-radius: 0;
+    height: auto;
+    bottom: 0;
+    top: auto;
+    transform: translate(-50%, 0);
+    border-radius: 20px 20px 0 0;
     max-width: 100%;
   }
 }
@@ -332,53 +332,283 @@
   }
 }
 
+/* (Aquí continúa el resto de tus líneas de estilos específicos de galería y miniaturas de carrito que ya tenías) */
 
-/* ==================================================
-   🛒 Estilos del modal de carrito
-================================================== */
+/* =========================================================
+   🛒 ESTILOS DEL MODAL CARRITO (CONTENIDO INTERNO)
+   ========================================================= */
 .carrito-galeria {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .carrito-galeria .imagen-principal img {
-  max-width: 300px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+    max-width: 100%;
+    height: auto;
+    max-height: 300px;
+    border: 1px solid var(--gris-borde);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    object-fit: contain;
 }
 
 .miniaturas-abajo {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 5px;
 }
 
 .miniaturas-abajo .miniatura {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+    width: 65px;
+    height: 65px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    background: #fff;
 }
 
 .miniaturas-abajo .miniatura:hover {
-  transform: scale(1.1);
-  border-color: #27ae60;
+    transform: translateY(-3px);
+    border-color: var(--azul-acento);
 }
 
-/* Cambiamos el estilo del botón dentro del modal para que sea Azul Hermoso */
-.btn-agregar-modal {
-    background: linear-gradient(45deg, var(--azul-hermoso), var(--azul-brillante)) !important;
+.miniaturas-abajo .miniatura.activa {
+    border-color: var(--azul-hermoso) !important;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2);
+}
+
+/* =========================================================
+   ✨ COMPONENTES PRO Y BOTONES
+   ========================================================= */
+
+/* Botón que brilla en Azul Hermoso */
+.btn-agregar-modal, 
+#carritoModal .btn-confirmar-seleccion {
+    background: linear-gradient(135deg, var(--azul-hermoso), var(--azul-brillante)) !important;
     border: none !important;
-    border-radius: 50px !important; /* Más redondeado y moderno */
-    font-weight: bold;
-    color: white;
-    transition: 0.3s;
+    border-radius: 50px !important;
+    font-weight: 700;
+    color: var(--blanco) !important;
+    box-shadow: 0 6px 18px rgba(26, 35, 126, 0.3);
+    padding: 14px 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: block;
+}
+
+.btn-agregar-modal:hover, 
+#carritoModal .btn-confirmar-seleccion:hover {
+    box-shadow: 0 8px 22px rgba(26, 35, 126, 0.45);
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* =========================================================
+   🚀 ESTRUCTURA DE MODALES (VISTA RÁPIDA Y CARRITO)
+   ========================================================= */
+/* =========================================================
+   🛍️ JASC ECOMMERCE – ESTRUCTURA DE MODALES INTEGRADA
+========================================================= */
+
+/* 1. TRANSICIONES Y ESTADOS OCULTOS (Globales) */
+#vistaRapidaPanel, 
+#carritoModal {
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: #ffffff;
+    z-index: 3000; /* Asegura que estén al frente */
+}
+
+/* Estado Oculto General */
+#vistaRapidaPanel.hidden, 
+#carritoModal.hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, -40%) scale(0.9);
+}
+
+/* 2. OVERLAYS (Fondo oscurecido) */
+.vista-rapida-overlay, .carrito-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+    z-index: 2500;
+    display: none;
+}
+
+.vista-rapida-overlay.visible, .carrito-overlay.visible {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* 3. DISEÑO ESPECÍFICO CARRITO MODAL (PC) */
+#carritoModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    max-width: 480px;
+    max-height: 85vh;
+    border-radius: 28px;
+    box-shadow: 0 25px 70px rgba(15, 8, 126, 0.3);
+    overflow-y: auto;
+    padding: 0;
+    border: 1px solid rgba(26, 35, 126, 0.1);
+}
+
+/* 4. CONTENIDO INTERNO CARRITO */
+#contenidoCarrito {
+    padding: 30px 25px;
+}
+
+.carrito-galeria {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.carrito-galeria .imagen-principal img {
+    max-width: 100%;
+    height: auto;
+    max-height: 300px;
+    border: 1px solid var(--gris-borde);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    object-fit: contain;
+}
+
+.miniaturas-abajo {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 5px;
+}
+
+.miniaturas-abajo .miniatura {
+    width: 65px;
+    height: 65px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.miniaturas-abajo .miniatura.activa {
+    border-color: var(--azul-hermoso) !important;
+    transform: scale(1.1);
+}
+
+/* 5. BOTONES Y COMPONENTES PRO */
+.btn-agregar-modal, 
+#carritoModal .btn-confirmar-seleccion {
+    background: linear-gradient(135deg, var(--azul-hermoso), var(--azul-acento)) !important;
+    border: none !important;
+    border-radius: 50px !important;
+    font-weight: 700;
+    color: #fff !important;
+    box-shadow: 0 6px 18px rgba(26, 35, 126, 0.3);
+    padding: 14px 28px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    width: 100%;
+    cursor: pointer;
 }
 
 .btn-agregar-modal:hover {
-    box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
     transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(26, 35, 126, 0.45);
+}
+
+/* 6. RESPONSIVO MÓVIL (ELIMINACIÓN DE SCROLL Y FIX CARRITO) */
+@media (max-width: 768px) {
+    /* Ajuste de Paneles (Vista Rápida y Carrito) */
+    .vista-rapida-panel, #carritoModal {
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        transform: none !important; /* Eliminamos el -50% para que no se desplace a la derecha */
+        border-radius: 30px 30px 0 0 !important;
+        padding: 15px !important;
+    }
+
+    /* Fix para estado oculto en móvil (desliza hacia abajo) */
+    #vistaRapidaPanel.hidden, #carritoModal.hidden {
+        transform: translateY(100%) !important;
+        opacity: 1 !important; /* Dejamos opacidad para ver el movimiento */
+    }
+
+    /* Reducción de imagen para evitar el scroll */
+    .imagen-principal, .carrito-galeria .imagen-principal img {
+        width: 100% !important;
+        max-height: 220px !important; /* Tamaño reducido para que quepan botones */
+        margin: 0 auto;
+    }
+
+    /* Miniaturas en fila para ahorrar espacio */
+    .miniaturas, .miniaturas-abajo {
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        padding: 5px 0 !important;
+        width: 100% !important;
+    }
+
+    .miniatura {
+        width: 55px !important;
+        height: 55px !important;
+        flex-shrink: 0;
+    }
+
+    /* Estructura de contenido */
+    .vista-rapida-contenido {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .galeria-producto {
+        flex-direction: column !important; /* Imagen arriba, miniaturas abajo */
+    }
+}
+
+/* SCROLLBAR JASCSTORE */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--azul-hermoso); border-radius: 10px; }
+
+/* Fuerza el estilo JascStore en los chips cargados por AJAX */
+.option-chip {
+    border: 1px solid #0f087e !important;
+    color: #0f087e !important;
+    background: transparent;
+    transition: all 0.3s ease;
+    border-radius: 20px;
+    padding: 5px 15px;
+}
+
+.option-chip.active, .option-chip.seleccionado {
+    background-color: #0f087e !important;
+    color: white !important;
+}
+
+#btnAgregarModal:disabled {
+    background-color: #ccc !important;
+    opacity: 0.6;
+    cursor: not-allowed;
 }

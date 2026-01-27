@@ -158,7 +158,7 @@ function eliminarItemCarrito(itemKey) {
 
 /* =====================================================
     VISTA RÁPIDA (PANEL LATERAL / MODAL) - JascStore
-    Mantiene compatibilidad total con Home y Tienda
+    CORRECCIÓN: Fuerza la apertura tras cerrar el carrito
 ===================================================== */
 function abrirVistaRapida(id) {
     const panel = document.getElementById("vistaRapidaPanel");
@@ -166,11 +166,21 @@ function abrirVistaRapida(id) {
     
     if (!panel || !cont || !id) return;
 
-    // Abrimos el panel y bloqueamos el scroll del fondo
-    panel.classList.replace("hidden", "visible");
-    document.body.style.overflow = "hidden";
+    // --- SOLUCIÓN AL CONFLICTO CON EL CARRITO ---
+    // 1. Forzamos que el panel sea visible (por si el carrito lo dejó oculto)
+    panel.style.display = "block"; 
+    panel.classList.remove("hidden");
+    panel.classList.add("visible");
 
-    // Spinner de carga con el Azul Hermoso de JascStore
+    // 2. Limpiamos cualquier rastro previo y reseteamos el scroll
+    cont.innerHTML = "";
+    panel.scrollTop = 0;
+
+    // 3. Aseguramos que el body permita ver el modal (Azul Hermoso JascStore)
+    document.body.style.overflow = "hidden";
+    // --------------------------------------------
+
+    // Spinner de carga
     cont.innerHTML = `
         <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px;">
             <div class="spinner-border" style="color: #1a237e; width: 3rem; height: 3rem;" role="status">
@@ -178,7 +188,6 @@ function abrirVistaRapida(id) {
             </div>
         </div>`;
 
-    // Fetch robusto para asegurar que cargue desde Home o Tienda
     fetch(`/store/vista-rapida/${id}/`)
         .then(res => {
             if (!res.ok) throw new Error("Producto no encontrado");
@@ -186,7 +195,6 @@ function abrirVistaRapida(id) {
         })
         .then(html => {
             cont.innerHTML = html;
-            // Pequeño retardo para asegurar que el DOM esté listo antes de inicializar botones
             setTimeout(() => {
                 if (typeof window.initVistaRapida === "function") {
                     window.initVistaRapida(cont);
@@ -195,31 +203,32 @@ function abrirVistaRapida(id) {
         })
         .catch(err => {
             console.error("Error JascStore:", err);
-            cont.innerHTML = `
-                <div class="text-center p-5">
-                    <i class="bi bi-exclamation-circle text-danger display-4"></i>
-                    <p class='mt-3 text-muted'>Lo sentimos, no pudimos cargar el producto.</p>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="cerrarVistaRapida()">Cerrar</button>
-                </div>`;
+            cont.innerHTML = `<div class="text-center p-5"><p>Error al cargar.</p></div>`;
         });
 }
 
 /* =====================================================
     CERRAR VISTA RÁPIDA (PANEL LATERAL / MODAL)
-    Restaura el control del sitio al usuario
+    Restaura el control del sitio al usuario - JascStore
 ===================================================== */
 function cerrarVistaRapida() {
     const panel = document.getElementById("vistaRapidaPanel");
     const cont = document.getElementById("contenidoProducto");
 
     if (panel) {
-        // Cambiamos el estado visual del panel a oculto
+        // 1. Cambiamos el estado visual del panel a oculto
         panel.classList.replace("visible", "hidden");
         
-        // Devolvemos el scroll al cuerpo de la página (Home o Tienda)
-        document.body.style.overflow = "";
+        // 2. REFUERZO DE LIMPIEZA: Resetear el scroll interno del panel
+        // Esto evita que el próximo producto aparezca "cortado" o desde abajo
+        panel.scrollTop = 0;
 
-        // Limpiamos el contenido para que la siguiente apertura sea limpia
+        // 3. Devolvemos el scroll al cuerpo de la página (Home o Tienda)
+        // Usamos "auto" para asegurar que el navegador recalcule el scrollbar
+        document.body.style.overflow = "auto";
+        document.documentElement.style.overflow = "auto"; 
+
+        // 4. Limpiamos el contenido para que la siguiente apertura sea limpia
         if (cont) {
             cont.innerHTML = "";
         }
@@ -338,30 +347,46 @@ window.initVistaRapida = function(cont) {
 
 /* =====================================================
     CONTROLADOR MAESTRO DE AGREGAR AL CARRITO (AJAX)
-    Estado: Blindaje Total - Liberación de Checkout
+    Estado: Blindaje Total - Integración JascStore
 ===================================================== */
 document.addEventListener("click", (e) => {
     // 1. VALIDACIÓN DE CHECKOUT (PRIORIDAD 0)
-    // Buscamos si el clic fue en el botón de finalizar o cualquier enlace que contenga 'checkout'
     const isCheckout = e.target.closest(".btn-pagar") || 
                        e.target.closest("#btn-finalizar-checkout") || 
                        (e.target.tagName === 'A' && e.target.href.includes('checkout'));
 
-    if (isCheckout) {
-        console.log("🚀 Redirigiendo a Checkout... Bypass AJAX activo.");
-        return; // Detenemos el script aquí para que el navegador cargue la página
-    }
+    if (isCheckout) return; 
 
-    // 2. BUSCAR BOTÓN DE AGREGAR
-    const btn = e.target.closest("#agregarDesdeModal") || 
+    // 2. BUSCAR BOTÓN DE AGREGAR O APERTURA DE MODAL
+    // Capturamos el botón azul de la tarjeta (.jasc-cart) y los botones internos de los modales
+    const btn = e.target.closest(".jasc-cart") || 
                 e.target.closest("#btnAgregarModal") || 
-                e.target.closest("#btnAgregarFinal") ||
+                e.target.closest("#btnConfirmarCarrito") || 
                 e.target.closest(".btn-agregar");
 
-    // Si no es un botón de compra, ignorar
-    if (!btn || btn.disabled) return;
+    if (!btn) return;
 
-    // 3. PROCESO AJAX (Solo para agregar productos)
+    // 🟢 LÓGICA DE APERTURA: Si el botón es de la tarjeta y tiene variantes
+    const tieneVariantes = btn.getAttribute("data-has-variants") === "true";
+    const esBotonDeTarjeta = !btn.closest("form"); // Si no está dentro de un form, es el de la tarjeta
+
+    if (esBotonDeTarjeta && tieneVariantes) {
+        e.preventDefault();
+        const productId = btn.dataset.id;
+        console.log("📦 Detectadas variantes. Abriendo selección para ID:", productId);
+        
+        // Llamamos a la función que carga el modal de vista_carrito.html
+        if (typeof abrirCarritoModal === "function") {
+            abrirCarritoModal(productId);
+        } else {
+            console.error("❌ Error: La función abrirCarritoModal no está definida.");
+        }
+        return; // IMPORTANTE: Detenemos aquí para que NO intente hacer el AJAX sin datos
+    }
+
+    // 3. PROCESO AJAX (Solo cuando ya estamos dentro del modal y los datos están listos)
+    if (btn.disabled) return;
+    
     e.preventDefault();
     
     const form = btn.closest("form");
@@ -371,12 +396,16 @@ document.addEventListener("click", (e) => {
     const formData = new FormData(form);
     const textoOriginal = btn.innerHTML;
 
+    // Feedback visual en tu Azul Hermoso
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
 
     fetch(`/store/agregar/${productId}/`, {
         method: "POST",
-        headers: { "X-CSRFToken": getCSRFToken(), "X-Requested-With": "XMLHttpRequest" },
+        headers: { 
+            "X-CSRFToken": getCSRFToken(), 
+            "X-Requested-With": "XMLHttpRequest" 
+        },
         body: formData
     })
     .then(res => res.json())
@@ -384,13 +413,18 @@ document.addEventListener("click", (e) => {
         if (data.status === 'ok') {
             mostrarToast("¡Añadido! ✅");
             document.querySelectorAll(".cart-count").forEach(b => b.innerText = data.cart_count);
-            if (typeof renderizarSideCart === "function") renderizarSideCart(data.carrito_completo, data.total_carrito);
-            cerrarVistaRapida();
-            cerrarCarritoModal();
-            abrirSideCart();
+            
+            if (typeof renderizarSideCart === "function") {
+                renderizarSideCart(data.carrito_completo, data.total_carrito);
+            }
+            
+            // Cerramos lo que sea que esté abierto
+            if (typeof cerrarVistaRapida === "function") cerrarVistaRapida();
+            if (typeof cerrarCarritoModal === "function") cerrarCarritoModal();
+            if (typeof abrirSideCart === "function") abrirSideCart();
         }
     })
-    .catch(err => console.error("Error:", err))
+    .catch(err => console.error("Error AJAX:", err))
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = textoOriginal;
@@ -413,33 +447,79 @@ function initEventosGlobales() {
     });
 }
 
+// Busca esta parte en tu store.js y reemplázala por esta versión corregida:
 function abrirCarritoModal(id) {
     const modal = document.getElementById("carritoModal");
     const overlay = document.querySelector(".carrito-overlay");
     const cont = document.getElementById("contenidoCarrito");
+    
     if (!modal || !id) return;
 
     modal.classList.remove("hidden");
-    overlay?.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
-    cont.innerHTML = "<div class='p-4 text-center'><div class='spinner-border'></div></div>";
+    modal.style.display = "block";
+    if (overlay) overlay.style.display = "block";
+
+    cont.innerHTML = `
+        <div class='p-5 text-center'>
+            <div class='spinner-border' style='color: #0f087e; width: 3rem; height: 3rem;'></div>
+            <p class='mt-3 fw-bold' style='color: #0f087e;'>Cargando opciones...</p>
+        </div>`;
 
     fetch(`/store/carrito-modal/${id}/`)
-        .then(res => res.text())
-        .then(html => { 
-            cont.innerHTML = html; 
-            setTimeout(() => window.initVistaRapida(cont), 50);
+        .then(res => {
+            if (!res.ok) throw new Error("404/500 Server Error");
+            return res.text();
         })
-        .catch(() => { cont.innerHTML = "<p class='p-3'>Error al cargar opciones.</p>"; });
+        .then(html => { 
+            if (cont) {
+                cont.innerHTML = html; 
+                // 🔥 LA CLAVE: Volver a ejecutar la lógica de sincronización
+                // para que los nuevos botones de talla/color funcionen.
+                setTimeout(() => {
+                    initVistaRapida(cont); 
+                }, 50);
+            }
+        })
+        .catch(err => { 
+            console.error("🔴 Error:", err);
+            cont.innerHTML = "<p class='p-4 text-center text-danger'>Error al cargar opciones.</p>"; 
+        });
 }
 
+
+// 4. Función de cierre obligatoria - Actualizada JascStore
 function cerrarCarritoModal() {
     const modal = document.getElementById("carritoModal");
     const overlay = document.querySelector(".carrito-overlay");
+    const sideOverlay = document.querySelector(".side-cart-overlay"); // Capa extra detectada en inspector
+
+    // 1. Ocultamos el modal principal
     if (modal) {
         modal.classList.add("hidden");
-        overlay?.classList.add("hidden");
-        document.body.style.overflow = "";
+        modal.style.display = "none";
+    }
+
+    // 2. Ocultamos TODAS las capas oscuras (overlays)
+    // Esto es vital para que el "ojo" pueda recibir el clic
+    if (overlay) {
+        overlay.classList.add("hidden");
+        overlay.style.display = "none";
+    }
+    
+    if (sideOverlay) {
+        sideOverlay.style.display = "none";
+    }
+
+    // 3. RESTAURACIÓN CRÍTICA DEL SCROLL
+    // Si no haces esto, al abrir el ojo la pantalla estará bloqueada o desplazada
+    document.body.style.overflow = "auto";
+    document.body.style.paddingRight = "0px"; // Quita el salto que a veces deja el scroll de Bootstrap
+    document.documentElement.style.overflow = "auto";
+
+    // 4. Limpieza de rastro visual (Evita el espacio en blanco del pantallazo 3)
+    const contCarrito = document.getElementById("contenidoCarrito");
+    if (contCarrito) {
+        contCarrito.innerHTML = ""; 
     }
 }
 
@@ -513,3 +593,26 @@ function obtenerCarritoActualizado() {
     })
     .catch(err => console.error("Error al refrescar el carrito:", err));
 }
+
+// Función para limpiar TODO antes de abrir un nuevo modal
+function limpiarModales() {
+    // Forzar que el scroll del cuerpo regrese si quedó bloqueado
+    document.body.style.overflow = 'auto';
+    
+    // Si usas overlays oscuros manuales, ocúltalos todos
+    const overlays = document.querySelectorAll('.vista-rapida-overlay, .side-cart-overlay');
+    overlays.forEach(el => el.style.display = 'none');
+
+    // Limpiar el contenido interno para que no se vea lo anterior (Pantallazo 3)
+    const contenido = document.getElementById('contenidoProducto');
+    if(contenido) contenido.innerHTML = ''; 
+}
+
+// Llama a limpiarModales() justo antes de ejecutar la lógica de abrir el "Ojo"
+document.querySelectorAll('.jasc-quick-view').forEach(btn => {
+    btn.addEventListener('click', () => {
+        limpiarModales();
+        // ... aquí sigue tu código para abrir la vista rápida ...
+    });
+});
+

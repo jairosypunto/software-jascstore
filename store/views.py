@@ -424,6 +424,9 @@ def carrito_modal(request, product_id):
         'producto': producto
     })
 
+
+
+
 # ============================================================
 # 🏬 Vista: tienda principal (store.html)
 # ============================================================

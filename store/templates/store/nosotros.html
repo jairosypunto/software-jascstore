@@ -4,56 +4,141 @@
 {% block title %}Nosotros - JascStore{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'store/css/nosotros.css' %}?v={{ STATIC_VERSION }}">
+<style>
+    :root {
+        --azul-hermoso: #1a237e;
+        --azul-brillante: #3949ab;
+    }
+
+    /* Títulos con identidad de marca */
+    .nosotros-section h1, .nosotros-section h3, .nosotros-section h5 {
+        color: var(--azul-hermoso) !important;
+    }
+
+    .display-5 {
+        font-weight: 800 !important;
+        letter-spacing: -1px;
+    }
+
+    /* Imagen de equipo con borde de marca */
+    .img-premium {
+        border-radius: 25px;
+        box-shadow: 0 20px 40px rgba(26, 35, 126, 0.1);
+        border: 1px solid rgba(26, 35, 126, 0.1);
+    }
+
+    /* Tarjetas de Misión, Visión y Valores */
+    .card-nosotros {
+        background: white;
+        padding: 40px 25px;
+        border-radius: 20px;
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 1px solid #eee;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+    }
+
+    .card-nosotros:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(26, 35, 126, 0.12);
+        border-color: var(--azul-hermoso);
+    }
+
+    .card-nosotros img {
+        transition: transform 0.3s ease;
+        margin-bottom: 20px;
+    }
+
+    .card-nosotros:hover img {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Botón personalizado sin el celeste de Bootstrap */
+    .btn-jasc-outline {
+        color: var(--azul-hermoso);
+        border: 2px solid var(--azul-hermoso);
+        padding: 12px 35px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+    }
+
+    .btn-jasc-outline:hover {
+        background-color: var(--azul-hermoso);
+        color: white;
+        box-shadow: 0 8px 20px rgba(26, 35, 126, 0.2);
+    }
+
+    .hr-azul {
+        width: 60px;
+        height: 4px;
+        background: var(--azul-brillante);
+        margin: 15px auto;
+        border-radius: 2px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<section class="nosotros-section py-5">
+<section class="nosotros-section py-5 bg-light">
   <div class="container">
     <div class="text-center mb-5">
-      <h1 class="display-5 fw-bold text-primary">¿Quiénes somos?</h1>
+      <h1 class="display-5">¿Quiénes somos?</h1>
+      <div class="hr-azul"></div>
       <p class="lead text-muted">Una tienda virtual con propósito, pasión y visión educativa</p>
     </div>
 
-    <div class="row align-items-center mb-5">
-      <div class="col-md-6">
-        <img src="{% static 'store/img/equipo.png' %}" alt="Equipo JascStore" class="img-fluid rounded shadow">
+    <div class="row align-items-center mb-5 pb-4">
+      <div class="col-md-6 mb-4 mb-md-0">
+        <img src="{% static 'store/img/equipo.png' %}" alt="Equipo JascStore" class="img-fluid img-premium">
       </div>
-      <div class="col-md-6">
-        <h3 class="fw-semibold">Nuestra historia</h3>
-        <p>JascStore nació del deseo de crear una experiencia de compra accesible, visual y confiable para todos. Somos un equipo autodidacta apasionado por la tecnología, el diseño y la educación. Cada producto que ves aquí ha sido seleccionado con cuidado, pensando en ti.</p>
-      </div>
-    </div>
-
-    <div class="row text-center mb-5">
-      <div class="col-md-4">
-        <div class="icon-box">
-          <img src="{% static 'store/img/mision.png' %}" alt="Misión" width="60">
-          <h5 class="mt-3">🎯 Misión de JascStore</h5>
-          <p>“Brindar una experiencia de compra moderna, segura y confiable, ofreciendo una tienda virtual profesional que combine innovación tecnológica con usabilidad clara, para que cada cliente encuentre productos de calidad en un entorno transparente y accesible.”.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="icon-box">
-          <img src="{% static 'store/img/vision.png' %}" alt="Visión" width="60">
-          <h5 class="mt-3">🌟 Visión de JascStore</h5>
-          <p>“Convertirse en una tienda virtual referente en innovación y confianza, reconocida por ofrecer una experiencia de compra moderna, segura y accesible, consolidando una marca sólida que evoluciona con la tecnología y las necesidades de sus clientes.”</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="icon-box">
-          <img src="{% static 'store/img/valores.png' %}" alt="Valores" width="60">
-          <h5 class="mt-3">💎 Valores de JascStore</h5>
-          <p>Transparencia, aprendizaje continuo, empatía, accesibilidad y compromiso con la comunidad.</p>
-        </div>
+      <div class="col-md-6 ps-md-5">
+        <h3 class="fw-bold mb-3">Nuestra historia</h3>
+        <p class="fs-5 text-secondary" style="line-height: 1.8;">
+            JascStore nació del deseo de crear una experiencia de compra accesible, visual y confiable para todos. 
+            Somos un equipo autodidacta apasionado por la tecnología, el diseño y la educación. 
+            Cada producto que ves aquí ha sido seleccionado con cuidado, pensando en ti.
+        </p>
       </div>
     </div>
 
-    <div class="text-center">
-      <h4 class="fw-bold">Gracias por ser parte de nuestra historia</h4>
-      <p class="text-muted">En JascStore no solo vendemos productos, construimos confianza y comunidad.</p>
-      <a href="{% url 'store:store' %}" class="btn btn-outline-primary mt-3">Explorar la tienda</a>
+    <div class="row g-4 text-center mb-5">
+      <div class="col-md-4">
+        <div class="card-nosotros">
+          <img src="{% static 'store/img/mision.png' %}" alt="Misión" width="70">
+          <h5 class="fw-bold">Misión de JascStore</h5>
+          <p class="text-muted small">“Brindar una experiencia de compra moderna, segura y confiable, ofreciendo una tienda virtual profesional que combine innovación tecnológica con usabilidad clara.”</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-nosotros">
+          <img src="{% static 'store/img/vision.png' %}" alt="Visión" width="70">
+          <h5 class="fw-bold">Visión de JascStore</h5>
+          <p class="text-muted small">“Convertirse en una tienda virtual referente en innovación y confianza, consolidando una marca sólida que evoluciona con la tecnología y las necesidades de sus clientes.”</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-nosotros">
+          <img src="{% static 'store/img/valores.png' %}" alt="Valores" width="70">
+          <h5 class="fw-bold">Valores de JascStore</h5>
+          <p class="text-muted small">Transparencia, aprendizaje continuo, empatía, accesibilidad y compromiso con la comunidad.</p>
+        </div>
+      </div>
     </div>
+
+    <div class="text-center mt-5 pt-4">
+        <h2 class="fw-bold mb-3" style="color: var(--azul-hermoso) !important; letter-spacing: -0.5px;">
+          Gracias por ser parte de nuestra historia
+        </h2>
+        <p class="text-muted fs-5 mb-4">
+          En JascStore no solo vendemos productos, construimos confianza y comunidad.
+        </p>
+        <a href="{% url 'store:store' %}" class="btn btn-jasc-outline">
+          Explorar la tienda <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      </div>
   </div>
 </section>
 {% endblock %}
