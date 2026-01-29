@@ -1,16 +1,13 @@
-/* ✅ VARIABLES DE MARCA JASCSTORE */
+/* ✅ VARIABLES JASCSTORE */
 :root {
     --azul-hermoso: #1a237e; 
-    --azul-acento: #3949ab;
-    --azul-claro: #f5f6fa;
-    --gris-suave: #f8f9fa;
-    --rojo-premium: #d32f2f;
+    --blanco: #ffffff;
 }
 
-/* 🚀 PANEL LATERAL DERECHO (ESTILO TEMU) */
-.modal {
-    padding-right: 0 !important;
-    z-index: 1050 !important;
+/* 🚀 CONTENEDOR PRINCIPAL DEL CARRITO */
+/* Usamos el ID que veo en tu consola: #carritoModal */
+#carritoModal {
+    z-index: 9999 !important; /* ✅ Máxima prioridad para ganarle al Navbar sticky */
 }
 
 .modal-dialog {
@@ -18,86 +15,74 @@
     margin: 0 !important;
     top: 0 !important;
     right: 0 !important;
-    width: 450px !important; 
+    width: 450px !important;
     height: 100vh !important;
     max-width: 100% !important;
-    z-index: 1060 !important;
-    display: flex !important;
 }
 
-/* 🔄 ESTRUCTURA FLEX PARA BOTONES FIJOS */
 .modal-content {
     height: 100vh !important;
     display: flex !important;
-    flex-direction: column !important; /* Cabecera arriba, cuerpo medio, footer abajo */
-    border-radius: 0 !important; 
+    flex-direction: column !important;
     border: none !important;
     border-left: 5px solid var(--azul-hermoso) !important;
-    box-shadow: -10px 0 30px rgba(0,0,0,0.15) !important;
-    overflow: hidden !important; /* Bloqueamos el scroll externo */
+    position: relative !important;
 }
 
-/* 1. Cabecera fija */
+/* ❌ EL BOTÓN DE CIERRE (Usando tu clase real: .cerrar-carrito) */
+.cerrar-carrito {
+    position: fixed !important; /* ✅ Lo volvemos independiente */
+    top: 85px !important;      /* ✅ BAJA para no quedar detrás del Navbar */
+    right: 20px !important;    /* ✅ Se mantiene a la derecha */
+    width: 50px !important;
+    height: 50px !important;
+    background-color: var(--azul-hermoso) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    border: 2px solid white !important;
+    z-index: 10000 !important; /* ✅ Por encima de ABSOLUTAMENTE TODO */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    cursor: pointer !important;
+}
+
+/* Dibujamos la X blanca dentro del botón azul */
+.cerrar-carrito::before {
+    content: "✕" !important;
+    font-size: 24px !important;
+    font-family: Arial, sans-serif !important;
+    font-weight: bold !important;
+}
+
+/* 1. ESPACIO EN LA CABECERA PARA EL NAVBAR */
 .modal-header {
-    flex-shrink: 0; 
-    background: #fff;
-    z-index: 10;
-    border-bottom: 1px solid var(--azul-claro);
+    padding-top: 70px !important; /* ✅ Evita que el texto choque con el Navbar */
+    background: white !important;
 }
 
-/* 2. Cuerpo con scroll (Aquí se deslizan tus tallas y colores) */
+/* 2. CUERPO CON SCROLL OPERATIVO */
 .modal-body {
     flex-grow: 1 !important;
-    overflow-y: auto !important; /* ✅ Habilita el scroll interno */
-    padding: 1.5rem !important;
+    overflow-y: auto !important; /* ✅ HABILITA EL SCROLL */
+    padding: 20px !important;
     -webkit-overflow-scrolling: touch;
 }
 
-/* 3. Footer fijo al fondo (Donde está tu botón azul) */
+/* 3. FOOTER FIJO (Botón Agregar) */
 .modal-footer {
-    flex-shrink: 0;
-    background: #fff;
-    padding: 15px;
-    border-top: 1px solid var(--azul-claro);
-    z-index: 11;
+    flex-shrink: 0 !important;
+    background: white !important;
+    padding: 15px !important;
+    border-top: 1px solid #eee;
 }
 
-/* 🛒 ESTILOS DE ITEMS */
-.cart-item {
-    background-color: #ffffff;
-    border: 1px solid #eef0f2;
-    border-radius: 18px;
-    margin-bottom: 1rem;
-    padding: 1.2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-}
-
-.subtotal-price, .precio-final {
-    color: var(--azul-hermoso) !important;
-    font-weight: 900 !important;
-    font-size: 1.6rem !important;
-}
-
-.btn-pagar, .btn-agregar, #btnAgregarModalPropio {
-    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%) !important;
-    color: white !important;
-    font-weight: 700 !important;
-    border-radius: 50px !important;
-    padding: 14px !important;
-    width: 100%;
-    border: none !important;
-}
-
-/* 📱 AJUSTES MÓVIL */
+/* AJUSTES PARA MÓVIL */
 @media (max-width: 576px) {
     .modal-dialog { width: 100% !important; }
-
-    .modal-header .btn-close {
-        width: 40px;
-        height: 40px;
-        background-color: var(--gris-suave);
-        border-radius: 50%;
-        opacity: 1;
-        z-index: 1070 !important;
+    .cerrar-carrito {
+        top: 90px !important; /* Un poco más abajo en móvil */
+        right: 15px !important;
     }
 }

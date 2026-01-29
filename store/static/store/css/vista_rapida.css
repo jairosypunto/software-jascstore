@@ -16,9 +16,8 @@
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: var(--overlay-bg) !important;
-    z-index: 1040 !important;
+    z-index: 1040 !important; /* Por debajo de los modales */
     display: none; 
-    pointer-events: none;
 }
 
 .overlay-active {
@@ -27,7 +26,7 @@
     backdrop-filter: blur(4px);
 }
 
-/* 2. CARRITO LATERAL */
+/* 2. CARRITO LATERAL (Sincronizado con carrito.css) */
 #carritoModal {
     position: fixed !important;
     top: 0; right: 0;
@@ -53,7 +52,7 @@
     max-width: 900px;
     background: var(--blanco);
     border-radius: 20px;
-    z-index: 1050 !important;
+    z-index: 1055 !important; /* Justo debajo del carrito principal */
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     visibility: hidden; 
@@ -125,4 +124,56 @@
     align-items: center;
     justify-content: center;
     font-weight: bold;
+}
+
+/* 🚀 AJUSTE FINAL PARA BOTÓN DE CIERRE (AZUL HERMOSO) */
+
+/* 1. Forzamos que el Modal esté por encima del Navbar Sticky */
+#carritoModal {
+    z-index: 9999 !important; 
+}
+
+/* 2. Estilizamos tu botón real: .cerrar-carrito */
+.cerrar-carrito {
+    position: fixed !important; /* ✅ Se queda quieto al hacer scroll */
+    top: 85px !important;      /* ✅ BAJA para no quedar debajo del Navbar azul */
+    right: 20px !important;    /* ✅ A la derecha del carrito */
+    width: 45px !important;
+    height: 45px !important;
+    background-color: var(--azul-hermoso) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    border: 2px solid white !important;
+    z-index: 10000 !important; /* ✅ Máxima prioridad */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    cursor: pointer !important;
+}
+
+/* 3. Dibujamos la X blanca automáticamente si el botón está vacío */
+.cerrar-carrito::before {
+    content: "✕" !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    font-family: Arial, sans-serif !important;
+}
+
+/* 4. Aseguramos el Scroll en el cuerpo del carrito */
+#contenidoCarrito {
+    flex-grow: 1 !important;
+    overflow-y: auto !important; /* ✅ HABILITA EL SCROLL AQUÍ */
+    padding-top: 20px !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ajuste para Móvil */
+@media (max-width: 768px) {
+    .cerrar-carrito {
+        top: 90px !important;
+        right: 15px !important;
+        width: 40px !important;
+        height: 40px !important;
+    }
 }
