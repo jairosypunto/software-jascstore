@@ -2,6 +2,7 @@ from pathlib import Path
 from decouple import config
 import dj_database_url
 import logging
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -119,7 +120,7 @@ INSTALLED_APPS = [
 # ================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Vital para el CSS Azul
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -181,14 +182,29 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ================================
-# 🖼️ Media (Local vs Cloudinary)
+# 🖼️ Media y Almacenamiento (Local vs Cloudinary)
 # ================================
+# Se usa la sintaxis moderna de Django para evitar el error de StorageHandler
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+if not DEBUG:
+    STORAGES["default"] = {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    }
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Mantengo tus variables originales por compatibilidad con apps antiguas
 if DEBUG:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
@@ -199,18 +215,6 @@ CLOUDINARY_STORAGE = {
     "API_KEY": config("CLOUDINARY_API_KEY", default=""),
     "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
 }
-
-# ================================
-# 🔄 Forzar default_storage en producción
-# ================================
-if not DEBUG:
-    try:
-        from cloudinary_storage.storage import MediaCloudinaryStorage
-        from django.core.files.storage import storages
-        storages["default"] = MediaCloudinaryStorage()
-        print("✅ default_storage forzado a MediaCloudinaryStorage en producción")
-    except Exception as e:
-        print("⚠️ Error configurando Cloudinary como default_storage:", e)
 
 # ================================
 # 🔐 Login / Logout
