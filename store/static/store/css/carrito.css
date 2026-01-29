@@ -7,15 +7,12 @@
     --rojo-premium: #d32f2f;
 }
 
-/* 🚀 SUPER FUERZA PANEL LATERAL DERECHO (ESTILO TEMU) */
-
-/* 1. Ajuste de contenedor para evitar bloqueos en el celular */
+/* 🚀 PANEL LATERAL DERECHO (ESTILO TEMU) */
 .modal {
     padding-right: 0 !important;
-    z-index: 1050 !important; /* Nivel estándar para que el JS de Bootstrap funcione */
+    z-index: 1050 !important;
 }
 
-/* 2. Anclamos el diálogo a la derecha y quitamos márgenes */
 .modal-dialog {
     position: fixed !important;
     margin: 0 !important;
@@ -26,43 +23,46 @@
     max-width: 100% !important;
     z-index: 1060 !important;
     display: flex !important;
-    align-items: stretch !important;
 }
 
-/* 3. El contenido debe ocupar todo el alto de la pantalla y permitir scroll */
+/* 🔄 ESTRUCTURA FLEX PARA BOTONES FIJOS */
 .modal-content {
     height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important; /* Cabecera arriba, cuerpo medio, footer abajo */
     border-radius: 0 !important; 
     border: none !important;
     border-left: 5px solid var(--azul-hermoso) !important;
     box-shadow: -10px 0 30px rgba(0,0,0,0.15) !important;
-    overflow-y: auto !important; /* ✅ HABILITA SCROLL PARA MUCHAS TALLAS */
-    display: flex;
-    flex-direction: column;
+    overflow: hidden !important; /* Bloqueamos el scroll externo */
 }
 
-/* 4. Animación de entrada lateral */
-.modal.fade .modal-dialog {
-    transform: translateX(100%) !important;
-    transition: transform 0.3s ease-in-out !important;
+/* 1. Cabecera fija */
+.modal-header {
+    flex-shrink: 0; 
+    background: #fff;
+    z-index: 10;
+    border-bottom: 1px solid var(--azul-claro);
 }
 
-.modal.show .modal-dialog {
-    transform: translateX(0) !important;
+/* 2. Cuerpo con scroll (Aquí se deslizan tus tallas y colores) */
+.modal-body {
+    flex-grow: 1 !important;
+    overflow-y: auto !important; /* ✅ Habilita el scroll interno */
+    padding: 1.5rem !important;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* 5. Fondo oscuro corregido para no bloquear clics */
-.modal-backdrop {
-    background-color: rgba(0,0,0,0.5) !important;
-    z-index: 1040 !important;
+/* 3. Footer fijo al fondo (Donde está tu botón azul) */
+.modal-footer {
+    flex-shrink: 0;
+    background: #fff;
+    padding: 15px;
+    border-top: 1px solid var(--azul-claro);
+    z-index: 11;
 }
 
-/* 🛒 ESTILOS DE INTERIOR (TU DISEÑO ORIGINAL) */
-.cart-section {
-    padding: 1.5rem;
-    flex-grow: 1; /* Empuja el footer hacia abajo */
-}
-
+/* 🛒 ESTILOS DE ITEMS */
 .cart-item {
     background-color: #ffffff;
     border: 1px solid #eef0f2;
@@ -75,52 +75,29 @@
 .subtotal-price, .precio-final {
     color: var(--azul-hermoso) !important;
     font-weight: 900 !important;
-    font-size: 1.8rem !important;
+    font-size: 1.6rem !important;
 }
 
-/* Botón JascStore Premium */
 .btn-pagar, .btn-agregar, #btnAgregarModalPropio {
     background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%) !important;
     color: white !important;
     font-weight: 700 !important;
     border-radius: 50px !important;
     padding: 14px !important;
-    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3) !important;
-    border: none !important;
     width: 100%;
+    border: none !important;
 }
 
-.btn-vaciar {
-    color: var(--rojo-premium) !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-}
-
-/* 📱 AJUSTES ESPECIALES PARA CELULAR */
+/* 📱 AJUSTES MÓVIL */
 @media (max-width: 576px) {
-    .modal-dialog {
-        width: 100% !important; /* Ocupa toda la pantalla en móvil */
-    }
+    .modal-dialog { width: 100% !important; }
 
     .modal-header .btn-close {
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
         background-color: var(--gris-suave);
         border-radius: 50%;
         opacity: 1;
-        z-index: 1070 !important; /* ✅ POR ENCIMA DE TODO PARA CERRAR */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Estilo Temu: Footer de compra fijo al fondo */
-    .modal-footer {
-        position: sticky;
-        bottom: 0;
-        background: white;
-        padding: 15px;
-        border-top: 1px solid var(--azul-claro);
-        z-index: 1065; /* ✅ JUSTO DEBAJO DEL BOTÓN DE CIERRE */
+        z-index: 1070 !important;
     }
 }
