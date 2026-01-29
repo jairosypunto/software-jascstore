@@ -11,7 +11,7 @@ __pycache__/
 db.sqlite3
 
 # ==== STATICFILES (GENERADOS EN PRODUCCIÓN CON collectstatic) ====
-staticfiles/
+#staticfiles/
 
 # ==== CONFIGURACIÓN Y SECRETOS ====
 *.env

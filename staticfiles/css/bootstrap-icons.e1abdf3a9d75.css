@@ -1,0 +1,20 @@
+@font-face {
+  font-family: "bootstrap-icons";
+  src: url("bootstrap-icons.84a4d15b9e44.woff2") format("woff2"),
+       url("bootstrap-icons.efe54401ef52.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.bi {
+  display: inline-block;
+  font-family: "bootstrap-icons" !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: -0.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

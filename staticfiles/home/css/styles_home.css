@@ -1,0 +1,114 @@
+@charset "UTF-8";
+@import url("https://rsms.me/inter/inter.css");
+
+/* ================= 1. BASE & ESTRUCTURA DE PÁGINA ================= */
+html { 
+    font-family: "Inter", sans-serif; 
+    font-size: 15px; 
+    scroll-behavior: smooth; 
+}
+body { background-color: #f8f9fa; color: #212529; }
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+
+/* ESPACIADO CRÍTICO: Evita que el Navbar tape el catálogo */
+main, .contenedor-tienda, .padding-y {
+    margin-top: 70px !important; /* Ajuste para el menú fijo */
+}
+
+.content-body { flex: 1 1 auto; padding: 2rem 2.3rem; }
+.box { padding: 18px; background: #fff; border-radius: 0.37rem; border: 1px solid #e4e4e4; }
+
+/* ================= 2. IDENTIDAD: AZUL HERMOSO ================= */
+:root {
+    --azul-hermoso: #1a237e;
+    --azul-acento: #3949ab;
+}
+
+.bg-blue, .btn-primary, .btn-agregar-modal { 
+    background-color: var(--azul-hermoso) !important; 
+    border-color: var(--azul-hermoso) !important; 
+    color: #fff !important; 
+}
+
+.text-blue { color: var(--azul-hermoso) !important; }
+
+/* Estados activos en filtros y opciones */
+.btn-check input:checked ~ .btn, .js-check.active, .option-chip.active { 
+    border-color: var(--azul-hermoso) !important; 
+    background-color: var(--azul-hermoso) !important; 
+    color: #fff !important; 
+}
+
+/* ================= 3. CATÁLOGO & PRODUCTOS ================= */
+[class*=card-product] { 
+    margin-bottom: 25px; 
+    position: relative; 
+    background: #fff; 
+    border-radius: 12px; 
+    border: 1px solid #eee; 
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+[class*=card-product]:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+[class*=card-product] .img-wrap { 
+    overflow: hidden; 
+    position: relative; 
+    height: 220px; 
+    text-align: center; 
+    border-radius: 12px 12px 0 0;
+}
+
+[class*=card-product] .img-wrap img { 
+    height: 100%; 
+    max-width: 100%; 
+    object-fit: cover; 
+}
+
+.price { font-weight: 700; color: #1a237e; font-size: 1.2rem; }
+.price-old { color: #969696; text-decoration: line-through; font-size: 85%; margin-left: 5px; }
+
+/* ================= 4. COMPONENTES FUNCIONALES ================= */
+/* Ratings de estrellas */
+.rating-stars { display: inline-block; list-style: none; margin: 0; padding: 0; position: relative; }
+.rating-stars i { font-size: 14px; color: #ccc; }
+.rating-stars .stars-active { position: absolute; top: 0; left: 0; overflow: hidden; color: orange !important; }
+
+/* Notificaciones del carrito (Header) */
+.widget-header .notify { 
+    position: absolute; top: -5px; right: -8px; 
+    display: inline-block; padding: 0.25em 0.6em; 
+    font-size: 11px; border-radius: 50%; background-color: #fa3434; color: #fff; 
+}
+
+/* Selector de cantidad */
+.input-spinner { width: 125px; flex-wrap: nowrap; display: inline-flex; border-radius: 5px; overflow: hidden; }
+.input-spinner input { text-align: center; max-width: 50px; border: 1px solid #ddd; border-left: 0; border-right: 0; font-weight: bold; }
+
+/* ================= 5. OPTIMIZACIÓN MÓVIL (SIN BLOQUEOS) ================= */
+@media (max-width: 768px) {
+    /* Desactivamos blur pesado para que el móvil no se quede estático */
+    .vista-rapida-overlay, .modal-backdrop, .overlay-active { 
+        backdrop-filter: none !important; 
+        -webkit-backdrop-filter: none !important;
+        background: rgba(0, 0, 0, 0.8) !important; 
+    }
+    
+    /* Imágenes fluidas */
+    .img-lg, .img-wrap img, .big-image { height: auto !important; width: 100% !important; }
+    
+    /* Evita scroll infinito al abrir modales */
+    body.modal-open { 
+        position: fixed; 
+        width: 100%; 
+        overflow: hidden;
+    }
+}
+
+/* ================= 6. ELEMENTOS DE NAVEGACIÓN ================= */
+.icon-sm { width: 48px; height: 48px; line-height: 48px !important; font-size: 20px; display: inline-block; text-align: center; }
+.itemside { display: flex; width: 100%; align-items: center; }
+.itemside .info { padding-left: 15px; }

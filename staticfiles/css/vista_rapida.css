@@ -1,0 +1,180 @@
+/* =========================================================
+   🛍️ JASC ECOMMERCE – VISTA RÁPIDA & CARRITO
+   ========================================================= */
+
+:root {
+    --azul-hermoso: #1a237e; 
+    --azul-acento: #3949ab;
+    --blanco: #ffffff;
+    --gris-borde: #ddd;
+    --overlay-bg: rgba(0, 0, 0, 0.7);
+}
+
+/* 1. OVERLAY (FONDO) */
+.vista-rapida-overlay, .carrito-overlay {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--overlay-bg) !important;
+    z-index: 1040 !important; /* Por debajo de los modales */
+    display: none; 
+}
+
+.overlay-active {
+    display: block !important;
+    pointer-events: auto !important;
+    backdrop-filter: blur(4px);
+}
+
+/* 2. CARRITO LATERAL (Sincronizado con carrito.css) */
+#carritoModal {
+    position: fixed !important;
+    top: 0; right: 0;
+    width: 450px;
+    height: 100vh;
+    background: var(--blanco);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1060 !important;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+#carritoModal:not(.hidden) { transform: translateX(0); }
+
+/* 3. VISTA RÁPIDA (MODAL CENTRAL) */
+#vistaRapidaPanel {
+    position: fixed !important;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 95%;
+    max-width: 900px;
+    background: var(--blanco);
+    border-radius: 20px;
+    z-index: 1055 !important; /* Justo debajo del carrito principal */
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    visibility: hidden; 
+    overflow: hidden;
+}
+
+
+#vistaRapidaPanel.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* 4. CONTENIDO CON SCROLL */
+.vista-rapida-contenido {
+    display: grid !important; 
+    grid-template-columns: 1fr 1.2fr; 
+    gap: 30px;
+    padding: 30px;
+    max-height: 85vh;
+    overflow-y: auto !important;
+}
+
+/* 5. SELECTORES FOTOS MINI */
+.color-photo-chip {
+    width: 65px; height: 75px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    object-fit: cover;
+}
+
+.color-photo-chip.active {
+    border-color: var(--azul-hermoso);
+    box-shadow: 0 0 10px rgba(26, 35, 126, 0.2);
+}
+
+/* 6. CORRECCIONES PARA MÓVIL */
+@media (max-width: 768px) {
+    #carritoModal { width: 100% !important; }
+
+    .vista-rapida-contenido {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 15px !important;
+        gap: 10px !important;
+    }
+
+    .big-image, .vista-rapida-contenido img {
+        width: 100% !important;
+        height: auto !important; 
+        max-height: 350px !important; 
+        object-fit: contain !important;
+    }
+}
+
+/* Botón de Cerrar Flotante */
+.cerrar-panel {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: var(--azul-hermoso) !important;
+    color: white !important;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    border: none;
+    z-index: 1070 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* 🚀 AJUSTE FINAL PARA BOTÓN DE CIERRE (AZUL HERMOSO) */
+
+/* 1. Forzamos que el Modal esté por encima del Navbar Sticky */
+#carritoModal {
+    z-index: 9999 !important; 
+}
+
+/* 2. Estilizamos tu botón real: .cerrar-carrito */
+.cerrar-carrito {
+    position: fixed !important; /* ✅ Se queda quieto al hacer scroll */
+    top: 85px !important;      /* ✅ BAJA para no quedar debajo del Navbar azul */
+    right: 20px !important;    /* ✅ A la derecha del carrito */
+    width: 45px !important;
+    height: 45px !important;
+    background-color: var(--azul-hermoso) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    border: 2px solid white !important;
+    z-index: 10000 !important; /* ✅ Máxima prioridad */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    cursor: pointer !important;
+}
+
+/* 3. Dibujamos la X blanca automáticamente si el botón está vacío */
+.cerrar-carrito::before {
+    content: "✕" !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    font-family: Arial, sans-serif !important;
+}
+
+/* 4. Aseguramos el Scroll en el cuerpo del carrito */
+#contenidoCarrito {
+    flex-grow: 1 !important;
+    overflow-y: auto !important; /* ✅ HABILITA EL SCROLL AQUÍ */
+    padding-top: 20px !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ajuste para Móvil */
+@media (max-width: 768px) {
+    .cerrar-carrito {
+        top: 90px !important;
+        right: 15px !important;
+        width: 40px !important;
+        height: 40px !important;
+    }
+}
