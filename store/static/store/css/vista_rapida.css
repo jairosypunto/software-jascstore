@@ -59,6 +59,7 @@
     overflow: hidden;
 }
 
+
 #vistaRapidaPanel.visible {
     opacity: 1;
     visibility: visible;
