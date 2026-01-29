@@ -10,13 +10,13 @@
     --overlay-bg: rgba(0, 0, 0, 0.7);
 }
 
-/* 1. OVERLAY (FONDO) - Corregido para evitar bloqueo */
+/* 1. OVERLAY (FONDO) - Sincronizado para no bloquear el carrito */
 .vista-rapida-overlay, .carrito-overlay {
     position: fixed !important;
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: var(--overlay-bg) !important;
-    z-index: 9000 !important; /* Subimos el nivel para que nada lo tape */
+    z-index: 1040 !important; /* Ajustado para estar detrás del carrito */
     display: none; 
     pointer-events: none;
 }
@@ -27,7 +27,7 @@
     backdrop-filter: blur(4px);
 }
 
-/* 2. CARRITO LATERAL */
+/* 2. CARRITO LATERAL (ESTILO TEMU) */
 #carritoModal {
     position: fixed !important;
     top: 0; right: 0;
@@ -36,7 +36,7 @@
     background: var(--blanco);
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
-    z-index: 9001 !important;
+    z-index: 1060 !important; /* Mismo nivel que el modal de carrito.css */
     box-shadow: -10px 0 30px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
@@ -53,10 +53,10 @@
     max-width: 900px;
     background: var(--blanco);
     border-radius: 20px;
-    z-index: 9001 !important;
+    z-index: 1050 !important; /* Justo debajo del carrito si ambos se cruzan */
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    visibility: hidden; /* Evita clics accidentales */
+    visibility: hidden; 
     overflow: hidden;
 }
 
@@ -66,9 +66,9 @@
     transform: translate(-50%, -50%) scale(1);
 }
 
-/* 4. CONTENIDO (SOLUCIÓN AL DISEÑO ROTO) */
+/* 4. CONTENIDO (ESTILO TEMU) */
 .vista-rapida-contenido {
-    display: grid !important; /* Usamos Grid para control total */
+    display: grid !important; 
     grid-template-columns: 1fr 1.2fr; 
     gap: 30px;
     padding: 30px;
@@ -92,11 +92,12 @@
 }
 
 .color-photo-chip {
-    width: 65px; height: 65px;
+    width: 65px; height: 75px; /* Un poco más alto para estilo Temu */
     border: 2px solid #eee;
     border-radius: 8px;
     cursor: pointer;
     transition: 0.2s;
+    object-fit: cover;
 }
 
 .color-photo-chip.active {
@@ -104,26 +105,27 @@
     box-shadow: 0 0 10px rgba(26, 35, 126, 0.2);
 }
 
-/* 6. CORRECCIONES PARA MÓVIL (ESTÁTICO Y BORROSO) */
+/* 6. CORRECCIONES PARA MÓVIL */
 @media (max-width: 768px) {
-    /* Contenedor de la imagen */
+    #carritoModal {
+        width: 100% !important; /* Ocupa todo el ancho en móvil */
+    }
+
     .big-image-container {
         width: 100% !important;
         min-width: 100% !important;
         margin-bottom: 15px;
     }
 
-    /* Imagen principal: Evita la deformación */
     .big-image, .vista-rapida-contenido img {
         width: 100% !important;
-        height: auto !important; /* Permite que la altura crezca según la foto */
-        max-height: 350px !important; /* Límite para que no ocupe toda la pantalla */
-        object-fit: contain !important; /* Mantiene la imagen completa sin recortar */
-        aspect-ratio: auto !important; /* Elimina proporciones forzadas */
+        height: auto !important; 
+        max-height: 350px !important; 
+        object-fit: contain !important; 
+        aspect-ratio: auto !important; 
         display: block;
     }
 
-    /* Ajuste de la cuadrícula para que la info baje correctamente */
     .vista-rapida-contenido {
         display: flex !important;
         flex-direction: column !important;
@@ -132,14 +134,19 @@
     }
 }
 
-/* Botón de Cerrar (Flotante) */
+/* Botón de Cerrar (Flotante y Accesible) */
 .cerrar-panel {
     position: absolute;
     top: 15px; right: 15px;
-    background: #eee;
+    background: var(--azul-hermoso) !important; /* Azul Hermoso para visibilidad */
+    color: white !important;
     border-radius: 50%;
-    width: 35px; height: 35px;
+    width: 40px; height: 40px;
     border: none;
-    z-index: 10;
+    z-index: 1070 !important; /* Siempre por encima del contenido */
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
 }

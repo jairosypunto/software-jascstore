@@ -9,10 +9,10 @@
 
 /* 🚀 SUPER FUERZA PANEL LATERAL DERECHO (ESTILO TEMU) */
 
-/* 1. Quitamos el centrado de Bootstrap al contenedor principal */
+/* 1. Ajuste de contenedor para evitar bloqueos en el celular */
 .modal {
     padding-right: 0 !important;
-    display: block !important; /* Evita conflictos de alineación */
+    z-index: 1050 !important; /* Nivel estándar para que el JS de Bootstrap funcione */
 }
 
 /* 2. Anclamos el diálogo a la derecha y quitamos márgenes */
@@ -21,7 +21,7 @@
     margin: 0 !important;
     top: 0 !important;
     right: 0 !important;
-    width: 450px !important; /* Ancho lateral profesional */
+    width: 450px !important; 
     height: 100vh !important;
     max-width: 100% !important;
     z-index: 1060 !important;
@@ -32,11 +32,13 @@
 /* 3. El contenido debe ocupar todo el alto de la pantalla */
 .modal-content {
     height: 100vh !important;
-    border-radius: 0 !important; /* Sin bordes redondeados para el panel */
+    border-radius: 0 !important; 
     border: none !important;
     border-left: 5px solid var(--azul-hermoso) !important;
     box-shadow: -10px 0 30px rgba(0,0,0,0.15) !important;
-    overflow-y: auto !important; /* Scroll interno si hay mucho texto */
+    overflow-y: auto !important;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 4. Animación de entrada lateral */
@@ -49,14 +51,16 @@
     transform: translateX(0) !important;
 }
 
-/* 5. Fondo casi invisible para poder ver los productos de atrás */
+/* 5. Fondo oscuro corregido para no bloquear clics */
 .modal-backdrop {
-    background-color: rgba(0,0,0,0.1) !important;
+    background-color: rgba(0,0,0,0.5) !important;
+    z-index: 1040 !important;
 }
 
 /* 🛒 ESTILOS DE INTERIOR (TU DISEÑO ORIGINAL) */
 .cart-section {
     padding: 1.5rem;
+    flex-grow: 1; /* Empuja el footer hacia abajo */
 }
 
 .cart-item {
@@ -83,6 +87,7 @@
     padding: 14px !important;
     box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3) !important;
     border: none !important;
+    width: 100%;
 }
 
 .btn-vaciar {
@@ -91,9 +96,28 @@
     text-transform: uppercase !important;
 }
 
-/* Ajuste móvil */
+/* 📱 AJUSTES ESPECIALES PARA CELULAR */
 @media (max-width: 576px) {
     .modal-dialog {
-        width: 100% !important;
+        width: 100% !important; /* Ocupa toda la pantalla en móvil */
+    }
+
+    .modal-header .btn-close {
+        width: 45px;
+        height: 45px;
+        background-color: var(--gris-suave);
+        border-radius: 50%;
+        opacity: 1;
+        z-index: 1070 !important;
+    }
+
+    /* Estilo Temu: Footer de compra fijo al fondo */
+    .modal-footer {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 15px;
+        border-top: 1px solid var(--azul-claro);
+        z-index: 10;
     }
 }
