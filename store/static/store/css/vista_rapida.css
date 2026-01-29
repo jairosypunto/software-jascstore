@@ -10,13 +10,13 @@
     --overlay-bg: rgba(0, 0, 0, 0.7);
 }
 
-/* 1. OVERLAY (FONDO) - Sincronizado para no bloquear el carrito */
+/* 1. OVERLAY (FONDO) - Sincronizado para evitar bloqueos */
 .vista-rapida-overlay, .carrito-overlay {
     position: fixed !important;
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: var(--overlay-bg) !important;
-    z-index: 1040 !important; /* Ajustado para estar detrás del carrito */
+    z-index: 1040 !important; /* Ajustado para estar detrás del modal */
     display: none; 
     pointer-events: none;
 }
@@ -36,10 +36,11 @@
     background: var(--blanco);
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
-    z-index: 1060 !important; /* Mismo nivel que el modal de carrito.css */
+    z-index: 1060 !important; 
     box-shadow: -10px 0 30px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
+    overflow-y: auto !important; /* ✅ Habilita scroll si hay muchas tallas */
 }
 
 #carritoModal:not(.hidden) { transform: translateX(0); }
@@ -53,11 +54,11 @@
     max-width: 900px;
     background: var(--blanco);
     border-radius: 20px;
-    z-index: 1050 !important; /* Justo debajo del carrito si ambos se cruzan */
+    z-index: 1050 !important; 
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     visibility: hidden; 
-    overflow: hidden;
+    overflow: hidden; /* Mantiene las esquinas redondeadas */
 }
 
 #vistaRapidaPanel.visible {
@@ -66,14 +67,14 @@
     transform: translate(-50%, -50%) scale(1);
 }
 
-/* 4. CONTENIDO (ESTILO TEMU) */
+/* 4. CONTENIDO (SOLUCIÓN AL DISEÑO ROTO CON SCROLL) */
 .vista-rapida-contenido {
     display: grid !important; 
     grid-template-columns: 1fr 1.2fr; 
     gap: 30px;
     padding: 30px;
-    max-height: 85vh;
-    overflow-y: auto;
+    max-height: 85vh; /* ✅ Evita que el modal se salga de la pantalla */
+    overflow-y: auto !important; /* ✅ Permite ver todas las opciones deslizando */
 }
 
 .big-image-container img {
@@ -92,7 +93,8 @@
 }
 
 .color-photo-chip {
-    width: 65px; height: 75px; /* Un poco más alto para estilo Temu */
+    width: 65px; 
+    height: 75px; /* Altura optimizada para fotos de calzado */
     border: 2px solid #eee;
     border-radius: 8px;
     cursor: pointer;
@@ -108,7 +110,7 @@
 /* 6. CORRECCIONES PARA MÓVIL */
 @media (max-width: 768px) {
     #carritoModal {
-        width: 100% !important; /* Ocupa todo el ancho en móvil */
+        width: 100% !important; 
     }
 
     .big-image-container {
@@ -131,22 +133,24 @@
         flex-direction: column !important;
         padding: 15px !important;
         gap: 10px !important;
+        max-height: 90vh; /* Más espacio en móviles */
     }
 }
 
-/* Botón de Cerrar (Flotante y Accesible) */
+/* Botón de Cerrar (Flotante y Siempre Visible) */
 .cerrar-panel {
     position: absolute;
     top: 15px; right: 15px;
-    background: var(--azul-hermoso) !important; /* Azul Hermoso para visibilidad */
+    background: var(--azul-hermoso) !important; 
     color: white !important;
     border-radius: 50%;
     width: 40px; height: 40px;
     border: none;
-    z-index: 1070 !important; /* Siempre por encima del contenido */
+    z-index: 1070 !important; /* ✅ Por encima de todo para cerrar siempre */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
