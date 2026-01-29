@@ -1,177 +1,145 @@
 /* =========================================================
-    🛍️ JASC ECOMMERCE – VISTA RÁPIDA (CENTRO) & CARRITO (LATERAL)
+   🛍️ JASC ECOMMERCE – VISTA RÁPIDA & CARRITO
    ========================================================= */
 
 :root {
     --azul-hermoso: #1a237e; 
     --azul-acento: #3949ab;
-    --azul-claro: #f5f6fa;
-    --azul-claro-bg: #e8eaf6;
-    --gris-suave: #f8f9fa;
     --blanco: #ffffff;
     --gris-borde: #ddd;
-    --overlay-bg: rgba(0, 0, 0, 0.6);
+    --overlay-bg: rgba(0, 0, 0, 0.7);
 }
 
-/* 1. OVERLAY (FONDO OSCURO) - Evita el efecto opaco */
+/* 1. OVERLAY (FONDO) - Corregido para evitar bloqueo */
 .vista-rapida-overlay, .carrito-overlay {
     position: fixed !important;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: var(--overlay-bg) !important;
-    z-index: 2500;
-    backdrop-filter: blur(4px);
-    display: none; /* Se activa por JS */
+    z-index: 9000 !important; /* Subimos el nivel para que nada lo tape */
+    display: none; 
+    pointer-events: none;
 }
 
-/* 2. CONFIGURACIÓN DEL CARRITO MODAL (PANEL LATERAL DERECHO) */
+.overlay-active {
+    display: block !important;
+    pointer-events: auto !important;
+    backdrop-filter: blur(4px);
+}
+
+/* 2. CARRITO LATERAL */
 #carritoModal {
     position: fixed !important;
-    top: 0 !important;
-    right: 0 !important;
-    left: auto !important;
-    transform: translateX(100%) !important;
-    width: 450px !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    background: var(--blanco) !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    z-index: 3000;
-    box-shadow: -10px 0 40px rgba(0,0,0,0.15) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    opacity: 1 !important; /* Asegura nitidez */
+    top: 0; right: 0;
+    width: 450px;
+    height: 100vh;
+    background: var(--blanco);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 9001 !important;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
 }
 
-#carritoModal:not(.hidden) {
-    transform: translateX(0) !important;
-}
+#carritoModal:not(.hidden) { transform: translateX(0); }
 
-/* 3. CONFIGURACIÓN DE VISTA RÁPIDA (CENTRO) */
+/* 3. VISTA RÁPIDA (MODAL CENTRAL) */
 #vistaRapidaPanel {
     position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) scale(0.9) !important;
-    width: 95% !important;
-    max-width: 900px !important;
-    background: var(--blanco) !important;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 95%;
+    max-width: 900px;
+    background: var(--blanco);
     border-radius: 20px;
-    z-index: 3000;
+    z-index: 9001 !important;
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    visibility: hidden; /* Evita clics accidentales */
     overflow: hidden;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
 }
 
 #vistaRapidaPanel.visible {
-    opacity: 1 !important;
-    transform: translate(-50%, -50%) scale(1) !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
 }
 
-/* 4. CONTENIDO Y GALERÍA */
+/* 4. CONTENIDO (SOLUCIÓN AL DISEÑO ROTO) */
 .vista-rapida-contenido {
-    display: flex;
-    gap: 24px;
-    padding: 24px;
+    display: grid !important; /* Usamos Grid para control total */
+    grid-template-columns: 1fr 1.2fr; 
+    gap: 30px;
+    padding: 30px;
     max-height: 85vh;
     overflow-y: auto;
 }
 
-.big-image-container {
-    flex: 1;
-    min-width: 300px;
-}
-
-.big-image {
+.big-image-container img {
     width: 100%;
-    aspect-ratio: 1/1;
-    object-fit: contain;
     border-radius: 12px;
-    background: var(--gris-suave);
+    object-fit: cover;
+    background: #f8f9fa;
 }
 
-.info-container {
-    flex: 1;
+/* 5. SELECTORES ESTILO TEMU (FOTOS MINI) */
+.selector-colores-fotos {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
 }
 
-/* Chips de Opciones Azul Hermoso */
-.option-chip {
-    border: 1px solid var(--azul-hermoso) !important;
-    color: var(--azul-hermoso) !important;
-    border-radius: 20px;
-    padding: 8px 16px;
+.color-photo-chip {
+    width: 65px; height: 65px;
+    border: 2px solid #eee;
+    border-radius: 8px;
     cursor: pointer;
-    background: transparent;
-    transition: all 0.2s;
-    font-size: 0.9rem;
-    display: inline-block;
-    margin: 4px;
+    transition: 0.2s;
 }
 
-.option-chip.seleccionado, .option-chip.active {
-    background: var(--azul-hermoso) !important;
-    color: white !important;
+.color-photo-chip.active {
+    border-color: var(--azul-hermoso);
+    box-shadow: 0 0 10px rgba(26, 35, 126, 0.2);
 }
 
-/* 5. BOTONES PREMIUM */
-.btn-agregar-modal, .btn-confirmar-seleccion {
-    background: linear-gradient(135deg, var(--azul-hermoso), var(--azul-acento)) !important;
-    color: white !important;
-    border-radius: 50px !important;
-    padding: 16px;
-    font-weight: 700;
-    width: 100%;
-    border: none !important;
-    box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3);
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* 6. RESPONSIVO MÓVIL (CORRECCIONES DE OPACIDAD Y SCROLL) */
+/* 6. CORRECCIONES PARA MÓVIL (ESTÁTICO Y BORROSO) */
 @media (max-width: 768px) {
-    #carritoModal, #vistaRapidaPanel {
-        width: 100% !important;
-        height: auto !important;
-        max-height: 92vh !important; /* Deja espacio arriba para ver que hay un fondo */
-        top: auto !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        transform: translateY(100%) !important;
-        border-radius: 25px 25px 0 0 !important;
-        overflow-y: auto !important; /* PERMITE VER EL BOTÓN DE COMPRA AL BAJAR */
-    }
-
-    #carritoModal:not(.hidden), #vistaRapidaPanel.visible {
-        transform: translateY(0) !important;
-    }
-
-    .vista-rapida-contenido {
-        flex-direction: column;
-        padding: 20px;
-        gap: 15px;
-    }
-
+    /* Contenedor de la imagen */
     .big-image-container {
-        min-width: 100%;
+        width: 100% !important;
+        min-width: 100% !important;
+        margin-bottom: 15px;
     }
 
-    /* Evita que el fondo se vea borroso/opaco de más en móvil */
-    .vista-rapida-overlay, .carrito-overlay {
-        backdrop-filter: none !important; 
-        background: rgba(0, 0, 0, 0.7) !important;
+    /* Imagen principal: Evita la deformación */
+    .big-image, .vista-rapida-contenido img {
+        width: 100% !important;
+        height: auto !important; /* Permite que la altura crezca según la foto */
+        max-height: 350px !important; /* Límite para que no ocupe toda la pantalla */
+        object-fit: contain !important; /* Mantiene la imagen completa sin recortar */
+        aspect-ratio: auto !important; /* Elimina proporciones forzadas */
+        display: block;
+    }
+
+    /* Ajuste de la cuadrícula para que la info baje correctamente */
+    .vista-rapida-contenido {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 15px !important;
+        gap: 10px !important;
     }
 }
 
-/* Scrollbar Azul Hermoso */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb { background: var(--azul-hermoso); border-radius: 10px; }
+/* Botón de Cerrar (Flotante) */
+.cerrar-panel {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: #eee;
+    border-radius: 50%;
+    width: 35px; height: 35px;
+    border: none;
+    z-index: 10;
+    cursor: pointer;
+}

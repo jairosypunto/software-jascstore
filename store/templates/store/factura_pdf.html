@@ -27,22 +27,40 @@
     .img-producto { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
 
     .text-right { text-align: right; }
+    .text-center { text-align: center; }
     .text-muted { color: #7f8c8d; font-size: 10px; }
     .text-success { color: #1a237e; font-weight: bold; font-size: 18px; }
+    
     .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; }
     .bg-pendiente { background-color: #e67e22; }
     .bg-pagado { background-color: #27ae60; }
     .bg-fallido { background-color: #c0392b; }
 
-    .btn-whatsapp {
+    /* BOTONES ESTILO JASCSTORE */
+    .btn-whatsapp, .btn-pdf {
       display: inline-block;
-      background-color: #25D366;
-      color: white;
       padding: 10px 20px;
       border-radius: 50px;
       text-decoration: none;
       font-weight: bold;
-      margin-top: 20px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-whatsapp { background-color: #25D366; color: white; }
+    /* Botón PDF con tu Azul Hermoso */
+    .btn-pdf { background-color: #1a237e; color: white; }
+
+    /* =========================================================
+       OCULTAR BOTONES AL MOMENTO DE GENERAR EL PDF 
+       ========================================================= */
+    @media print {
+      .no-print, .btn-pdf, .btn-whatsapp, #whatsapp-btn, .header-bar {
+        display: none !important;
+        visibility: hidden !important;
+      }
+      body { padding: 20px; } /* Ajuste de margen para papel */
     }
   </style>
 </head>
@@ -130,15 +148,24 @@
     <p class="text-muted">Precios expresados en Pesos Colombianos (COP).</p>
   </div>
 
-  <div style="text-align: center; margin-top: 40px;">
-    <p>¿Tienes dudas con tu pedido?</p>
-    <a href="https://wa.me/573016173378?text=Hola%20JascStore!%20Tengo%20una%20duda%20sobre%20mi%20factura%20{{ factura.id }}" class="btn-whatsapp">
-      💬 Escríbenos por WhatsApp
-    </a>
-    <p class="text-muted" style="margin-top: 25px;">
-      Esta factura electrónica es un soporte de compra en JascStore.<br>
-      Gracias por confiar en nosotros.
-    </p>
+  <div class="text-center no-print" style="margin-top: 40px; border-top: 1px dashed #ddd; padding-top: 30px;">
+    <p style="margin-bottom: 20px; font-weight: bold; color: #1a237e;">¿Qué te gustaría hacer ahora?</p>
+    
+      <a href="/store/" class="btn-volver-texto">
+        🏠 Volver a la Tienda
+      </a>
+    <div class="contenedor-botones-vertical">
+      <button onclick="window.print()" class="btn-pdf">
+        📄 Descargar Factura PDF
+      </button>
+    </div>
+
+    <div style="margin-top: 30px;">
+      <a href="https://wa.me/573016173378?text=Hola%20JascStore!..." class="btn-whatsapp">
+        💬 Escríbenos por WhatsApp
+      </a>
+    </div>
   </div>
+
 </body>
 </html>

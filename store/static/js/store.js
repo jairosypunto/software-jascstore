@@ -157,30 +157,85 @@ function eliminarItemCarrito(itemKey) {
 }
 
 /* =====================================================
-    VISTA RÁPIDA (PANEL LATERAL / MODAL) - JascStore
-    CORRECCIÓN: Fuerza la apertura tras cerrar el carrito
+    VISTA CARRITO (MODAL LATERAL)
+===================================================== */
+function abrirCarritoModal(id) {
+    const modal = document.getElementById("carritoModal");
+    const overlay = document.querySelector(".carrito-overlay");
+    const cont = document.getElementById("contenidoCarrito");
+    
+    if (!modal || !id) return;
+
+    // --- CORRECCIÓN DE OPACIDAD ---
+    // Cerramos la vista rápida antes para evitar doble fondo oscuro
+    const panelVR = document.getElementById("vistaRapidaPanel");
+    if (panelVR) panelVR.classList.remove("visible");
+
+    modal.classList.remove("hidden");
+    modal.style.display = "block";
+    
+    // Activamos el overlay correctamente
+    if (overlay) {
+        overlay.style.display = "block";
+        overlay.classList.add("overlay-active"); // Clase para controlar opacidad
+    }
+
+    cont.innerHTML = `
+        <div class='p-5 text-center'>
+            <div class='spinner-border' style='color: #1a237e; width: 3rem; height: 3rem;'></div>
+            <p class='mt-3 fw-bold' style='color: #1a237e;'>Cargando opciones...</p>
+        </div>`;
+
+    fetch(`/store/carrito-modal/${id}/`)
+        .then(res => {
+            if (!res.ok) throw new Error("404/500 Server Error");
+            return res.text();
+        })
+        .then(html => { 
+            if (cont) {
+                cont.innerHTML = html; 
+                setTimeout(() => {
+                    if (typeof window.initVistaRapida === "function") {
+                        window.initVistaRapida(cont); 
+                    }
+                }, 50);
+            }
+        })
+        .catch(err => { 
+            console.error("🔴 Error:", err);
+            cont.innerHTML = "<p class='p-4 text-center text-danger'>Error al cargar opciones.</p>"; 
+        });
+}
+
+/* =====================================================
+    VISTA RÁPIDA (MODAL CENTRAL)
 ===================================================== */
 function abrirVistaRapida(id) {
     const panel = document.getElementById("vistaRapidaPanel");
+    const overlayVR = document.querySelector(".vista-rapida-overlay");
     const cont = document.getElementById("contenidoProducto");
     
     if (!panel || !cont || !id) return;
 
-    // --- SOLUCIÓN AL CONFLICTO CON EL CARRITO ---
-    // 1. Forzamos que el panel sea visible (por si el carrito lo dejó oculto)
+    // --- CORRECCIÓN DE OPACIDAD ---
+    // Si el carrito está abierto, lo cerramos para limpiar su overlay
+    const modalCarrito = document.getElementById("carritoModal");
+    if (modalCarrito) modalCarrito.classList.add("hidden");
+
     panel.style.display = "block"; 
     panel.classList.remove("hidden");
     panel.classList.add("visible");
 
-    // 2. Limpiamos cualquier rastro previo y reseteamos el scroll
+    // Activamos su overlay específico
+    if (overlayVR) {
+        overlayVR.style.display = "block";
+        overlayVR.classList.add("overlay-active");
+    }
+
     cont.innerHTML = "";
     panel.scrollTop = 0;
-
-    // 3. Aseguramos que el body permita ver el modal (Azul Hermoso JascStore)
     document.body.style.overflow = "hidden";
-    // --------------------------------------------
 
-    // Spinner de carga
     cont.innerHTML = `
         <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px;">
             <div class="spinner-border" style="color: #1a237e; width: 3rem; height: 3rem;" role="status">
@@ -447,44 +502,6 @@ function initEventosGlobales() {
     });
 }
 
-// Busca esta parte en tu store.js y reemplázala por esta versión corregida:
-function abrirCarritoModal(id) {
-    const modal = document.getElementById("carritoModal");
-    const overlay = document.querySelector(".carrito-overlay");
-    const cont = document.getElementById("contenidoCarrito");
-    
-    if (!modal || !id) return;
-
-    modal.classList.remove("hidden");
-    modal.style.display = "block";
-    if (overlay) overlay.style.display = "block";
-
-    cont.innerHTML = `
-        <div class='p-5 text-center'>
-            <div class='spinner-border' style='color: #0f087e; width: 3rem; height: 3rem;'></div>
-            <p class='mt-3 fw-bold' style='color: #0f087e;'>Cargando opciones...</p>
-        </div>`;
-
-    fetch(`/store/carrito-modal/${id}/`)
-        .then(res => {
-            if (!res.ok) throw new Error("404/500 Server Error");
-            return res.text();
-        })
-        .then(html => { 
-            if (cont) {
-                cont.innerHTML = html; 
-                // 🔥 LA CLAVE: Volver a ejecutar la lógica de sincronización
-                // para que los nuevos botones de talla/color funcionen.
-                setTimeout(() => {
-                    initVistaRapida(cont); 
-                }, 50);
-            }
-        })
-        .catch(err => { 
-            console.error("🔴 Error:", err);
-            cont.innerHTML = "<p class='p-4 text-center text-danger'>Error al cargar opciones.</p>"; 
-        });
-}
 
 
 // 4. Función de cierre obligatoria - Actualizada JascStore

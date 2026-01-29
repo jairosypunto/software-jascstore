@@ -5,18 +5,19 @@
 {% block content %}
 <style>
     :root {
-        --azul-premium: #1a237e; /* El Azul Hermoso */
+        --azul-premium: #1a237e; /* Tu Azul Hermoso */
         --azul-claro: #e8eaf6;
     }
     .card-factura {
         border: none;
         border-radius: 15px;
         overflow: hidden;
+        background-color: white;
     }
     .header-premium {
         background-color: var(--azul-premium);
         color: white;
-        padding: 25px;
+        padding: 30px;
     }
     .table-premium thead {
         background-color: #f8f9fa;
@@ -36,86 +37,138 @@
         border-radius: 5px;
         margin-right: 5px;
     }
+
+    /* ESTILOS DE IMPRESIÓN PROFESIONAL */
+    @media print {
+        @page { size: portrait; margin: 1cm; }
+        .no-print, nav, footer, .btn, .d-flex.justify-content-center, hr.no-print {
+            display: none !important;
+        }
+        .container {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .card-factura {
+            box-shadow: none !important;
+            border: none !important;
+        }
+        .header-premium {
+            background-color: var(--azul-premium) !important;
+            -webkit-print-color-adjust: exact;
+            color: white !important;
+        }
+        .table-premium thead {
+            background-color: #f8f9fa !important;
+            -webkit-print-color-adjust: exact;
+        }
+        body { background-color: white !important; }
+    }
 </style>
 
 <div class="container mt-5 mb-5">
-    <div class="card card-factura shadow-lg">
-        <div class="header-premium text-center">
-            <h3 class="fw-bold mb-0">🧾 Resumen de Pedido #{{ factura.id }}</h3>
-            <p class="mb-0 opacity-75">¡Gracias por tu compra, {{ factura.nombre }}!</p>
+    <div class="card card-factura shadow-lg" id="factura-imprimir">
+        <div class="header-premium">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-start">
+                    <h2 class="fw-bold mb-0">JascStore</h2>
+                    <p class="small mb-0 opacity-75">NIT: 900.XXX.XXX-1</p>
+                </div>
+                <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                    <h3 class="fw-light mb-0">Factura #{{ factura.id }}</h3>
+                    <p class="small mb-0 opacity-75">{{ factura.fecha|date:"d F, Y" }}</p>
+                </div>
+            </div>
         </div>
         
-        <div class="card-body p-4">
-            <div class="alert alert-success border-0 shadow-sm text-center py-3" style="background-color: #e8f5e9; color: #2e7d32;">
-                <i class="bi bi-check-circle-fill me-2"></i> ¡Pago aprobado! Hemos registrado tu pedido correctamente.
+        <div class="card-body p-4 p-md-5">
+            <div class="alert alert-success border-0 shadow-sm text-center py-3 no-print" style="background-color: #e8f5e9; color: #2e7d32;">
+                <i class="bi bi-check-circle-fill me-2"></i> ¡Pago aprobado! Tu pedido ha sido procesado con éxito.
             </div>
 
-            <div class="table-responsive mt-4">
-                <table class="table table-hover align-middle table-premium">
+            <div class="row mb-4 mt-2">
+                <div class="col-6">
+                    <h6 class="text-muted text-uppercase fw-bold small">Facturado a:</h6>
+                    <p class="mb-0 fw-bold" style="color: var(--azul-premium);">{{ factura.nombre }}</p>
+                    <p class="small mb-0 text-muted">{{ factura.email }}</p>
+                    <p class="small mb-0 text-muted">{{ factura.telefono }}</p>
+                </div>
+                <div class="col-6 text-end">
+                    <h6 class="text-muted text-uppercase fw-bold small">Envío a:</h6>
+                    <p class="mb-0">{{ factura.direccion }}</p>
+                    <p class="small mb-0">{{ factura.ciudad }}, {{ factura.departamento }}</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle table-premium">
                     <thead>
                         <tr>
-                            <th>Imagen</th>
-                            <th>Producto</th>
+                            <th class="no-print">Imagen</th>
+                            <th>Descripción</th>
                             <th class="text-center">Cant.</th>
-                            <th class="text-end">Precio Unit.</th> 
+                            <th class="text-end">Unitario</th> 
                             <th class="text-end">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in factura.detalles.all %}
                         <tr>
-                            <td style="width: 80px;">
+                            <td class="no-print" style="width: 80px;">
                                 {% if item.imagen_url %}
-                                    <img src="{{ item.imagen_url }}" width="70" height="70" class="img-producto shadow-sm">
-                                {% else %}
-                                    <div class="bg-light text-center py-3 border rounded" style="width: 70px;">
-                                        <i class="bi bi-image text-muted"></i>
-                                    </div>
+                                    <img src="{{ item.imagen_url }}" width="60" height="60" class="img-producto">
                                 {% endif %}
                             </td>
                             <td>
                                 <span class="fw-bold d-block" style="color: var(--azul-premium);">{{ item.producto.name }}</span>
-                                <div class="mt-1">
-                                    <span class="badge-variante">Talla: {{ item.talla|default:"N/A" }}</span>
-                                    <span class="badge-variante">Color: {{ item.color|default:"N/A" }}</span>
-                                </div>
+                                <span class="text-muted small">Talla: {{ item.talla|default:"N/A" }} | Color: {{ item.color|default:"N/A" }}</span>
                             </td>
-                            <td class="text-center fw-bold">{{ item.cantidad }}</td>
-                            
+                            <td class="text-center">{{ item.cantidad }}</td>
                             <td class="text-end text-muted">
                                 $ {% widthratio item.subtotal item.cantidad 1 as precio_u %}
                                 {{ precio_u|floatformat:0|intcomma }}
                             </td>
-                            
-                            <td class="text-end fw-bold text-dark">${{ item.subtotal|floatformat:0|intcomma }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No se encontraron detalles.</td>
+                            <td class="text-end fw-bold">${{ item.subtotal|floatformat:0|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot>
+                    <tfoot class="border-top">
                         <tr>
-                            <th colspan="4" class="text-end pt-4" style="font-size: 1.1rem;">Total Pagado:</th>
+                            <th colspan="3" class="no-print"></th>
+                            <th class="text-end pt-4 h5">Total Pagado:</th>
                             <th class="text-end pt-4 h4 fw-bold" style="color: var(--azul-premium);">${{ factura.total|floatformat:0|intcomma }}</th>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <hr class="my-4" style="opacity: 0.1;">
+            <div class="text-center mt-5 no-print">
+                <hr class="mb-4" style="opacity: 0.1;">
+                <p class="mb-3 fw-bold" style="color: var(--azul-premium);">¿Qué te gustaría hacer ahora?</p>
+                
+                <div class="mb-4 d-grid d-md-block gap-2">
+                    <button onclick="window.print()" class="btn btn-lg shadow" 
+                            style="background-color: var(--azul-premium); color: white; border-radius: 50px; padding: 12px 40px; font-weight: bold; border: none;">
+                        📄 DESCARGAR FACTURA PDF
+                    </button>
+                </div>
 
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{% url 'store:store' %}" class="btn btn-primary px-4 shadow-sm py-2" style="background-color: var(--azul-premium); border: none;">
-                    Seguir Comprando
-                </a>
-                <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-dark px-4 py-2">
-                    Ver Mis Pedidos
-                </a>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'store:store' %}" class="btn btn-outline-primary px-4" style="border-radius: 50px; border-color: var(--azul-premium); color: var(--azul-premium);">
+                        Seguir Comprando
+                    </a>
+                    <a href="{% url 'store:mis_facturas' %}" class="btn btn-outline-dark px-4" style="border-radius: 50px;">
+                        Mis Pedidos
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-5 pt-4 border-top text-center text-muted small">
+                <p class="mb-0">Gracias por elegir a <strong>JascStore</strong>. Si tienes dudas sobre tu pedido, contáctanos por WhatsApp.</p>
+                <p>Este documento es un comprobante de pago válido.</p>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}

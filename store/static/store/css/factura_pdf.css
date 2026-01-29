@@ -37,3 +37,88 @@
     font-size: 1.5rem;
     font-weight: 900;
 }
+
+/* --- ESTILOS DE BOTONES Y CENTRADO --- */
+
+/* Contenedor para apilar Volver y PDF uno sobre otro */
+.contenedor-botones-vertical {
+    display: flex;
+    flex-direction: column; /* Alineación vertical */
+    align-items: center;    /* Centrado horizontal */
+    gap: 15px;              /* Espacio entre el link y el botón */
+    margin-bottom: 20px;
+}
+
+.btn-pdf {
+    background-color: var(--azul-premium); /* Tu Azul Hermoso */
+    color: white;
+    padding: 12px 25px;
+    border-radius: 50px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.2);
+    display: inline-block;
+}
+
+.btn-pdf:hover {
+    background-color: #3949ab;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 35, 126, 0.3);
+}
+
+.btn-volver-texto {
+    text-decoration: none;
+    font-weight: bold;
+    color: var(--azul-premium); /* Tu Azul Hermoso */
+    font-size: 14px;
+    transition: 0.3s;
+    padding: 5px 10px;
+    border-bottom: 2px solid transparent;
+}
+
+.btn-volver-texto:hover {
+    border-bottom: 2px solid var(--azul-premium);
+    transform: scale(1.05);
+}
+
+/* Botón de WhatsApp */
+.btn-whatsapp {
+    display: inline-block;
+    background-color: #25D366;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+/* =========================================================
+   REGLAS DE IMPRESIÓN REFORZADAS
+   ========================================================= */
+@media print {
+    /* Ocultamos absolutamente todos los elementos de navegación y acción */
+    .no-print, 
+    .btn-pdf, 
+    .btn-volver-texto, 
+    .btn-whatsapp, 
+    #whatsapp-btn, 
+    .contenedor-botones-vertical,
+    button {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    /* Ajuste para que la factura ocupe bien el papel */
+    body {
+        padding: 10px !important;
+        margin: 0 !important;
+    }
+}
