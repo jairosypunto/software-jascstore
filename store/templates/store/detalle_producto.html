@@ -8,22 +8,22 @@
   <div class="row g-4">
 
     <div class="col-md-6">
-      <div id="imagen-principal" class="imagen-principal mb-3 text-center">
+      <div id="contenedor-principal" class="mb-3 text-center bg-light rounded shadow-sm p-2" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
         {% if producto.image %}
-          <img src="{{ producto.image.url }}" class="img-fluid rounded shadow" style="max-height: 500px;" id="main-view">
+          <img src="{{ producto.image.url }}" class="img-fluid rounded" style="max-height: 500px; object-fit: contain;" id="main-view">
         {% else %}
-          <img src="{% static 'img/no-image.png' %}" class="img-fluid rounded shadow" style="max-height: 500px;">
+          <img src="{% static 'img/no-image.png' %}" class="img-fluid rounded" style="max-height: 500px;">
         {% endif %}
       </div>
 
       <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
         {% if producto.image %}
           <img src="{{ producto.image.url }}"
-               class="miniatura activa activa-azul"
+               class="miniatura activa-azul"
                data-type="image"
                data-src="{{ producto.image.url }}"
-               data-color="" 
-               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
+               data-color="General" 
+               style="width: 75px; height: 75px; object-fit: cover; cursor: pointer; border-radius: 8px; border: 2px solid #eee;">
         {% endif %}
 
         {% for img in producto.images.all %}
@@ -32,104 +32,89 @@
                data-type="image"
                data-src="{{ img.image.url }}"
                data-color="{{ img.color_vinculado|default:'' }}"
-               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
+               title="{{ img.color_vinculado }}"
+               style="width: 75px; height: 75px; object-fit: cover; cursor: pointer; border-radius: 8px; border: 2px solid #eee;">
         {% endfor %}
 
         {% if producto.video_file %}
-          <img src="{{ producto.video_thumb.url }}"
-               class="miniatura"
-               data-type="video"
-               data-src="{{ producto.video_file.url }}"
-               data-poster="{{ producto.video_thumb.url }}"
-               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
-        {% endif %}
-
-        {% if producto.video_url %}
-          <img src="{{ producto.video_thumb.url }}"
-               class="miniatura"
-               data-type="video"
-               data-src="{{ producto.video_url }}"
-               data-poster="{{ producto.video_thumb.url }}"
-               style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 5px; border: 2px solid #ddd;">
+          <div class="miniatura position-relative" data-type="video" data-src="{{ producto.video_file.url }}" style="width: 75px; height: 75px; cursor: pointer;">
+            <img src="{{ producto.video_thumb.url }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 2px solid #eee;">
+            <i class="bi bi-play-circle-fill position-absolute top-50 start-50 translate-middle text-white fs-4"></i>
+          </div>
         {% endif %}
       </div>
     </div>
 
     <div class="col-md-6">
-      <h2 class="fw-bold" style="color: var(--azul-hermoso);">{{ producto.name }}</h2>
-      <p class="text-muted">{{ producto.description }}</p>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Inicio</a></li>
+          <li class="breadcrumb-item active">{{ producto.category.name }}</li>
+        </ol>
+      </nav>
 
-      <div class="precios mb-4">
+      <h2 class="fw-bold" style="color: #1a237e;">{{ producto.name }}</h2>
+      
+      <div class="precios mb-3">
         {% if producto.discount > 0 %}
-          <span class="fs-3 text-danger fw-bold">${{ producto.final_price|floatformat:0 }}</span>
-          <span class="text-muted text-decoration-line-through ms-2">${{ producto.cost|floatformat:0 }}</span>
-          <span class="badge bg-danger ms-2">-{{ producto.discount }}%</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-2 fw-bold text-danger">${{ producto.final_price|floatformat:0 }}</span>
+            <span class="text-muted text-decoration-line-through">${{ producto.cost|floatformat:0 }}</span>
+            <span class="badge bg-danger">OFERTA -{{ producto.discount }}%</span>
+          </div>
         {% else %}
-          <span class="fs-3 fw-bold" style="color: var(--azul-hermoso);">${{ producto.cost|floatformat:0 }}</span>
+          <span class="fs-2 fw-bold" style="color: #1a237e;">${{ producto.cost|floatformat:0 }}</span>
         {% endif %}
       </div>
 
-      <form method="POST"
-            action="{% url 'store:agregar_al_carrito' producto.id %}"
-            id="form-add-cart"
-            data-product-id="{{ producto.id }}">
+      <hr>
+
+      <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}" id="form-add-cart">
         {% csrf_token %}
 
         {% if producto.talla_list %}
         <div class="mb-4">
-          <label class="fw-bold d-block mb-2">Tallas:</label>
+          <label class="fw-bold mb-2">Selecciona tu Talla:</label>
           <div class="d-flex gap-2 flex-wrap">
             {% for talla in producto.talla_list %}
-            <label class="option-chip size-chip">
-              <input type="radio"
-                     name="selected_size"
-                     value="{{ talla }}"
-                     class="visually-hidden">
-              <span class="btn btn-outline-secondary size-btn">{{ talla }}</span>
+            <label class="size-option">
+              <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden" required>
+              <span class="btn btn-outline-dark px-3 py-2">{{ talla }}</span>
             </label>
             {% endfor %}
           </div>
         </div>
         {% endif %}
 
-        {% if producto.color_visual_list %}
-        <div class="mb-4">
-          <label class="fw-bold d-block mb-2">Colores:</label>
-          <div class="d-flex gap-2 flex-wrap">
-            {% for color in producto.color_visual_list %}
-              <label class="option-chip color-chip">
-                <input type="radio"
-                      name="selected_color"
-                      value="{{ color.nombre }}"
-                      class="visually-hidden">
-                <span class="color-indicator" 
-                      style="background-color: {{ color.css }}; 
-                             padding: 8px 15px; 
-                             border-radius: 20px; 
-                             display: inline-block; 
-                             cursor: pointer; 
-                             border: 2px solid #ddd;
-                             color: {% if color.nombre == 'Blanco' or color.css == '#ffffff' %}#000{% else %}#fff{% endif %};">
-                  {{ color.nombre }}
-                </span>
-              </label>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
+        {% if producto.color_list %}
+{% if producto.color_list %}
+<div class="mb-4">
+  <label class="fw-bold mb-2">Color seleccionado: <span id="nombre-color-display" class="text-white badge" style="background-color: #1a237e;">Ninguno</span></label>
+  <div class="d-flex gap-2 flex-wrap">
+    {% for color in producto.color_list %}
+      <label class="color-option" style="pointer-events: none; opacity: 0.6;" id="wrapper-color-{{ color|slugify }}">
+        <input type="radio" 
+               name="selected_color" 
+               value="{{ color }}" 
+               class="visually-hidden" 
+               disabled> <span class="btn btn-sm btn-outline-secondary px-3 rounded-pill">{{ color }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  <small class="text-muted d-block mt-1">Elige el color tocando la foto del producto.</small>
+</div>
+{% endif %}
 
-        <input type="hidden" name="selected_size_hidden" id="selected_size_hidden">
-        <input type="hidden" name="selected_color_hidden" id="selected_color_hidden">
         <input type="hidden" name="cantidad" value="1">
 
         <div class="d-grid gap-2">
-            <button type="submit"
-                    class="btn btn-lg mt-3 btn-agregar text-white"
-                    id="btn-add-main"
-                    style="background-color: var(--azul-hermoso); border: none;"
-                    disabled>
-              <i class="bi bi-cart-plus"></i> Agregar al carrito
+            <button type="submit" class="btn btn-lg text-white shadow-sm" id="btn-add-main" 
+                    style="background-color: #1a237e; border-radius: 50px; padding: 15px;" disabled>
+              <i class="bi bi-cart-plus-fill me-2"></i> AGREGAR AL CARRITO
             </button>
+            <p class="text-center text-muted mt-2" style="font-size: 0.8rem;">
+              <i class="bi bi-shield-check"></i> Pago seguro y Garantía JascStore
+            </p>
         </div>
       </form>
     </div>
@@ -138,87 +123,84 @@
 </div>
 
 <style>
-/* Variables de color */
-:root {
-    --azul-hermoso: #1a237e;
-    --azul-brillante: #3949ab;
+/* Tu Azul Hermoso como variable */
+:root { --jasc-azul: #1a237e; }
+
+/* Miniaturas */
+.miniatura { transition: all 0.2s ease; }
+.miniatura:hover { transform: translateY(-3px); border-color: #ccc !important; }
+.miniatura.activa-azul { 
+    border: 3px solid var(--jasc-azul) !important; 
+    box-shadow: 0 4px 10px rgba(26,35,126,0.3);
 }
 
-/* Efecto de selección para miniaturas */
-.miniatura.activa-azul {
-    border: 3px solid var(--azul-hermoso) !important;
-    box-shadow: 0 0 10px rgba(26, 35, 126, 0.5);
-    transform: scale(1.05);
-}
-
-/* Efecto visual cuando se selecciona una talla o color */
+/* Botones de opción (Radio Buttons) */
 input[type="radio"]:checked + span {
-    border-color: var(--azul-hermoso) !important;
-    background-color: var(--azul-hermoso) !important;
-    color: #fff !important;
-    box-shadow: 0 0 5px rgba(26, 35, 126, 0.5);
+    background-color: var(--jasc-azul) !important;
+    color: white !important;
+    border-color: var(--jasc-azul) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.size-btn {
-    min-width: 45px;
-    text-align: center;
-    transition: 0.3s;
-}
-
-/* Estado deshabilitado del botón */
 #btn-add-main:disabled {
-    background-color: #cccccc !important;
-    cursor: not-allowed;
-    opacity: 0.6;
+    background-color: #b0bec5 !important;
+    opacity: 0.7;
 }
 </style>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/store.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('form-add-cart');
     const btnAdd = document.getElementById('btn-add-main');
-    const sizeRadios = document.querySelectorAll('input[name="selected_size"]');
     const colorRadios = document.querySelectorAll('input[name="selected_color"]');
-    const sizeHidden = document.getElementById('selected_size_hidden');
-    const colorHidden = document.getElementById('selected_color_hidden');
+    const sizeRadios = document.querySelectorAll('input[name="selected_size"]');
+    const colorLabel = document.getElementById('nombre-color-display');
 
-    function checkValidity() {
-        const sizeSelected = Array.from(sizeRadios).some(r => r.checked) || sizeRadios.length === 0;
-        const colorSelected = Array.from(colorRadios).some(r => r.checked) || colorRadios.length === 0;
-
-        if (sizeSelected && colorSelected) {
-            btnAdd.disabled = false;
-            btnAdd.innerHTML = '<i class="bi bi-cart-check-fill"></i> ¡Listo para añadir!';
-        }
+    // Función para validar si el botón de compra se activa
+    function validarFormulario() {
+        const sizeOk = sizeRadios.length === 0 || Array.from(sizeRadios).some(r => r.checked);
+        const colorOk = colorRadios.length === 0 || Array.from(colorRadios).some(r => r.checked);
+        btnAdd.disabled = !(sizeOk && colorOk);
     }
 
-    sizeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            sizeHidden.value = e.target.value;
-            checkValidity();
-        });
-    });
-
-    colorRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            colorHidden.value = e.target.value;
-            checkValidity();
-        });
-    });
-
-    // Manejo de cambio de imagen principal al hacer clic en miniaturas
+    // Al hacer clic en una miniatura
     document.querySelectorAll('.miniatura').forEach(thumb => {
         thumb.addEventListener('click', function() {
-            const mainImg = document.getElementById('main-view');
-            if (this.dataset.type === 'image') {
-                mainImg.src = this.dataset.src;
+            const type = this.dataset.type;
+            const src = this.dataset.src;
+            const colorAsociado = this.dataset.color;
+            const display = document.getElementById('contenedor-principal');
+
+            // 1. Cambiar contenido principal (Imagen o Video)
+            if (type === 'video') {
+                display.innerHTML = `<video controls autoplay muted class="img-fluid rounded" style="max-height:500px;"><source src="${src}" type="video/mp4"></video>`;
+            } else {
+                display.innerHTML = `<img src="${src}" class="img-fluid rounded" style="max-height:500px; object-fit:contain;" id="main-view">`;
             }
-            // Quitar clase activa de todas y poner a esta
+
+            // 2. Resaltar miniatura seleccionada
             document.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa-azul'));
             this.classList.add('activa-azul');
+
+            // 3. LOGICA TEMU: Seleccionar automáticamente el botón de color
+            if (colorAsociado && colorAsociado !== 'General') {
+                colorRadios.forEach(radio => {
+                    if (radio.value.toLowerCase().trim() === colorAsociado.toLowerCase().trim()) {
+                        radio.checked = true;
+                        colorLabel.textContent = colorAsociado;
+                    }
+                });
+            }
+            validarFormulario();
+        });
+    });
+
+    // Escuchar cambios manuales en radios
+    [...colorRadios, ...sizeRadios].forEach(input => {
+        input.addEventListener('change', () => {
+            if(input.name === 'selected_color') colorLabel.textContent = input.value;
+            validarFormulario();
         });
     });
 });

@@ -1,6 +1,4 @@
 from django.apps import AppConfig
-from django.contrib.auth import get_user_model
-from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,11 +8,16 @@ class StoreConfig(AppConfig):
     name = 'store'
 
     def ready(self):
-        import store.signals
+        # 1. Importamos las señales (Obligatorio para que el stock funcione)
+        import store.signals 
 
-        # ⚠️ Crear superusuario automáticamente puede dar warnings en Railway
+        # 2. Lógica de Superusuario (Solo si realmente no existe)
+        # Usamos una importación local para evitar el RuntimeWarning de la base de datos
         try:
+            from django.contrib.auth import get_user_model
             User = get_user_model()
+            
+            # Verificamos la existencia del admin de forma segura
             if not User.objects.filter(username="admin").exists():
                 User.objects.create_superuser(
                     username="admin",
@@ -23,41 +26,10 @@ class StoreConfig(AppConfig):
                     name="Jairo",
                     lastname="Salazar"
                 )
-                logger.info("Superusuario 'admin' creado automáticamente.")
+                logger.info("✅ Superusuario 'admin' creado exitosamente.")
         except Exception as e:
-            logger.error(f"Error creando superusuario: {e}")
+            # Esto evita que el servidor se caiga si la DB no está lista en Railway
+            logger.debug(f"Nota: No se procesó el superusuario en este inicio: {e}")
 
-        # 🔄 Forzar que default_storage sea Cloudinary en producción
-        if not settings.DEBUG:
-            try:
-                from cloudinary_storage.storage import MediaCloudinaryStorage
-                from django.core.files.storage import default_storage
-                # Reemplazar el objeto default_storage directamente
-                default_storage._wrapped = MediaCloudinaryStorage()
-                logger.info("✅ default_storage reemplazado por MediaCloudinaryStorage en producción.")
-            except Exception as e:
-                logger.error(f"⚠️ Error configurando Cloudinary como default_storage: {e}")
-
-        # 🔄 Re-vincular storage de los modelos al default (Cloudinary o FS)
-        try:
-            from .models import Product, Banner, ProductImage
-            targets = {
-                Product: ['image', 'video_file', 'video_thumb'],
-                Banner: ['image'],
-                ProductImage: ['image'],
-            }
-
-            for model, fields in targets.items():
-                for fname in fields:
-                    try:
-                        field = model._meta.get_field(fname)
-                        field.storage = default_storage
-                        logger.info(
-                            f"{model.__name__}.{fname} storage rebind → {field.storage.__class__.__name__}"
-                        )
-                    except Exception as e:
-                        logger.error(f"Error rebinding {model.__name__}.{fname}: {e}")
-        except Exception as e:
-            logger.error(f"Error importando modelos en StoreConfig.ready(): {e}")
-            
-            
+        # LOG DE ÉXITO (Estilo JascEcommerce)
+        print("--- Aplicación Store: Operativa y Vinculada ---")

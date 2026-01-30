@@ -4,10 +4,11 @@ import dj_database_url
 import logging
 import os
 
+# Directorio Base
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ================================
-# 🔐 Seguridad
+# 🔐 SEGURIDAD
 # ================================
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="cambia-esto-en-produccion")
 
@@ -43,12 +44,12 @@ else:
     CSRF_COOKIE_SECURE = False
 
 # ================================
-# 🧠 Modelo de usuario personalizado
+# 🧠 MODELO DE USUARIO PERSONALIZADO
 # ================================
 AUTH_USER_MODEL = "auths.Auth"
 
 # ================================
-# 🗃️ Base de datos
+# 🗃️ BASE DE DATOS (PostgreSQL)
 # ================================
 if DEBUG:
     DATABASES = {
@@ -71,25 +72,7 @@ else:
     }
 
 # ================================
-# 🔐 Validación de contraseñas
-# ================================
-AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-]
-
-# ================================
-# 🌍 Internacionalización
-# ================================
-LANGUAGE_CODE = "es-co"
-TIME_ZONE = "America/Bogota"
-USE_I18N = True
-USE_TZ = True
-
-# ================================
-# 📦 Aplicaciones instaladas
+# 📦 APLICACIONES INSTALADAS
 # ================================
 INSTALLED_APPS = [
     "usuario.apps.UsuarioConfig",
@@ -101,13 +84,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "auths",
-    "store.apps.StoreConfig",   # ⚠️ importante que sea StoreConfig
+    "store.apps.StoreConfig", 
     "home",
     "pedidos",
 
     "django.contrib.humanize",
     "django_extensions",
 
+    # Cloudinary: Importante el orden para evitar conflictos
     "cloudinary",
     "cloudinary_storage",
 
@@ -116,11 +100,11 @@ INSTALLED_APPS = [
 ]
 
 # ================================
-# ⚙️ Middleware
+# ⚙️ MIDDLEWARE
 # ================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Vital para el CSS Azul
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Soporte para CSS Azul Hermoso
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -139,13 +123,13 @@ if not DEBUG:
     )
 
 # ================================
-# 🌐 URLs y WSGI
+# 🌐 URLS Y WSGI
 # ================================
 ROOT_URLCONF = "JascEcommerce.urls"
 WSGI_APPLICATION = "JascEcommerce.wsgi.application"
 
 # ================================
-# 🧠 Plantillas
+# 🧠 PLANTILLAS
 # ================================
 TEMPLATES = [
     {
@@ -172,7 +156,7 @@ TEMPLATES = [
 ]
 
 # ================================
-# 🎨 Archivos estáticos
+# 🎨 ARCHIVOS ESTÁTICOS
 # ================================
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
@@ -184,9 +168,8 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # ================================
-# 🖼️ Media y Almacenamiento (Local vs Cloudinary)
+# 🖼️ MEDIA Y ALMACENAMIENTO (Moderno)
 # ================================
-# Se usa la sintaxis moderna de Django para evitar el error de StorageHandler
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -204,12 +187,13 @@ if not DEBUG:
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Mantengo tus variables originales por compatibilidad con apps antiguas
+# Compatibilidad con apps antiguas
 if DEBUG:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
+# Configuración Cloudinary para AVIF y Video de alta velocidad
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
     "API_KEY": config("CLOUDINARY_API_KEY", default=""),
@@ -217,21 +201,20 @@ CLOUDINARY_STORAGE = {
 }
 
 # ================================
-# 🔐 Login / Logout
+# 🔐 LOGIN / LOGOUT Y SESIONES
 # ================================
 LOGIN_URL = "account:login"
 LOGIN_REDIRECT_URL = "/account/dashboard/"
 LOGOUT_URL = "account:logout"
 LOGOUT_REDIRECT_URL = "/home/"
 
-# Obliga a Django a guardar el carrito en cada movimiento
 SESSION_SAVE_EVERY_REQUEST = True  
 SESSION_COOKIE_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_COOKIE_AGE = 86400  # Mantiene la sesión activa por 24 horas
+SESSION_COOKIE_AGE = 86400  # 24 Horas de retención del cliente
 
 # ================================
-# 📧 Mail (SendGrid API)
+# 📧 MAIL (SendGrid)
 # ================================
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = config("SENDGRID_API_KEY", default="")
@@ -242,17 +225,17 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
 # ================================
-# 🆔 Llaves primarias
+# 🆔 LLAVES PRIMARIAS Y TZ
 # ================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ================================
-# 🔄 Versionado de static
+# 🔄 VERSIONADO DE STATIC (Azul Hermoso)
 # ================================
-STATIC_VERSION = "20260101183500"
+STATIC_VERSION = "20260130_v2"
 
 # ================================
-# 📊 Logging en producción
+# 📊 LOGGING
 # ================================
 LOGGING = {
     "version": 1,
@@ -266,18 +249,8 @@ LOGGING = {
     },
 }
 
-# ✅ Logging para validar en runtime
-logger = logging.getLogger(__name__)
-logger.info("CSRF_TRUSTED_ORIGINS = %s", CSRF_TRUSTED_ORIGINS)
-logger.info("ALLOWED_HOSTS = %s", ALLOWED_HOSTS)
-logger.info("DEBUG = %s", DEBUG)
-logger.info("DEFAULT_FILE_STORAGE = %s", DEFAULT_FILE_STORAGE)
-logger.info("CLOUDINARY_STORAGE = %s", CLOUDINARY_STORAGE)
-
-# ✅ Debug directo en Railway
-print("DEBUG =", DEBUG)
-print("DEFAULT_FILE_STORAGE =", DEFAULT_FILE_STORAGE)
-print("CLOUDINARY_STORAGE =", CLOUDINARY_STORAGE)
-
-from django.core.files.storage import default_storage
-print("default_storage backend class =", default_storage.__class__.__name__)
+# Logs de validación en arranque (No afectan el rebinding)
+print(f"--- JascEcommerce Status ---")
+print(f"DEBUG: {DEBUG}")
+print(f"STORAGE: {DEFAULT_FILE_STORAGE}")
+print(f"----------------------------")
