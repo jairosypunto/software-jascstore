@@ -13,6 +13,7 @@
 <style>
     :root {
         --azul-premium: #1a237e;
+        --azul-hermoso: #0f087e;
         --azul-acento: #3949ab;
         --blanco-puro: #ffffff;
     }
@@ -25,7 +26,7 @@
     }
 
     .btn-premium-banner {
-        background-color: var(--azul-premium);
+        background-color: var(--azul-hermoso);
         border: none;
         padding: 12px 30px;
         border-radius: 50px;
@@ -55,42 +56,66 @@
         border-radius: 10px;
     }
 
-    /* 👟 PRODUCT CARDS ESTILO BOUTIQUE */
+    /* 👟 PRODUCT CARDS - ESTILO TEMU */
     .product-card {
         border: none !important;
-        border-radius: 18px !important;
+        border-radius: 0 !important;
         transition: all 0.4s ease;
-        background: white;
+        background: transparent;
         overflow: hidden;
-    }
-
-    .product-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 35px rgba(26, 35, 126, 0.12) !important;
     }
 
     .product-image-wrapper {
         position: relative;
         background: #f8f9fa;
         aspect-ratio: 1/1;
+        cursor: pointer;
+        border-radius: 15px;
+        overflow: hidden;
     }
 
     .product-img {
-        mix-blend-mode: multiply; /* Ideal si tus fotos tienen fondo blanco */
+        mix-blend-mode: multiply;
+        transition: transform 0.5s ease;
     }
 
-    /* 🔘 BOTONES FLOTANTES EN CARD */
-    .quick-view, .jasc-cart {
+    .product-card:hover .product-img {
+        transform: scale(1.08);
+    }
+
+    /* 🛒 BOTÓN CARRITO ESTILO TEMU (PEQUEÑO Y AL LADO) */
+    .price-action-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Separa el precio del botón */
+        margin-top: 8px;
+        padding: 0 5px;
+    }
+
+    .jasc-cart {
         background: white !important;
-        color: var(--azul-premium) !important;
-        border: none !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        transition: all 0.3s;
+        color: #333 !important;
+        border: 1px solid #ddd !important;
+        width: 38px !important; /* Tamaño pequeño circular */
+        height: 38px !important;
+        border-radius: 50% !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        padding: 0 !important;
+        flex-shrink: 0; /* Evita que se deforme */
     }
 
-    .quick-view:hover, .jasc-cart:hover {
-        background: var(--azul-premium) !important;
-        color: white !important;
+    .jasc-cart:hover {
+        background: #f5f5f5 !important;
+        border-color: var(--azul-hermoso) !important;
+        color: var(--azul-hermoso) !important;
+        transform: scale(1.1);
+    }
+
+    .jasc-cart i {
+        font-size: 1.2rem;
     }
 
     /* 💬 WHATSAPP PREMIUM */
@@ -111,11 +136,6 @@
         z-index: 1000;
         transition: all 0.3s;
     }
-
-    .btn-whatsapp:hover {
-        transform: scale(1.1) rotate(10deg);
-        color: white;
-    }
 </style>
 {% endblock %}
 
@@ -127,7 +147,7 @@
       <div class="swiper-slide">
         <div class="banner-bg" style="background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('{{ banner.image.url }}')"></div>
         <div class="banner-caption text-center">
-          <span class="text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 3px; color: var(--dorado-suave);">Exclusivo</span>
+          <span class="text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 3px; color: #ffd700;">Exclusivo</span>
           <h2>{{ banner.title }}</h2>
           <p class="fs-5 opacity-75">{{ banner.subtitle }}</p>
           <a href="#productos" class="btn btn-premium-banner btn-lg text-white mt-3 shadow">
@@ -143,7 +163,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="shop-section">
+<section class="shop-section py-4">
   <div class="container">
 
     <div class="search-container-premium mb-5">
@@ -177,7 +197,7 @@
     </div>
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <h2 class="section-title mb-0 fw-bold" style="color: var(--azul-premium);">✨ Destacados</h2>
+        <h2 class="section-title mb-0 fw-bold" style="color: var(--azul-hermoso);">✨ Destacados</h2>
         <div class="flex-grow-1 border-bottom" style="opacity: 0.1;"></div>
     </div>
 
@@ -185,13 +205,13 @@
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
         <div class="swiper-slide">
-          <div class="destacado-card border shadow-sm rounded-4 overflow-hidden bg-white">
-            <div class="ratio ratio-1x1">
-                <img src="{{ producto.image.url }}" class="object-fit-cover" alt="{{ producto.name }}">
+          <div class="destacado-card border-0 shadow-none rounded-4 overflow-hidden bg-transparent">
+            <div class="ratio ratio-1x1 mb-2">
+                <img src="{{ producto.image.url }}" class="object-fit-cover rounded-4" alt="{{ producto.name }}">
             </div>
-            <div class="p-3 text-center">
-              <h5 class="fw-bold mb-1 text-truncate">{{ producto.name }}</h5>
-              <span class="text-primary fw-bold h5">${{ producto.final_price|floatformat:0|intcomma }}</span>
+            <div class="p-2 text-center">
+              <h5 class="fw-bold mb-1 text-truncate" style="font-size: 1rem;">{{ producto.name }}</h5>
+              <span class="text-primary fw-bold">${{ producto.final_price|floatformat:0|intcomma }}</span>
             </div>
           </div>
         </div>
@@ -200,42 +220,44 @@
     </div>
     
     <div class="d-flex align-items-center gap-3 mb-4">
-        <h2 class="section-title mb-0 fw-bold" style="color: var(--azul-premium);">🛒 Catálogo Completo</h2>
+        <h2 class="section-title mb-0 fw-bold" style="color: var(--azul-hermoso);">🛒 Catálogo Completo</h2>
         <div class="flex-grow-1 border-bottom" style="opacity: 0.1;"></div>
     </div>
 
     <div class="row g-4" id="productos">
       {% for product in productos %}
       <div class="col-6 col-md-4 col-lg-3">
-        <article class="product-card shadow-sm h-100">
-          <div class="product-image-wrapper">
+        <article class="product-card h-100">
+          
+          <div class="product-image-wrapper" onclick="abrirVistaRapida('{{ product.id }}')">
             <img src="{{ product.image.url }}" class="product-img w-100" alt="{{ product.name }}">
-            
-            <div class="product-actions position-absolute bottom-0 start-0 w-100 p-2 d-flex justify-content-center gap-2">
-                <button type="button" class="quick-view jasc-quick-view btn rounded-circle" data-id="{{ product.id }}">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button type="button" class="jasc-cart btn rounded-circle" data-id="{{ product.id }}" data-has-variants="{{ product.has_variants|yesno:'true,false' }}">
-                    <i class="bi bi-cart-plus"></i>
-                </button>
-            </div>
-
             {% if product.discount > 0 %}
-                <span class="badge bg-danger position-absolute top-0 end-0 m-3 shadow">-{{ product.discount }}%</span>
+                <span class="badge bg-danger position-absolute top-0 end-0 m-2 shadow">-{{ product.discount }}%</span>
             {% endif %}
           </div>
 
-          <div class="product-content p-3 text-center">
-            <h3 class="h6 fw-bold text-dark text-truncate mb-2">{{ product.name }}</h3>
-            <div class="price-box">
-              {% if product.discount > 0 %}
-                <span class="text-danger fw-bold fs-5">${{ product.final_price|floatformat:0|intcomma }}</span>
-                <small class="text-muted text-decoration-line-through d-block">${{ product.cost|floatformat:0|intcomma }}</small>
-              {% else %}
-                <span class="fw-bold fs-5 text-dark">${{ product.cost|floatformat:0|intcomma }}</span>
-              {% endif %}
+          <div class="product-content pt-3 pb-2">
+            <h3 class="h6 fw-bold text-dark text-truncate mb-1" style="text-align: left; padding: 0 5px;">{{ product.name }}</h3>
+            
+            <div class="price-action-container">
+                <div class="price-box">
+                  {% if product.discount > 0 %}
+                    <span class="text-danger fw-bold fs-5">${{ product.final_price|floatformat:0|intcomma }}</span>
+                    <small class="text-muted text-decoration-line-through d-block" style="font-size: 0.75rem;">${{ product.cost|floatformat:0|intcomma }}</small>
+                  {% else %}
+                    <span class="fw-bold fs-5 text-dark">${{ product.cost|floatformat:0|intcomma }}</span>
+                  {% endif %}
+                </div>
+
+                <button type="button" 
+                        class="jasc-cart" 
+                        data-id="{{ product.id }}" 
+                        data-has-variants="{{ product.has_variants|yesno:'true,false' }}">
+                    <i class="bi bi-cart-plus"></i>
+                </button>
             </div>
           </div>
+
         </article>
       </div>
       {% endfor %}
