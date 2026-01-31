@@ -1,13 +1,18 @@
-/* ✅ VARIABLES JASCSTORE */
+/* ✅ JASCSTORE ELITE DESIGN SYSTEM */
 :root {
-    --azul-hermoso: #1a237e; 
+    --azul-premium: #0f087e;       /* Tu Azul Hermoso Real */
+    --azul-brillante: #1a237e;
+    --azul-soft: #f0f2ff;
     --blanco: #ffffff;
+    --shadow-premium: 0 10px 30px rgba(15, 8, 126, 0.15);
+    --transition-suave: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-/* 🚀 CONTENEDOR PRINCIPAL DEL CARRITO */
-/* Usamos el ID que veo en tu consola: #carritoModal */
+/* 🚀 CONTENEDOR MAESTRO - EFECTO OVERLAY */
 #carritoModal {
-    z-index: 9999 !important; /* ✅ Máxima prioridad para ganarle al Navbar sticky */
+    z-index: 9999 !important;
+    backdrop-filter: blur(8px); /* Desenfoque del fondo para resaltar el carrito */
+    background-color: rgba(15, 8, 126, 0.1);
 }
 
 .modal-dialog {
@@ -15,9 +20,11 @@
     margin: 0 !important;
     top: 0 !important;
     right: 0 !important;
-    width: 450px !important;
+    width: 420px !important;
     height: 100vh !important;
-    max-width: 100% !important;
+    max-width: 90% !important;
+    transform: translateX(100%); /* Preparado para la animación de entrada */
+    transition: var(--transition-suave);
 }
 
 .modal-content {
@@ -25,66 +32,116 @@
     display: flex !important;
     flex-direction: column !important;
     border: none !important;
-    border-left: 5px solid var(--azul-hermoso) !important;
-    position: relative !important;
+    border-radius: 30px 0 0 30px !important; /* Bordes redondeados elegantes a la izquierda */
+    box-shadow: -10px 0 40px rgba(0,0,0,0.15) !important;
+    overflow: hidden;
 }
 
-/* ❌ EL BOTÓN DE CIERRE (Usando tu clase real: .cerrar-carrito) */
+/* ❌ BOTÓN DE CIERRE MINIMALISTA Y FLOTANTE */
 .cerrar-carrito {
-    position: fixed !important; /* ✅ Lo volvemos independiente */
-    top: 85px !important;      /* ✅ BAJA para no quedar detrás del Navbar */
-    right: 20px !important;    /* ✅ Se mantiene a la derecha */
+    position: absolute !important;
+    top: 25px !important;
+    left: -25px !important; /* Sobresale un poco para ser visualmente único */
     width: 50px !important;
     height: 50px !important;
-    background-color: var(--azul-hermoso) !important;
+    background: var(--azul-premium) !important;
     color: white !important;
     border-radius: 50% !important;
-    border: 2px solid white !important;
-    z-index: 10000 !important; /* ✅ Por encima de ABSOLUTAMENTE TODO */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     cursor: pointer !important;
+    box-shadow: var(--shadow-premium) !important;
+    transition: var(--transition-suave) !important;
+    z-index: 10001 !important;
+    border: 3px solid white !important;
 }
 
-/* Dibujamos la X blanca dentro del botón azul */
+.cerrar-carrito:hover {
+    transform: rotate(90deg) scale(1.1);
+    background: var(--azul-brillante) !important;
+}
+
 .cerrar-carrito::before {
-    content: "✕" !important;
-    font-size: 24px !important;
-    font-family: Arial, sans-serif !important;
-    font-weight: bold !important;
+    content: "✕";
+    font-size: 20px;
+    font-weight: bold;
 }
 
-/* 1. ESPACIO EN LA CABECERA PARA EL NAVBAR */
+/* 1. CABECERA ELEGANTE */
 .modal-header {
-    padding-top: 70px !important; /* ✅ Evita que el texto choque con el Navbar */
+    padding: 40px 30px 20px !important;
+    border: none !important;
     background: white !important;
 }
 
-/* 2. CUERPO CON SCROLL OPERATIVO */
+.modal-header .modal-title {
+    color: var(--azul-premium);
+    font-weight: 800 !important;
+    font-size: 1.5rem !important;
+    letter-spacing: -0.5px;
+}
+
+/* 2. CUERPO CON SCROLL DE SEDA */
 .modal-body {
     flex-grow: 1 !important;
-    overflow-y: auto !important; /* ✅ HABILITA EL SCROLL */
-    padding: 20px !important;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: auto !important;
+    padding: 0 30px !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--azul-soft) transparent;
 }
 
-/* 3. FOOTER FIJO (Botón Agregar) */
+/* Estilo para cada item en el carrito */
+.cart-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #f1f1f1;
+    transition: var(--transition-suave);
+}
+
+.cart-item:hover {
+    transform: scale(1.02);
+}
+
+/* 3. FOOTER IMPACTANTE */
 .modal-footer {
-    flex-shrink: 0 !important;
+    padding: 30px !important;
     background: white !important;
-    padding: 15px !important;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eee !important;
+    display: block !important; /* Para que el botón ocupe todo el ancho */
 }
 
-/* AJUSTES PARA MÓVIL */
+.btn-continuar-compra {
+    background: var(--azul-premium) !important;
+    color: white !important;
+    width: 100%;
+    padding: 16px !important;
+    border-radius: 15px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none !important;
+    transition: var(--transition-suave) !important;
+    box-shadow: 0 8px 20px rgba(15, 8, 126, 0.2) !important;
+}
+
+.btn-continuar-compra:hover {
+    background: #000 !important; /* Cambio a negro para un toque ultra moderno */
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.2) !important;
+}
+
+/* RESPONSIVO CELULAR (330px - 576px) */
 @media (max-width: 576px) {
-    .modal-dialog { width: 100% !important; }
+    .modal-dialog { width: 100% !important; max-width: 100% !important; }
+    .modal-content { border-radius: 0 !important; }
     .cerrar-carrito {
-        top: 90px !important; /* Un poco más abajo en móvil */
-        right: 15px !important;
+        left: auto !important;
+        right: 20px !important;
+        top: 20px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
+    .modal-header { padding-top: 80px !important; }
 }
-
-/* 🚀 AJUSTE FINAL PARA BOTÓN DE CIERRE (AZUL HERMOSO) */

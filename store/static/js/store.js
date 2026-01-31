@@ -208,41 +208,44 @@ function abrirCarritoModal(id) {
 }
 
 /* =====================================================
-    VISTA RÁPIDA (MODAL CENTRAL)
+    VISTA RÁPIDA (MODAL CENTRAL) - JascStore PRO Full
 ===================================================== */
 function abrirVistaRapida(id) {
     const panel = document.getElementById("vistaRapidaPanel");
-    const overlayVR = document.querySelector(".vista-rapida-overlay");
+    const overlayVR = document.getElementById("carritoOverlay");
     const cont = document.getElementById("contenidoProducto");
     
     if (!panel || !cont || !id) return;
 
-    // --- CORRECCIÓN DE OPACIDAD ---
-    // Si el carrito está abierto, lo cerramos para limpiar su overlay
+    // 1. Limpiar estados previos
     const modalCarrito = document.getElementById("carritoModal");
-    if (modalCarrito) modalCarrito.classList.add("hidden");
+    if (modalCarrito) {
+        modalCarrito.classList.add("hidden");
+        modalCarrito.style.display = "none";
+    }
 
     panel.style.display = "block"; 
     panel.classList.remove("hidden");
     panel.classList.add("visible");
 
-    // Activamos su overlay específico
     if (overlayVR) {
         overlayVR.style.display = "block";
-        overlayVR.classList.add("overlay-active");
+        overlayVR.classList.add("visible");
+        overlayVR.style.opacity = "1";
     }
 
     cont.innerHTML = "";
-    panel.scrollTop = 0;
     document.body.style.overflow = "hidden";
 
+    // 2. Loader con tu Azul Hermoso
     cont.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px;">
+        <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 450px;">
             <div class="spinner-border" style="color: #1a237e; width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
         </div>`;
 
+    // 3. Carga de datos
     fetch(`/store/vista-rapida/${id}/`)
         .then(res => {
             if (!res.ok) throw new Error("Producto no encontrado");
@@ -250,16 +253,101 @@ function abrirVistaRapida(id) {
         })
         .then(html => {
             cont.innerHTML = html;
+            
+            // --- INICIO MODO SINCRONIZACIÓN PRO ---
+            // Usamos un pequeño delay para asegurar que el DOM esté listo
             setTimeout(() => {
+                const botones = cont.querySelectorAll('.option-chip');
+                
+                botones.forEach(btn => {
+                    // Lógica de Bloqueo (La que probaste en F12)
+                    if (btn.classList.contains('agotado') || btn.classList.contains('disabled') || btn.innerText.trim() === "") {
+                        btn.disabled = true;
+                        btn.classList.add('btn-disabled');
+                        btn.style.opacity = "0.3";
+                        btn.style.pointerEvents = "none";
+                        btn.style.textDecoration = "line-through"; // Tachado visual extra
+                    }
+
+                    // Lógica de Selección Azul Hermoso
+                    btn.addEventListener('click', function() {
+                        if (this.disabled) return;
+                        
+                        // Limpiar grupo
+                        const parent = this.closest('.opciones') || this.parentElement;
+                        parent.querySelectorAll('.option-chip').forEach(b => {
+                            b.classList.remove('seleccionado', 'btn-dark');
+                            b.style.backgroundColor = ""; // Resetear a blanco
+                            b.style.color = "";
+                        });
+
+                        // Aplicar tu Azul Hermoso
+                        this.classList.add('seleccionado', 'btn-dark');
+                        this.style.backgroundColor = "#1a237e";
+                        this.style.color = "white";
+                    });
+                });
+
+                console.log("✅ JascStore: Opciones sincronizadas y bloqueadas.");
+
                 if (typeof window.initVistaRapida === "function") {
                     window.initVistaRapida(cont);
                 }
-            }, 50);
+            }, 100); 
         })
         .catch(err => {
-            console.error("Error JascStore:", err);
-            cont.innerHTML = `<div class="text-center p-5"><p>Error al cargar.</p></div>`;
+            console.error("Error:", err);
+            cont.innerHTML = `<div class="text-center p-5"><p>Error al cargar el producto.</p></div>`;
         });
+}
+
+function cerrarVistaRapida() {
+    const panel = document.getElementById("vistaRapidaPanel");
+    const overlay = document.getElementById("carritoOverlay");
+    if (panel) panel.style.display = "none";
+    if (overlay) overlay.style.display = "none";
+    document.body.style.overflow = "auto";
+}
+
+function cerrarVistaRapida() {
+    const panel = document.getElementById("vistaRapidaPanel");
+    const overlay = document.getElementById("carritoOverlay");
+    
+    if (panel) {
+        panel.classList.add("hidden");
+        panel.classList.remove("visible");
+        panel.style.display = "none";
+    }
+    if (overlay) {
+        overlay.style.display = "none";
+        overlay.classList.remove("visible");
+    }
+    document.body.style.overflow = "auto"; // Restaurar scroll
+}
+
+function cerrarVistaRapida() {
+    const panel = document.getElementById("vistaRapidaPanel");
+    const overlay = document.getElementById("carritoOverlay");
+    if (panel) panel.style.display = "none";
+    if (overlay) overlay.style.display = "none";
+    document.body.style.overflow = "auto";
+}
+
+/* Función para cerrar que limpie todo */
+function cerrarVistaRapida() {
+    const panel = document.getElementById("vistaRapidaPanel");
+    const overlay = document.getElementById("carritoOverlay");
+    
+    if (panel) {
+        panel.classList.add("hidden");
+        panel.classList.remove("visible");
+        panel.style.display = "none";
+    }
+    if (overlay) {
+        overlay.style.display = "none";
+        overlay.classList.remove("visible");
+    }
+    document.body.style.overflow = "auto";
 }
 
 /* =====================================================

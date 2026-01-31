@@ -1,64 +1,77 @@
 /* =========================================================
-   🛍️ JASC ECOMMERCE – VISTA RÁPIDA & CARRITO
+   🛍️ JASCSTORE ELITE SYSTEM – VISTA RÁPIDA & CARRITO
    ========================================================= */
 
 :root {
-    --azul-hermoso: #1a237e; 
-    --azul-acento: #3949ab;
+    --azul-hermoso: #0f087e; /* Tu azul exacto de marca */
+    --azul-premium: #1a237e;
     --blanco: #ffffff;
-    --gris-borde: #ddd;
-    --overlay-bg: rgba(0, 0, 0, 0.7);
+    --negro-lujo: #1d1d1f;
+    --overlay-bg: rgba(15, 8, 126, 0.18);
+    --sombra-pro: 0 20px 50px rgba(0, 0, 0, 0.2);
+    --curva-premium: cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-/* 1. OVERLAY (FONDO) */
+/* 1. OVERLAY CINEMATOGRÁFICO (FONDO) */
 .vista-rapida-overlay, .carrito-overlay {
     position: fixed !important;
     top: 0; left: 0;
-    width: 100%; height: 100%;
+    width: 100vw; height: 100vh;
     background: var(--overlay-bg) !important;
-    z-index: 1040 !important; /* Por debajo de los modales */
-    display: none; 
+    z-index: 9990 !important;
+    display: none;
+    backdrop-filter: blur(12px) !important; /* Efecto cristal para enfoque total */
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.5s ease;
 }
 
 .overlay-active {
     display: block !important;
-    pointer-events: auto !important;
-    backdrop-filter: blur(4px);
+    animation: fadeIn 0.4s ease;
 }
 
-/* 2. CARRITO LATERAL (Sincronizado con carrito.css) */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 2. CARRITO LATERAL (DISEÑO BOUTIQUE) */
 #carritoModal {
     position: fixed !important;
     top: 0; right: 0;
     width: 450px;
-    height: 100vh;
-    background: var(--blanco);
+    height: 100vh !important;
+    background: var(--blanco) !important;
     transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-    z-index: 1060 !important;
-    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column;
+    transition: transform 0.5s var(--curva-premium);
+    z-index: 10000 !important;
+    box-shadow: -15px 0 45px rgba(0,0,0,0.15);
+    display: flex !important;
+    flex-direction: column !important;
+    border-left: 6px solid var(--azul-hermoso); /* Detalles de marca */
 }
 
-#carritoModal:not(.hidden) { transform: translateX(0); }
+/* Estado Activo del Carrito */
+#carritoModal.active, #carritoModal:not(.hidden) { 
+    transform: translateX(0) !important; 
+}
 
-/* 3. VISTA RÁPIDA (MODAL CENTRAL) */
+/* 3. VISTA RÁPIDA (MODAL TIPO APPLE) */
 #vistaRapidaPanel {
     position: fixed !important;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translate(-50%, -50%) scale(0.92);
     width: 95%;
-    max-width: 900px;
+    max-width: 1000px;
     background: var(--blanco);
-    border-radius: 20px;
-    z-index: 1055 !important; /* Justo debajo del carrito principal */
+    border-radius: 35px; /* Bordes orgánicos */
+    z-index: 10005 !important;
     opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s var(--curva-premium);
     visibility: hidden; 
     overflow: hidden;
+    box-shadow: var(--sombra-pro);
 }
-
 
 #vistaRapidaPanel.visible {
     opacity: 1;
@@ -66,115 +79,167 @@
     transform: translate(-50%, -50%) scale(1);
 }
 
-/* 4. CONTENIDO CON SCROLL */
+/* 4. CONTENIDO INTERACTIVO Y SCROLL */
 .vista-rapida-contenido {
     display: grid !important; 
-    grid-template-columns: 1fr 1.2fr; 
-    gap: 30px;
-    padding: 30px;
+    grid-template-columns: 1.1fr 0.9fr; 
+    gap: 0; 
+    height: 100%;
     max-height: 85vh;
-    overflow-y: auto !important;
 }
 
-/* 5. SELECTORES FOTOS MINI */
+/* Contenedor de Scroll para Carrito y Vista Rápida */
+#contenidoCarrito, .vista-rapida-info {
+    flex-grow: 1 !important;
+    overflow-y: auto !important;
+    padding: 40px !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--azul-hermoso) transparent;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 5. SELECTORES DE COLOR / MINIATURAS */
 .color-photo-chip {
-    width: 65px; height: 75px;
-    border: 2px solid #eee;
-    border-radius: 8px;
+    width: 70px; height: 85px;
+    border: 2px solid #f0f0f0;
+    border-radius: 14px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition-premium);
     object-fit: cover;
+    margin-right: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.color-photo-chip:hover {
+    transform: translateY(-5px) scale(1.05);
+    border-color: var(--azul-hermoso);
 }
 
 .color-photo-chip.active {
     border-color: var(--azul-hermoso);
-    box-shadow: 0 0 10px rgba(26, 35, 126, 0.2);
+    box-shadow: 0 0 15px rgba(15, 8, 126, 0.2);
+    transform: scale(1.1);
 }
 
-/* 6. CORRECCIONES PARA MÓVIL */
+/* 6. BOTONES DE ACCIÓN (SENSACIÓN DE SEGURIDAD) */
+.btn-agregar-vr, .btn-continuar-compra {
+    background: var(--azul-hermoso) !important;
+    color: white !important;
+    padding: 18px !important;
+    border-radius: 20px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none !important;
+    transition: var(--transition-premium) !important;
+    box-shadow: 0 10px 25px rgba(15, 8, 126, 0.25) !important;
+}
+
+.btn-agregar-vr:hover {
+    background: #000 !important; /* Toque ultra-moderno */
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3) !important;
+}
+
+/* 7. BOTONES DE CIERRE (MÁXIMA VISIBILIDAD) */
+.cerrar-panel, .cerrar-carrito {
+    position: absolute !important;
+    top: 25px !important;
+    right: 25px !important;
+    background: var(--azul-hermoso) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    width: 50px !important;
+    height: 50px !important;
+    border: 3px solid white !important;
+    z-index: 10010 !important;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+    transition: all 0.4s ease !important;
+}
+
+.cerrar-panel:hover, .cerrar-carrito:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+.cerrar-panel::before, .cerrar-carrito::before {
+    content: "✕" !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+}
+
+/* 8. ADAPTACIÓN MAESTRA PARA MÓVIL (330px - 768px) */
 @media (max-width: 768px) {
-    #carritoModal { width: 100% !important; }
+    #carritoModal { 
+        width: 100% !important; 
+        border-left: none;
+    }
+
+    #vistaRapidaPanel {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        top: 0; left: 0;
+        transform: none !important;
+    }
 
     .vista-rapida-contenido {
         display: flex !important;
         flex-direction: column !important;
-        padding: 15px !important;
-        gap: 10px !important;
+        overflow-y: auto !important;
     }
 
-    .big-image, .vista-rapida-contenido img {
+    .big-image {
         width: 100% !important;
-        height: auto !important; 
-        max-height: 350px !important; 
-        object-fit: contain !important;
+        max-height: 380px !important;
+        padding: 20px;
+    }
+
+    .cerrar-carrito, .cerrar-panel {
+        top: 20px !important;
+        right: 20px !important;
+        width: 45px !important;
+        height: 45px !important;
+    }
+
+    .vista-rapida-info {
+        padding: 25px !important;
     }
 }
 
-/* Botón de Cerrar Flotante */
-.cerrar-panel {
-    position: absolute;
-    top: 15px; right: 15px;
-    background: var(--azul-hermoso) !important;
-    color: white !important;
-    border-radius: 50%;
-    width: 40px; height: 40px;
-    border: none;
-    z-index: 1070 !important;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-/* 🚀 AJUSTE FINAL PARA BOTÓN DE CIERRE (AZUL HERMOSO) */
-
-/* 1. Forzamos que el Modal esté por encima del Navbar Sticky */
-#carritoModal {
-    z-index: 9999 !important; 
-}
-
-/* 2. Estilizamos tu botón real: .cerrar-carrito */
-.cerrar-carrito {
-    position: fixed !important; /* ✅ Se queda quieto al hacer scroll */
-    top: 85px !important;      /* ✅ BAJA para no quedar debajo del Navbar azul */
-    right: 20px !important;    /* ✅ A la derecha del carrito */
-    width: 45px !important;
-    height: 45px !important;
+/* ✅ AZUL HERMOSO: Selección Total */
+.option-chip.seleccionado, 
+.option-chip.btn-dark {
     background-color: var(--azul-hermoso) !important;
     color: white !important;
-    border-radius: 50% !important;
-    border: 2px solid white !important;
-    z-index: 10000 !important; /* ✅ Máxima prioridad */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-    cursor: pointer !important;
+    border-color: var(--azul-hermoso) !important;
+    box-shadow: 0 4px 10px rgba(26, 35, 126, 0.3) !important;
 }
 
-/* 3. Dibujamos la X blanca automáticamente si el botón está vacío */
-.cerrar-carrito::before {
-    content: "✕" !important;
-    font-size: 20px !important;
-    font-weight: bold !important;
-    font-family: Arial, sans-serif !important;
+/* ✅ BLOQUEO TOTAL: Botones sin stock */
+.option-chip:disabled, 
+.option-chip.btn-disabled, 
+.option-chip.agotado {
+    background-color: #f2f2f2 !important;
+    color: #ccc !important;
+    border: 1px dashed #ddd !important;
+    cursor: not-allowed !important;
+    opacity: 0.4 !important;
+    pointer-events: none !important;
+    position: relative;
 }
 
-/* 4. Aseguramos el Scroll en el cuerpo del carrito */
-#contenidoCarrito {
-    flex-grow: 1 !important;
-    overflow-y: auto !important; /* ✅ HABILITA EL SCROLL AQUÍ */
-    padding-top: 20px !important;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Ajuste para Móvil */
-@media (max-width: 768px) {
-    .cerrar-carrito {
-        top: 90px !important;
-        right: 15px !important;
-        width: 40px !important;
-        height: 40px !important;
-    }
+/* Marca de "X" para los botones agotados */
+.option-chip.agotado::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #ccc;
+    transform: rotate(-15deg);
 }

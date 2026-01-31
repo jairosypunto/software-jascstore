@@ -73,10 +73,19 @@
         position: relative;
         background: #f8f9fa;
         aspect-ratio: 1/1;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    /* ✅ Efecto Zoom JascStore */
+    .product-image-wrapper:hover .product-img {
+        transform: scale(1.1);
+        filter: brightness(0.9);
     }
 
     .product-img {
-        mix-blend-mode: multiply; /* Ideal si tus fotos tienen fondo blanco */
+        mix-blend-mode: multiply; 
+        transition: all 0.5s ease;
     }
 
     /* 🔘 BOTONES FLOTANTES EN CARD */
@@ -185,7 +194,8 @@
       <div class="swiper-wrapper">
         {% for producto in productos_destacados %}
         <div class="swiper-slide">
-          <div class="destacado-card border shadow-sm rounded-4 overflow-hidden bg-white">
+          <div class="destacado-card border shadow-sm rounded-4 overflow-hidden bg-white" 
+               onclick="abrirVistaRapida('{{ producto.id }}')" style="cursor:pointer;">
             <div class="ratio ratio-1x1">
                 <img src="{{ producto.image.url }}" class="object-fit-cover" alt="{{ producto.name }}">
             </div>
@@ -208,14 +218,14 @@
       {% for product in productos %}
       <div class="col-6 col-md-4 col-lg-3">
         <article class="product-card shadow-sm h-100">
-          <div class="product-image-wrapper">
+          <div class="product-image-wrapper" onclick="abrirVistaRapida('{{ product.id }}')">
             <img src="{{ product.image.url }}" class="product-img w-100" alt="{{ product.name }}">
             
             <div class="product-actions position-absolute bottom-0 start-0 w-100 p-2 d-flex justify-content-center gap-2">
-                <button type="button" class="quick-view jasc-quick-view btn rounded-circle" data-id="{{ product.id }}">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button type="button" class="jasc-cart btn rounded-circle" data-id="{{ product.id }}" data-has-variants="{{ product.has_variants|yesno:'true,false' }}">
+                <button type="button" class="jasc-cart btn rounded-circle" 
+                        data-id="{{ product.id }}" 
+                        data-has-variants="{{ product.has_variants|yesno:'true,false' }}"
+                        onclick="event.stopPropagation();">
                     <i class="bi bi-cart-plus"></i>
                 </button>
             </div>
@@ -226,7 +236,9 @@
           </div>
 
           <div class="product-content p-3 text-center">
-            <h3 class="h6 fw-bold text-dark text-truncate mb-2">{{ product.name }}</h3>
+            <h3 class="h6 fw-bold text-dark text-truncate mb-2" 
+                onclick="abrirVistaRapida('{{ product.id }}')" 
+                style="cursor:pointer;">{{ product.name }}</h3>
             <div class="price-box">
               {% if product.discount > 0 %}
                 <span class="text-danger fw-bold fs-5">${{ product.final_price|floatformat:0|intcomma }}</span>

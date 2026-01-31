@@ -24,11 +24,51 @@
   
 <style>
     :root {
-        --azul-hermoso: #1a237e; /* Tu azul principal */
+        --azul-hermoso: #1a237e;
         --azul-brillante: #3949ab;
+        --gris-suave: #f8f9fa;
     }
 
-    /* Estilos Side Cart (Corregidos) */
+    /* === VISTA RÁPIDA (MODAL) PROFESIONAL === */
+    .vista-rapida-panel {
+        padding: 30px !important; /* ✅ MARGENES INTERNOS PARA QUE RESPIRE */
+        border-radius: 25px;
+        background: white;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    }
+
+    /* ✅ SOLUCIÓN AL BOTÓN DE COLOR TAPADO POR BLANCO */
+    .color-option-container input[type="radio"] {
+        display: none !important; /* Esconde el control nativo del navegador */
+    }
+
+    .color-label {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 2px solid #ddd;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    /* Efecto cuando el color está seleccionado */
+    .color-option-container input[type="radio"]:checked + .color-label {
+        border-color: var(--azul-hermoso) !important;
+        box-shadow: 0 0 0 2px white, 0 0 0 5px var(--azul-hermoso);
+        transform: scale(1.1);
+    }
+
+    /* ✅ BOTONES DESHABILITADOS (SIN STOCK) */
+    .btn-disabled {
+        opacity: 0.3 !important;
+        pointer-events: none !important;
+        filter: grayscale(1);
+        cursor: not-allowed !important;
+    }
+
+    /* Side Cart Estilos */
     .side-cart-overlay { 
         position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
         z-index: 1040; display: none; backdrop-filter: blur(2px); 
@@ -41,48 +81,18 @@
     }
     .side-cart.visible { right: 0; }
 
-    /* Cabecera del carrito lateral */
-    .side-cart-header {
-        padding: 20px;
-        background: white;
-        border-bottom: 1px solid #eee;
-        flex-shrink: 0; /* Mantiene el tamaño fijo arriba */
-    }
+    .side-cart-header { padding: 20px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0; }
 
-    /* CONTENEDOR DE PRODUCTOS: Aquí corregimos el "tapado" */
     .cart-items-container { 
         flex-grow: 1; 
         overflow-y: auto; 
-        padding: 20px 15px !important; /* El padding superior evita que se tape la primera compra */
+        padding: 25px 20px !important; /* ✅ Evita que se tape el primer producto */
         background: #fdfdfd;
     }
 
-    .side-cart-footer { 
-        padding: 20px; 
-        border-top: 1px solid #eee; 
-        background: white; 
-        flex-shrink: 0; /* Mantiene el footer siempre abajo */
-    }
+    .side-cart-footer { padding: 20px; border-top: 1px solid #eee; background: white; flex-shrink: 0; }
 
-    /* === AJUSTES MODAL TEMU (CSS) === */
-    .carrito-overlay {
-        position: fixed; inset: 0; background: rgba(255,255,255,0.5);
-        z-index: 2000; display: none; backdrop-filter: blur(2px);
-    }
-    .carrito-overlay.visible { display: block; }
-
-    #carritoModal {
-        z-index: 2001;
-        /* Si este es el que se tapa, asegúrate que el contenedor interno tenga padding */
-    }
-
-    /* Espaciado interno para el modal Temu */
-    #contenidoCarrito {
-        padding-top: 50px !important; /* Espacio para que el botón de cerrar no tape nada */
-    }
-
-    /* Botones y Textos con tu Azul Hermoso */
-    .text-orange { color: var(--azul-hermoso) !important; } 
+    /* Botones Premium */
     .btn-temu { 
         background-color: var(--azul-hermoso); color: white; border: none; 
         transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
@@ -111,7 +121,7 @@
     <div class="side-cart-footer border-top p-4 bg-light">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <span class="h6 mb-0 fw-bold" style="color: #555;">Subtotal Estimado:</span>
-            <span id="sideCartTotal" class="h5 mb-0 fw-bold" style="color: #1a237e !important;">$0</span>
+            <span id="sideCartTotal" class="h5 mb-0 fw-bold" style="color: var(--azul-hermoso) !important;">$0</span>
         </div>
         <a href="{% url 'store:ver_carrito' %}" class="btn btn-temu w-100 py-3 rounded-pill fw-bold">CONTINUAR COMPRA</a>
     </div>
@@ -119,18 +129,20 @@
 
   <div id="carritoModal" class="carrito-modal-temu hidden">
       <button type="button" class="cerrar-carrito" onclick="cerrarCarritoModal()">&times;</button>
-      <div id="contenidoCarrito">
+      <div id="contenidoCarrito" style="padding: 40px 20px !important;"> 
           </div>
   </div>
   <div class="carrito-overlay" id="carritoOverlay" onclick="cerrarCarritoModal()"></div>
 
   <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
-      <div id="contenidoProducto"></div>
+      <div id="contenidoProducto">
+          </div>
   </div>
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-xl d-flex justify-content-between align-items-center">
       <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">JascStore</a>
+      
       <div class="navbar-mobile-group order-lg-3">
         {% if user.is_authenticated %}
           <a class="nav-link position-relative px-2 d-inline-block text-white" href="javascript:void(0)" onclick="abrirSideCart()">
@@ -144,6 +156,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
       </div>
+
       <div class="collapse navbar-collapse order-lg-2" id="navbarContenido">
         <ul class="navbar-nav me-auto gap-2">
           <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
@@ -157,7 +170,7 @@
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mi Cuenta</a>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="dropdown-menu dropdown-menu-end shadow">
                     <li><a class="dropdown-item" href="{% url 'usuario:dashboard' %}">Dashboard</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
@@ -183,16 +196,17 @@
     {% block content %}{% endblock %}
   </main>
 
+  <footer class="bg-dark text-white mt-5 py-5 border-top border-secondary">
+    <div class="container text-center">
+      <p class="mb-4">© 2026 JascStore. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
   <script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 
   {% block extra_js %}{% endblock %}
 
-  <footer class="bg-dark text-white mt-5 py-5 border-top border-secondary">
-    <div class="container text-center">
-      <p class="mb-4">© 2026 JascStore. Todos los derechos reservados.</p>
-    </div>
-  </footer>
 </body>
 </html>

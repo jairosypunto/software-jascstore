@@ -7,15 +7,16 @@
 {% block extra_css %}
 <style>
     :root {
-        --azul-hermoso: #1a237e;
-        --azul-brillante: #3949ab;
+        --azul-hermoso: #0f087e; /* Ajustado a tu azul real */
+        --azul-brillante: #1a237e;
         --dorado-suave: #ffd700;
+        --transition-master: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
     }
 
     /* Hero Section: Impacto Inmediato */
     .hero-section {
-        background: linear-gradient(rgba(26, 35, 126, 0.85), rgba(13, 17, 64, 0.9)), 
-                    url('https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop'); /* Imagen de zapatos elegante */
+        background: linear-gradient(rgba(15, 8, 126, 0.85), rgba(13, 17, 64, 0.9)), 
+                    url('https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop');
         background-size: cover;
         background-position: center;
         padding: 100px 0;
@@ -35,14 +36,14 @@
     .product-card {
         border: none;
         border-radius: 20px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: var(--transition-master);
         background: #fff;
         overflow: hidden;
     }
 
     .product-card:hover {
         transform: translateY(-12px);
-        box-shadow: 0 20px 40px rgba(26, 35, 126, 0.15) !important;
+        box-shadow: 0 20px 40px rgba(15, 8, 126, 0.15) !important;
     }
 
     .img-container {
@@ -71,6 +72,7 @@
         margin-top: -60px;
         position: relative;
         z-index: 10;
+        border: 1px solid rgba(15, 8, 126, 0.1) !important;
     }
 
     .btn-premium {
@@ -78,13 +80,13 @@
         color: white;
         border-radius: 12px;
         font-weight: 600;
-        transition: all 0.3s;
+        transition: var(--transition-master);
         border: none;
     }
 
     .btn-premium:hover {
-        background-color: var(--azul-brillante);
-        box-shadow: 0 8px 20px rgba(26, 35, 126, 0.3);
+        background-color: #000;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         color: white;
     }
 
@@ -95,89 +97,70 @@
         border-radius: 10px;
     }
 
-    /* Estilo adicional para el botón de agregar */
-    .btn-add-quick {
-        background: #ff6000;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-    .btn-add-quick:hover {
-        background: #e65600;
-        transform: scale(1.02);
-        color: white;
-    }
-
     /* --- ORGANIZACIÓN DE GALERÍA EN VISTA RÁPIDA --- */
-.galeria-producto {
-    display: flex;
-    flex-direction: row-reverse; /* Imagen principal a la derecha, miniaturas a la izquierda */
-    gap: 15px;
-    align-items: flex-start;
-}
-
-.imagen-principal {
-    flex: 1;
-    overflow: hidden;
-    border-radius: 15px;
-    background: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.imagen-principal img {
-    width: 100%;
-    height: auto;
-    max-height: 450px;
-    object-fit: contain;
-}
-
-/* Contenedor de miniaturas vertical */
-.miniaturas-horizontal {
-    display: flex;
-    flex-direction: column; /* Las apilamos verticalmente como en la tienda */
-    gap: 10px;
-    width: 80px; /* Ancho fijo para las miniaturas */
-    max-height: 450px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-.miniatura {
-    width: 70px;
-    height: 70px;
-    min-height: 70px;
-    cursor: pointer;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.miniatura img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.miniatura.activa {
-    border-color: #1a237e; /* Tu Azul Hermoso */
-}
-
-/* Ajuste para móviles: si la pantalla es pequeña, las ponemos abajo */
-@media (max-width: 768px) {
     .galeria-producto {
-        flex-direction: column;
+        display: flex;
+        flex-direction: row-reverse; 
+        gap: 15px;
+        align-items: flex-start;
     }
-    .miniaturas-horizontal {
-        flex-direction: row;
-        width: 100%;
-        overflow-x: auto;
+
+    .imagen-principal {
+        flex: 1;
+        overflow: hidden;
+        border-radius: 15px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-}
+
+    /* ✅ SOLUCIÓN AL BOTÓN DE COLOR TAPADO */
+    .color-option-container {
+        position: relative;
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    /* Escondemos el radio button feo que pone el fondo blanco */
+    .color-option-container input[type="radio"] {
+        display: none;
+    }
+
+    /* El círculo de color limpio */
+    .color-label {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: block;
+        cursor: pointer;
+        border: 2px solid #ddd;
+        transition: var(--transition-master);
+        background-size: cover;
+    }
+
+    /* Efecto cuando se selecciona el color */
+    .color-option-container input[type="radio"]:checked + .color-label {
+        border-color: var(--azul-hermoso);
+        box-shadow: 0 0 0 2px white, 0 0 0 5px var(--azul-hermoso);
+        transform: scale(1.1);
+    }
+
+    /* ✅ LÓGICA DE BOTÓN DESHABILITADO (SIN STOCK) */
+    .btn-disabled {
+        opacity: 0.3 !important;
+        pointer-events: none !important;
+        filter: grayscale(1);
+        cursor: not-allowed !important;
+    }
+
+    /* Ajuste para móviles */
+    @media (max-width: 768px) {
+        .hero-title { font-size: 2.3rem; }
+        .hero-section { padding: 60px 0; border-radius: 0 0 30px 30px; }
+        .filter-bar { margin-top: -30px; padding: 15px; }
+        .galeria-producto { flex-direction: column; }
+    }
 </style>
 {% endblock %}
 
@@ -193,7 +176,7 @@
 </div>
 
 <div class="container">
-    <div class="filter-bar border">
+    <div class="filter-bar">
         <form method="get" action="{% url 'inicio' %}" class="row g-3 align-items-center">
             <div class="col-md-5">
                 <div class="input-group">
@@ -226,48 +209,46 @@
         <a href="{% url 'store:store' %}" class="text-decoration-none fw-bold" style="color: var(--azul-brillante);">Ver todo <i class="bi bi-arrow-right"></i></a>
     </div>
 
-<div class="row">
-    {% for producto in productos_destacados %}
-        <div class="col-6 col-md-4 col-lg-3 mb-4">
-            <div class="product-card shadow-sm h-100">
-                <div class="img-container" style="cursor: pointer;" onclick="abrirVistaRapida('{{ producto.id }}')">
-                    {% if producto.image %}
-                        <img src="{{ producto.image.url }}" alt="{{ producto.name }}">
-                    {% else %}
-                        <img src="{% static 'store/img/default.jpg' %}" alt="Sin imagen">
-                    {% endif %}
-                    
-                    {% if producto.nuevo %}
-                        <span class="badge bg-white text-dark position-absolute top-0 start-0 m-3 shadow-sm" style="border-radius: 8px;">✨ Nuevo</span>
-                    {% endif %}
-                    {% if producto.discount %}
-                        <span class="badge badge-discount position-absolute top-0 end-0 m-3 shadow">-{{ producto.discount }}%</span>
-                    {% endif %}
-                </div>
-
-                <div class="card-body text-center p-4">
-                    <p class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">Colección 2026</p>
-                    <h6 class="fw-bold mb-2 fs-5" style="color: #333;">{{ producto.name }}</h6>
-                    
-                    <div class="price-container">
-                        {% if producto.discount %}
-                            <span class="text-muted text-decoration-line-through me-2 small">${{ producto.cost|floatformat:0|intcomma }}</span>
-                            <span class="h5 fw-black text-danger mb-0">${{ producto.final_price|floatformat:0|intcomma }}</span>
+    <div class="row">
+        {% for producto in productos_destacados %}
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="product-card shadow-sm h-100">
+                    <div class="img-container" style="cursor: pointer;" onclick="abrirVistaRapida('{{ producto.id }}')">
+                        {% if producto.image %}
+                            <img src="{{ producto.image.url }}" alt="{{ producto.name }}">
                         {% else %}
-                            <span class="h5 fw-black mb-0" style="color: var(--azul-hermoso);">${{ producto.cost|floatformat:0|intcomma }}</span>
+                            <img src="{% static 'store/img/default.jpg' %}" alt="Sin imagen">
+                        {% endif %}
+                        
+                        {% if producto.nuevo %}
+                            <span class="badge bg-white text-dark position-absolute top-0 start-0 m-3 shadow-sm" style="border-radius: 8px;">✨ Nuevo</span>
+                        {% endif %}
+                        {% if producto.discount %}
+                            <span class="badge badge-discount position-absolute top-0 end-0 m-3 shadow">-{{ producto.discount }}%</span>
                         {% endif %}
                     </div>
-                    
-                    </div>
-            </div>
-        </div>
-    {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="bi bi-box-seam display-1 text-muted opacity-25"></i>
-            <h4 class="mt-3 text-muted">Estamos renovando nuestro stock...</h4>
-        </div>
-    {% endfor %}
-</div>
 
+                    <div class="card-body text-center p-4">
+                        <p class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">Colección 2026</p>
+                        <h6 class="fw-bold mb-2 fs-5" style="color: #333;">{{ producto.name }}</h6>
+                        
+                        <div class="price-container">
+                            {% if producto.discount %}
+                                <span class="text-muted text-decoration-line-through me-2 small">${{ producto.cost|floatformat:0|intcomma }}</span>
+                                <span class="h5 fw-black text-danger mb-0">${{ producto.final_price|floatformat:0|intcomma }}</span>
+                            {% else %}
+                                <span class="h5 fw-black mb-0" style="color: var(--azul-hermoso);">${{ producto.cost|floatformat:0|intcomma }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-box-seam display-1 text-muted opacity-25"></i>
+                <h4 class="mt-3 text-muted">Estamos renovando nuestro stock...</h4>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}
