@@ -80,19 +80,15 @@
             <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'icons/no-image.png' %}{% endif %}" 
                  id="imagen-principal-modal" class="big-image" alt="{{ producto.name }}">
         </div>
-
-        <div class="miniaturas-horizontal">
-            {% if producto.image %}
-                <div class="miniatura activa" data-src="{{ producto.image.url }}">
-                    <img src="{{ producto.image.url }}" alt="Principal">
-                </div>
-            {% endif %}
-            {% for img in producto.images.all %}
-                <div class="miniatura" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado|default:'' }}">
-                    <img src="{{ img.image.url }}" alt="Extra">
-                </div>
-            {% endfor %}
+<div class="miniaturas-horizontal">
+    {% for img in producto.images.all %}
+        <div class="miniatura {% if forloop.first %}activa{% endif %}" 
+             data-src="{{ img.image.url }}" 
+             data-color="{{ img.color_vinculado|default:'' }}">
+            <img src="{{ img.image.url }}" alt="Extra">
         </div>
+    {% endfor %}
+</div>
     </div>
 
     <div class="info-producto">
@@ -149,11 +145,16 @@
 <script>
 (function() {
     const contenedor = document.getElementById('contenidoProducto');
+    if (!contenedor) return;
+
     const btnAgregar = contenedor.querySelector('#btnAgregarModalPropio');
     const inputTalla = contenedor.querySelector('#selected_size_hidden');
     const inputColor = contenedor.querySelector('#selected_color_hidden');
     const inputImagen = contenedor.querySelector('#imagen_seleccionada_url');
     const imgPrincipal = contenedor.querySelector('#imagen-principal-modal');
+
+    // Función de limpieza para comparaciones seguras (ignora espacios y tildes)
+    const limpiarTexto = (t) => t ? t.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
     function validarSeleccion() {
         const tieneTallas = contenedor.querySelectorAll('.size-chip').length > 0;
@@ -163,49 +164,74 @@
         const colorOk = !tieneColores || (inputColor.value !== "");
         
         btnAgregar.disabled = !(tallaOk && colorOk);
-        if(!btnAgregar.disabled) {
-            btnAgregar.innerHTML = "🛒 ¡Todo listo para añadir!";
-        } else {
-            btnAgregar.innerHTML = "🛒 Selecciona tus opciones";
-        }
+        btnAgregar.innerHTML = btnAgregar.disabled ? "🛒 Selecciona tus opciones" : "🛒 ¡Todo listo para añadir!";
+        // Aplicamos tu Azul Hermoso al habilitarse
+        btnAgregar.style.opacity = btnAgregar.disabled ? "0.7" : "1";
     }
 
-    // Miniaturas e Imagen Principal
+function seleccionarColorAuto(color) {
+    // 1. Limpiamos el nombre que viene de la foto (quita espacios y tildes)
+    const colorLimpioFoto = color.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    contenedor.querySelectorAll('.color-chip').forEach(btn => {
+        // 2. Limpiamos el nombre que tiene el botón (el que viene de "Negro, Cafe")
+        const colorLimpioBoton = btn.dataset.value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        
+        // 3. Comparamos los nombres ya "limpios"
+        if(colorLimpioBoton === colorLimpioFoto) {
+            
+            // Quitamos selección previa
+            contenedor.querySelectorAll('.color-chip').forEach(b => b.classList.remove('selected'));
+
+            // Marcamos el nuevo con tu Azul Hermoso
+            btn.classList.add('selected'); 
+
+            // Guardamos el valor real para el carrito
+            inputColor.value = btn.dataset.value;
+
+            // Validamos para habilitar el botón de compra
+            validarSeleccion();
+            
+            console.log("Sincronizado con éxito: " + colorLimpioBoton);
+        }
+    });
+}
+
+    // Eventos de Miniaturas
     contenedor.querySelectorAll('.miniatura').forEach(thumb => {
         thumb.onclick = function() {
             const src = this.dataset.src;
-            imgPrincipal.src = src;
-            inputImagen.value = src;
+            if(imgPrincipal) imgPrincipal.src = src;
+            if(inputImagen) inputImagen.value = src;
             
             contenedor.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa'));
             this.classList.add('activa');
 
             const color = this.dataset.color;
-            if (color) seleccionarColorAuto(color);
+            seleccionarColorAuto(color);
         };
     });
 
-    // Selección de Chips (Talla/Color)
-    contenedor.querySelectorAll('.option-chip').forEach(btn => {
+    // Eventos de Tallas
+    contenedor.querySelectorAll('.size-chip').forEach(btn => {
         btn.onclick = function() {
-            const parent = this.parentElement;
-            parent.querySelectorAll('.option-chip').forEach(b => b.classList.remove('selected'));
+            contenedor.querySelectorAll('.size-chip').forEach(b => b.classList.remove('selected'));
             this.classList.add('selected');
-            
-            if (this.classList.contains('size-chip')) inputTalla.value = this.dataset.value;
-            if (this.classList.contains('color-chip')) inputColor.value = this.dataset.value;
-            
+            inputTalla.value = this.dataset.value;
             validarSeleccion();
         };
     });
 
-    function seleccionarColorAuto(color) {
-        contenedor.querySelectorAll('.color-chip').forEach(btn => {
-            if(btn.dataset.value.toLowerCase() === color.toLowerCase()) btn.click();
-        });
-    }
+    // --- AUTO-ACTIVACIÓN AL CARGAR ---
+    // Esto asegura que al abrir la vista rápida, la primera opción ya esté marcada
+    setTimeout(() => {
+        const primeraMini = contenedor.querySelector('.miniatura');
+        if (primeraMini) {
+            primeraMini.click();
+        }
+    }, 200);
 
-    // Envío AJAX
+    // Envío AJAX (Mantenemos tu lógica original de éxito)
     btnAgregar.onclick = function() {
         const formData = new FormData(contenedor.querySelector('#form-add-cart-modal'));
         btnAgregar.disabled = true;
@@ -224,15 +250,9 @@
             if (data.status === 'ok') {
                 const cartCount = document.querySelector('.cart-count');
                 if(cartCount) cartCount.innerText = data.cart_count;
-                
-                // Efecto de éxito antes de redirigir
-                btnAgregar.classList.remove('btn-agregar');
-                btnAgregar.style.backgroundColor = '#2e7d32'; // Verde éxito momentáneo
+                btnAgregar.style.backgroundColor = '#2e7d32'; 
                 btnAgregar.innerHTML = '✅ ¡Añadido con éxito!';
-                
-                setTimeout(() => {
-                    window.location.href = "{% url 'store:ver_carrito' %}";
-                }, 600);
+                setTimeout(() => { window.location.href = "{% url 'store:ver_carrito' %}"; }, 600);
             }
         })
         .catch(err => {

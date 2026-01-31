@@ -9,35 +9,24 @@
     </div>
 
     <div class="miniaturas-abajo d-flex justify-content-center gap-2 mb-3 flex-wrap">
-        {% if producto.image %}
-        <div class="miniatura activa activa-azul" data-src="{{ producto.image.url }}" 
-             style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #0f087e; border-radius: 6px; overflow: hidden;">
-            <img src="{{ producto.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        {% endif %}
         {% for img in producto.images.all %}
-        <div class="miniatura" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado }}" 
-             style="width: 55px; height: 55px; cursor: pointer; border: 2px solid #ddd; border-radius: 6px; overflow: hidden;">
+        <div class="miniatura {% if forloop.first %}activa-azul{% endif %}" 
+             data-src="{{ img.image.url }}" 
+             data-color="{{ img.color_vinculado|default:'' }}" 
+             style="width: 55px; height: 55px; cursor: pointer; border: 2px solid {% if forloop.first %}#0f087e{% else %}#ddd{% endif %}; border-radius: 6px; overflow: hidden;">
             <img src="{{ img.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         {% endfor %}
     </div>
 
-<div class="text-center mb-3">
-    <h6 class="fw-bold mb-1" style="color: #333; font-size: 1.1rem;">{{ producto.name }}</h6>
-    
-    <div class="d-flex justify-content-center align-items-center gap-2">
-        <span class="precio-final h3 fw-bold" style="color: #0f087e; font-size: 2.2rem; font-weight: 900;">
-            $ {{ producto.final_price|floatformat:0 }}
-        </span>
-        
-        {% if producto.discount > 0 %}
-        <span class="text-muted text-decoration-line-through small">
-            $ {{ producto.cost|floatformat:0 }}
-        </span>
-        {% endif %}
+    <div class="text-center mb-3">
+        <h6 class="fw-bold mb-1" style="color: #333; font-size: 1.1rem;">{{ producto.name }}</h6>
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <span class="precio-final h3 fw-bold" style="color: #0f087e; font-size: 2.2rem; font-weight: 900;">
+                $ {{ producto.final_price|floatformat:0 }}
+            </span>
+        </div>
     </div>
-</div>
 
     <form id="form-add-cart-modal"> 
         {% csrf_token %}
@@ -77,73 +66,107 @@
 </div>
 
 <style>
+    /* Estilo para tu Azul Hermoso */
     .option-chip.active {
         background-color: #0f087e !important;
         color: white !important;
         border-color: #0f087e !important;
+        opacity: 1 !important;
     }
-    .marco-premium { border: 1px solid #eee; }
+    /* Quitamos el pointer-events: none que bloqueaba la activación */
+    .color-chip { 
+        cursor: default; 
+        opacity: 0.7; 
+        transition: all 0.3s ease;
+    }
 </style>
 
 <script>
 (function() {
-    const contenedor = document.getElementById('contenidoProducto');
-    if(!contenedor) return;
+    const ID_CONTENEDOR = 'contenidoProducto';
+    
+    function inicializarLogica() {
+        const contenedor = document.getElementById(ID_CONTENEDOR);
+        if (!contenedor) return;
 
-    const btnAgregar = contenedor.querySelector('#btnAgregarModal');
-    const inputTalla = contenedor.querySelector('#selected_size_hidden');
-    const inputColor = contenedor.querySelector('#selected_color_hidden');
-    const inputImagen = contenedor.querySelector('#imagen_seleccionada_url');
-    const imgPrincipal = contenedor.querySelector('#imagen-principal-modal');
+        const inputColor = contenedor.querySelector('#selected_color_hidden');
+        const inputTalla = contenedor.querySelector('#selected_size_hidden');
+        const btnAgregar = contenedor.querySelector('#btnAgregarModal');
 
-    // 1. Cambio de Imagen
-    contenedor.querySelectorAll('.miniatura').forEach(thumb => {
-        thumb.addEventListener('click', function() {
-            const nuevaSrc = this.getAttribute('data-src');
-            imgPrincipal.src = nuevaSrc;
-            inputImagen.value = nuevaSrc;
+        function seleccionarColor(valor) {
+            if (!valor) return;
+            const chips = contenedor.querySelectorAll('.color-chip');
+            const valorBusqueda = valor.trim().toLowerCase();
+
+            chips.forEach(chip => {
+                chip.classList.remove('active');
+                const chipValor = chip.getAttribute('data-value').trim().toLowerCase();
+                
+                // Comparación flexible: ayuda si uno dice "Beis" y otro "Beige" o tiene espacios
+                if (chipValor === valorBusqueda || chipValor.includes(valorBusqueda) || valorBusqueda.includes(chipValor)) {
+                    chip.classList.add('active');
+                    if(inputColor) inputColor.value = chip.getAttribute('data-value');
+                }
+            });
+            validarForm();
+        }
+
+        function validarForm() {
+            const colorOk = inputColor && inputColor.value !== "";
+            const tallaOk = !contenedor.querySelector('.size-chip') || (inputTalla && inputTalla.value !== "");
             
-            contenedor.querySelectorAll('.miniatura').forEach(m => m.style.borderColor = '#ddd');
-            this.style.borderColor = '#0f087e';
-
-            const colorAsociado = this.getAttribute('data-color');
-            if (colorAsociado && colorAsociado !== 'None') {
-                seleccionarChip(contenedor.querySelectorAll('.color-chip'), colorAsociado, inputColor);
+            if (colorOk && tallaOk && btnAgregar) {
+                btnAgregar.disabled = false;
+                btnAgregar.style.opacity = "1";
+                btnAgregar.innerHTML = "AGREGAR AL CARRITO";
             }
+        }
+
+        // Evento para Miniaturas
+        contenedor.querySelectorAll('.miniatura').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                const color = this.getAttribute('data-color');
+                const src = this.getAttribute('data-src');
+                
+                // Cambiar imagen principal
+                const imgPri = contenedor.querySelector('#imagen-principal-modal');
+                if(imgPri) imgPri.src = src;
+
+                // Marcar borde de miniatura
+                contenedor.querySelectorAll('.miniatura').forEach(m => m.style.borderColor = '#ddd');
+                this.style.borderColor = '#0f087e';
+
+                seleccionarColor(color);
+            });
         });
-    });
 
-    // 2. Selección de Talla y Color
-    contenedor.querySelectorAll('.size-chip').forEach(btn => {
-        btn.addEventListener('click', () => seleccionarChip(contenedor.querySelectorAll('.size-chip'), btn.getAttribute('data-value'), inputTalla));
-    });
+        // Evento para Tallas
+        contenedor.querySelectorAll('.size-chip').forEach(btn => {
+            btn.onclick = function() {
+                contenedor.querySelectorAll('.size-chip').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                inputTalla.value = this.getAttribute('data-value');
+                validarForm();
+            };
+        });
 
-    contenedor.querySelectorAll('.color-chip').forEach(btn => {
-        btn.addEventListener('click', () => seleccionarChip(contenedor.querySelectorAll('.color-chip'), btn.getAttribute('data-value'), inputColor));
-    });
-
-    function seleccionarChip(chips, valor, inputOculto) {
-        chips.forEach(c => c.classList.remove('active', 'btn-dark'));
-        const seleccionado = Array.from(chips).find(c => c.getAttribute('data-value') === valor);
-        if (seleccionado) {
-            seleccionado.classList.add('active');
-            inputOculto.value = valor;
-        }
-        validarFormulario();
+        // --- ACTIVACIÓN AUTOMÁTICA FORZADA ---
+        setTimeout(() => {
+            const primeraMini = contenedor.querySelector('.miniatura');
+            if (primeraMini) {
+                console.log("Forzando activación inicial...");
+                primeraMini.click();
+            }
+        }, 300); // Damos tiempo al modal para estabilizarse
     }
 
-    function validarFormulario() {
-        const tieneTallas = contenedor.querySelector('.size-chip') !== null;
-        const tieneColores = contenedor.querySelector('.color-chip') !== null;
-        
-        let listo = true;
-        if (tieneTallas && !inputTalla.value) listo = false;
-        if (tieneColores && !inputColor.value) listo = false;
-
-        if (listo) {
-            btnAgregar.disabled = false;
-            btnAgregar.style.opacity = "1";
+    // Observador para detectar el modal
+    const observer = new MutationObserver(() => {
+        if (document.getElementById(ID_CONTENEDOR)) {
+            inicializarLogica();
+            observer.disconnect();
         }
-    }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
 </script>
