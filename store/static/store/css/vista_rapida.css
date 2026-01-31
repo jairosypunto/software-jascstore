@@ -268,3 +268,15 @@
     background: #e5e7eb !important;
     color: #6b7280 !important;
 }
+
+/* 🚫 ESTILO PARA BOTÓN DESHABILITADO */
+#add-to-cart-btn:disabled,
+.btn-disabled {
+    background: #b0b0b0 !important; /* Gris que indica que falta seleccionar algo */
+    border-color: #d0d0d0 !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+    transform: none !important; 
+    box-shadow: none !important;
+}
