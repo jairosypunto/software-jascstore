@@ -7,13 +7,13 @@
 {% block extra_css %}
 <style>
     :root {
-        --azul-hermoso: #0f087e; /* Ajustado a tu azul real */
+        --azul-hermoso: #0f087e;
         --azul-brillante: #1a237e;
         --dorado-suave: #ffd700;
         --transition-master: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
     }
 
-    /* Hero Section: Impacto Inmediato */
+    /* Hero Section */
     .hero-section {
         background: linear-gradient(rgba(15, 8, 126, 0.85), rgba(13, 17, 64, 0.9)), 
                     url('https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop');
@@ -32,13 +32,14 @@
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
-    /* Tarjetas de Producto Modernas */
+    /* Tarjetas de Producto */
     .product-card {
         border: none;
         border-radius: 20px;
         transition: var(--transition-master);
         background: #fff;
         overflow: hidden;
+        position: relative;
     }
 
     .product-card:hover {
@@ -63,7 +64,28 @@
         transform: scale(1.1);
     }
 
-    /* Filtros Elegantes */
+    /* Botón de Carrito Rápido */
+    .btn-quick-cart {
+        background-color: var(--azul-hermoso);
+        color: white;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(15, 8, 126, 0.3);
+    }
+
+    .btn-quick-cart:hover {
+        background-color: var(--azul-brillante);
+        transform: scale(1.1);
+        color: white;
+    }
+
+    /* Filtros */
     .filter-bar {
         background: white;
         padding: 25px;
@@ -90,76 +112,9 @@
         color: white;
     }
 
-    .badge-discount {
-        background: #ff3d00;
-        font-weight: 700;
-        padding: 8px 12px;
-        border-radius: 10px;
-    }
-
-    /* --- ORGANIZACIÓN DE GALERÍA EN VISTA RÁPIDA --- */
-    .galeria-producto {
-        display: flex;
-        flex-direction: row-reverse; 
-        gap: 15px;
-        align-items: flex-start;
-    }
-
-    .imagen-principal {
-        flex: 1;
-        overflow: hidden;
-        border-radius: 15px;
-        background: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* ✅ SOLUCIÓN AL BOTÓN DE COLOR TAPADO */
-    .color-option-container {
-        position: relative;
-        display: inline-block;
-        margin-right: 10px;
-    }
-
-    /* Escondemos el radio button feo que pone el fondo blanco */
-    .color-option-container input[type="radio"] {
-        display: none;
-    }
-
-    /* El círculo de color limpio */
-    .color-label {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        display: block;
-        cursor: pointer;
-        border: 2px solid #ddd;
-        transition: var(--transition-master);
-        background-size: cover;
-    }
-
-    /* Efecto cuando se selecciona el color */
-    .color-option-container input[type="radio"]:checked + .color-label {
-        border-color: var(--azul-hermoso);
-        box-shadow: 0 0 0 2px white, 0 0 0 5px var(--azul-hermoso);
-        transform: scale(1.1);
-    }
-
-    /* ✅ LÓGICA DE BOTÓN DESHABILITADO (SIN STOCK) */
-    .btn-disabled {
-        opacity: 0.3 !important;
-        pointer-events: none !important;
-        filter: grayscale(1);
-        cursor: not-allowed !important;
-    }
-
-    /* Ajuste para móviles */
     @media (max-width: 768px) {
         .hero-title { font-size: 2.3rem; }
         .hero-section { padding: 60px 0; border-radius: 0 0 30px 30px; }
-        .filter-bar { margin-top: -30px; padding: 15px; }
-        .galeria-producto { flex-direction: column; }
     }
 </style>
 {% endblock %}
@@ -228,17 +183,26 @@
                         {% endif %}
                     </div>
 
-                    <div class="card-body text-center p-4">
-                        <p class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">Colección 2026</p>
-                        <h6 class="fw-bold mb-2 fs-5" style="color: #333;">{{ producto.name }}</h6>
+                    <div class="card-body p-4">
+                        <p class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px; font-size: 0.7rem;">Colección 2026</p>
+                        <h6 class="fw-bold mb-3 text-truncate" style="color: #333;">{{ producto.name }}</h6>
                         
-                        <div class="price-container">
-                            {% if producto.discount %}
-                                <span class="text-muted text-decoration-line-through me-2 small">${{ producto.cost|floatformat:0|intcomma }}</span>
-                                <span class="h5 fw-black text-danger mb-0">${{ producto.final_price|floatformat:0|intcomma }}</span>
-                            {% else %}
-                                <span class="h5 fw-black mb-0" style="color: var(--azul-hermoso);">${{ producto.cost|floatformat:0|intcomma }}</span>
-                            {% endif %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="price-box">
+                                {% if producto.discount %}
+                                    <div class="text-muted text-decoration-line-through small" style="font-size: 0.75rem;">${{ producto.cost|floatformat:0|intcomma }}</div>
+                                    <div class="fw-bold text-danger fs-5">${{ producto.final_price|floatformat:0|intcomma }}</div>
+                                {% else %}
+                                    <div class="fw-bold fs-5" style="color: var(--azul-hermoso);">${{ producto.cost|floatformat:0|intcomma }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="button" 
+                                    class="btn-quick-cart" 
+                                    onclick="abrirCarritoModal('{{ producto.id }}')"
+                                    title="Agregar al carrito">
+                                <i class="bi bi-cart-plus-fill"></i>
+                            </button>
                         </div>
                     </div>
                 </div>

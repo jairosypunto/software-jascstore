@@ -78,16 +78,16 @@
             <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'icons/no-image.png' %}{% endif %}" 
                  id="imagen-principal-modal" class="big-image" alt="{{ producto.name }}">
         </div>
-        <div class="miniaturas-horizontal">
-            {% for img in producto.images.all %}
-                <div class="miniatura {% if forloop.first %}activa{% endif %}" 
-                     data-src="{{ img.image.url }}" 
-                     data-color="{{ img.color_vinculado|default:'' }}"
-                     style="cursor: pointer;">
-                    <img src="{{ img.image.url }}" alt="Vista previa" style="width: 60px; height: 60px; object-fit: cover;">
-                </div>
-            {% endfor %}
+<div class="miniaturas-horizontal">
+    {% for img in producto.images.all %}
+        <div class="miniatura {% if forloop.first %}activa{% endif %}" 
+                data-src="{{ img.image.url }}" 
+                data-color="{{ img.color_vinculado|default:'' }}"
+                style="cursor: pointer;">
+            <img src="{{ img.image.url }}" alt="Vista previa" style="width: 60px; height: 60px; object-fit: cover;">
         </div>
+    {% endfor %}
+</div>
     </div>
 
     <div class="info-producto">
@@ -172,39 +172,33 @@
         }
     }
 
-    // Un solo listener para optimizar el rendimiento (Delegación de eventos)
+    // Listener único con delegación de eventos
     contenedor.onclick = function(e) {
         const target = e.target;
 
         // 1. Lógica de selección de COLOR
         if (target.classList.contains('color-chip')) {
             const colorSeleccionado = target.dataset.value;
-            
+            console.log("🎨 Color clickeado:", colorSeleccionado);
+
             // Actualizar UI de botones
             contenedor.querySelectorAll('.color-chip').forEach(b => b.classList.remove('selected'));
             target.classList.add('selected');
-            
+
             // Guardar valor en el input hidden
             const inputC = contenedor.querySelector('#selected_color_hidden');
             if (inputC) inputC.value = colorSeleccionado;
 
-            // Vincular con la IMAGEN (Usando el color_vinculado que encontramos)
+            // Buscar miniatura asociada al color
             const buscado = normalizar(colorSeleccionado);
             const miniaturas = contenedor.querySelectorAll('.miniatura');
-            
             let coincidencia = Array.from(miniaturas).find(m => normalizar(m.dataset.color) === buscado);
 
             if (coincidencia) {
-                const imgP = contenedor.querySelector('#imagen-principal-modal');
-                if (imgP) {
-                    imgP.src = coincidencia.dataset.src;
-                    // Actualizar estado activo de la miniatura
-                    miniaturas.forEach(m => m.classList.remove('activa'));
-                    coincidencia.classList.add('activa');
-                    // Guardar URL de la imagen seleccionada para el carrito
-                    const inputImg = contenedor.querySelector('#imagen_seleccionada_url');
-                    if(inputImg) inputImg.value = coincidencia.dataset.src;
-                }
+                console.log("✅ Miniatura encontrada para color:", coincidencia.dataset.src);
+                coincidencia.click(); // Simular clic en la miniatura
+            } else {
+                console.warn("⚠️ No se encontró miniatura para el color:", colorSeleccionado);
             }
             validar();
         }
@@ -215,6 +209,7 @@
             target.classList.add('selected');
             const inputT = contenedor.querySelector('#selected_size_hidden');
             if (inputT) inputT.value = target.dataset.value;
+            console.log("👟 Talla seleccionada:", target.dataset.value);
             validar();
         }
 
@@ -224,10 +219,11 @@
             const imgP = contenedor.querySelector('#imagen-principal-modal');
             if (imgP) {
                 imgP.src = mini.dataset.src;
+                console.log("🖼 Imagen principal cambiada a:", mini.dataset.src);
                 const inputImg = contenedor.querySelector('#imagen_seleccionada_url');
-                if(inputImg) inputImg.value = mini.dataset.src;
+                if (inputImg) inputImg.value = mini.dataset.src;
             }
-            
+
             contenedor.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa'));
             mini.classList.add('activa');
 
@@ -236,19 +232,20 @@
             if (colorDeFoto) {
                 const btnCorrespondiente = Array.from(contenedor.querySelectorAll('.color-chip'))
                     .find(btn => normalizar(btn.dataset.value) === colorDeFoto);
-                
+
                 if (btnCorrespondiente) {
                     contenedor.querySelectorAll('.color-chip').forEach(b => b.classList.remove('selected'));
                     btnCorrespondiente.classList.add('selected');
                     const inputC = contenedor.querySelector('#selected_color_hidden');
                     if (inputC) inputC.value = btnCorrespondiente.dataset.value;
+                    console.log("🔗 Botón de color sincronizado con miniatura:", btnCorrespondiente.dataset.value);
                 }
             }
             validar();
         }
     };
 
-    // Auto-selección: Al abrir, clickeamos el primer color para inicializar la vista
+    // Auto-selección: al abrir, clickeamos el primer color para inicializar la vista
     setTimeout(() => {
         const primerColor = contenedor.querySelector('.color-chip');
         if (primerColor) primerColor.click();
@@ -256,4 +253,3 @@
 
 })();
 </script>
-

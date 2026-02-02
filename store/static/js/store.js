@@ -149,8 +149,12 @@ function abrirCarritoModal(id) {
     
     if (!modal || !id) return;
 
+    // 1. Limpieza de conflictos con Vista Rápida
     const panelVR = document.getElementById("vistaRapidaPanel");
-    if (panelVR) panelVR.classList.remove("visible");
+    if (panelVR) {
+        panelVR.classList.remove("visible");
+        panelVR.style.display = "none";
+    }
 
     modal.classList.remove("hidden");
     modal.style.display = "block";
@@ -160,25 +164,63 @@ function abrirCarritoModal(id) {
         overlay.classList.add("overlay-active");
     }
 
-    cont.innerHTML = `
-        <div class='p-5 text-center'>
-            <div class='spinner-border' style='color: #1a237e; width: 3rem; height: 3rem;'></div>
-            <p class='mt-3 fw-bold' style='color: #1a237e;'>Cargando opciones...</p>
-        </div>`;
+    // Spinner con tu Azul Hermoso [cite: 2026-01-26]
+    cont.innerHTML = `<div class='p-5 text-center'><div class='spinner-border' style='color: #0f087e;'></div></div>`;
 
     fetch(`/store/carrito-modal/${id}/`)
         .then(res => res.text())
         .then(html => { 
-            if (cont) {
-                cont.innerHTML = html; 
-                setTimeout(() => {
-                    if (typeof window.initVistaRapida === "function") {
-                        window.initVistaRapida(cont); 
+            cont.innerHTML = html; 
+            
+            // Usamos un pequeño delay para asegurar que el DOM cargó
+            setTimeout(() => {
+                const normalizar = (t) => t ? t.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+                
+                // --- DETECTAR SI TIENE VARIANTES ---
+                const chipsColor = cont.querySelectorAll('.color-chip');
+                const chipsTalla = cont.querySelectorAll('.size-chip');
+                const hayVariantes = chipsColor.length > 0 || chipsTalla.length > 0;
+
+                const btnFinal = cont.querySelector('#btnAgregarModal') || cont.querySelector('#btnAgregarModalPropio');
+
+                if (!hayVariantes) {
+                    // CASO: Producto sin talla ni color (Comedero, Ejercicio)
+                    if (btnFinal) {
+                        btnFinal.disabled = false;
+                        btnFinal.style.backgroundColor = "#0f087e"; // [cite: 2026-01-26]
+                        btnFinal.style.opacity = "1";
+                        btnFinal.innerHTML = "🛒 AGREGAR AL CARRITO";
                     }
-                }, 50);
-            }
+                } else {
+                    // CASO: Producto con variantes - Intentar auto-seleccionar por imagen
+                    const imgPrincipal = cont.querySelector('#imagen-principal-modal');
+                    if (imgPrincipal && chipsColor.length > 0) {
+                        const srcActual = imgPrincipal.getAttribute('src');
+                        const miniCorrespondiente = cont.querySelector(`.miniatura[data-src="${srcActual}"]`);
+                        
+                        if (miniCorrespondiente && miniCorrespondiente.dataset.color) {
+                            const colorBusca = normalizar(miniCorrespondiente.dataset.color);
+                            const btnColor = Array.from(chipsColor).find(b => normalizar(b.dataset.value) === colorBusca);
+                            
+                            if (btnColor) {
+                                btnColor.click(); // Esto disparará tu validador universal
+                            }
+                        }
+                    }
+                }
+
+                // Inicializar eventos adicionales si existen
+                if (typeof window.initVistaRapida === "function") {
+                    window.initVistaRapida(cont); 
+                }
+            }, 50);
+        })
+        .catch(err => {
+            console.error("Error cargando modal:", err);
+            cont.innerHTML = "<p class='p-5 text-center'>Error al cargar el producto.</p>";
         });
 }
+
 
 function abrirVistaRapida(id) {
     const panel = document.getElementById("vistaRapidaPanel");
@@ -210,7 +252,9 @@ function abrirVistaRapida(id) {
         .then(res => res.text())
         .then(html => {
             cont.innerHTML = html;
+            
             setTimeout(() => {
+                // 1. Limpieza de chips vacíos o agotados
                 const todosLosChips = cont.querySelectorAll('.option-chip, .color-chip, .size-chip');
                 todosLosChips.forEach(btn => {
                     if (btn.classList.contains('agotado') || btn.innerText.trim() === "") {
@@ -219,7 +263,34 @@ function abrirVistaRapida(id) {
                         btn.style.pointerEvents = "none";
                     }
                 });
-                if (typeof window.initVistaRapida === "function") window.initVistaRapida(cont);
+
+                // 2. 🔥 SINCRONIZACIÓN INICIAL DE COLOR (Lo que faltaba)
+                const imgPrincipal = document.getElementById('imagen-principal-modal');
+                const normalizar = (t) => t ? t.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+                
+                if (imgPrincipal) {
+                    const srcActual = imgPrincipal.getAttribute('src');
+                    // Buscamos qué miniatura tiene esta misma imagen para saber su color
+                    const miniCorrespondiente = cont.querySelector(`.miniatura[data-src="${srcActual}"]`);
+                    
+                    if (miniCorrespondiente && miniCorrespondiente.dataset.color) {
+                        const colorVinculado = normalizar(miniCorrespondiente.dataset.color);
+                        // Buscamos el botón de color que coincida
+                        const btnColor = Array.from(cont.querySelectorAll('.color-chip'))
+                                              .find(b => normalizar(b.dataset.value) === colorVinculado);
+                        
+                        if (btnColor) {
+                            // Simulamos el clic para activar toda la lógica de imagen y formulario
+                            btnColor.click(); 
+                            console.log("Sincronización inicial: Color detectado y activado:", colorVinculado);
+                        }
+                    }
+                }
+
+                // 3. Inicializar lógica general
+                if (typeof window.initVistaRapida === "function") {
+                    window.initVistaRapida(cont);
+                }
             }, 150);
         });
 }

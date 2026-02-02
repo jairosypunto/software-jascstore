@@ -112,3 +112,28 @@ main, .contenedor-tienda, .padding-y {
 .icon-sm { width: 48px; height: 48px; line-height: 48px !important; font-size: 20px; display: inline-block; text-align: center; }
 .itemside { display: flex; width: 100%; align-items: center; }
 .itemside .info { padding-left: 15px; }
+
+/* ================= 7. CORRECCIÓN DE CHIPS (DEPURACIÓN) ================= */
+.color-chip, .size-chip, .option-chip {
+    pointer-events: auto !important; /* Forza a que se puedan clickear */
+    cursor: pointer !important;
+    opacity: 1 !important;
+    border: 1px solid #ddd;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+/* El estado cuando seleccionas un color o talla */
+.color-chip.selected, .size-chip.selected, .option-chip.active {
+    background-color: var(--azul-hermoso) !important;
+    color: #fff !important;
+    border-color: var(--azul-hermoso) !important;
+    transform: scale(1.05);
+}
+
+/* Botón Agregar al Carrito (Estado desactivado vs activo) */
+#btnAgregarModal:disabled {
+    background-color: #ccc !important;
+    opacity: 0.5;
+    cursor: not-allowed;
+}

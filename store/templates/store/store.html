@@ -26,12 +26,6 @@
 }
 
 
-
-
-
-
-
-
     :root {
         --azul-premium: #1a237e;
         --azul-hermoso: #0f087e;
@@ -270,12 +264,13 @@
                   {% endif %}
                 </div>
 
-                <button type="button" 
-                        class="jasc-cart" 
-                        data-id="{{ product.id }}" 
-                        data-has-variants="{{ product.has_variants|yesno:'true,false' }}">
-                    <i class="bi bi-cart-plus"></i>
-                </button>
+<button type="button" 
+        class="jasc-cart" 
+        data-id="{{ product.id }}" 
+        data-has-variants="{{ product.has_variants|yesno:'true,false' }}"
+        onclick="abrirCarritoModal('{{ product.id }}')">
+    <i class="bi bi-cart-plus"></i>
+</button>
             </div>
           </div>
 
@@ -297,4 +292,122 @@
    class="btn-whatsapp shadow-lg" target="_blank">
    <i class="bi bi-whatsapp"></i>
 </a>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+      // 1. Función de Normalización
+      const normalizarText = (t) => t ? t.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+
+      // 2. DELEGACIÓN DE EVENTOS GLOBAL
+      document.addEventListener('click', function(e) {
+          
+          // --- DETECTAR CONTENEDOR ACTIVO (Vista Rápida o Carrito) ---
+          // Buscamos el ancestro más cercano que sea uno de los dos modales
+          const panel = e.target.closest('#vistaRapidaPanel') || e.target.closest('#carritoModal');
+          if (!panel) return;
+
+          // --- MANEJO DE CLIC EN COLOR ---
+          const btnColor = e.target.closest('.color-chip');
+          if (btnColor) {
+              e.preventDefault();
+              const colorSeleccionado = btnColor.dataset.value;
+
+              // UI: Limpiar hermanos y marcar seleccionado con Azul Hermoso
+              panel.querySelectorAll('.color-chip').forEach(b => {
+                  b.classList.remove('selected', 'seleccionado');
+                  b.style.backgroundColor = ""; // Reset de color previo
+                  b.style.color = "";
+              });
+              
+              btnColor.classList.add('selected', 'seleccionado');
+              btnColor.style.backgroundColor = "#0f087e"; // Tu azul hermoso
+              btnColor.style.color = "white";
+
+              // Guardar en el hidden input del formulario (dentro del panel activo)
+              const inputColor = panel.querySelector('#selected_color_hidden');
+              if (inputColor) inputColor.value = colorSeleccionado;
+
+              // --- LÓGICA DE CAMBIO DE IMAGEN ---
+              const buscado = normalizarText(colorSeleccionado);
+              const miniaturas = panel.querySelectorAll('.miniatura');
+              const coincidencia = Array.from(miniaturas).find(m => normalizarText(m.dataset.color) === buscado);
+
+              if (coincidencia) {
+                  // Buscamos la imagen principal dentro del panel activo solamente
+                  const imgPrincipal = panel.querySelector('#imagen-principal-modal') || panel.querySelector('#imagen-principal');
+                  if (imgPrincipal) {
+                      imgPrincipal.src = coincidencia.dataset.src;
+                      
+                      miniaturas.forEach(m => {
+                          m.classList.remove('activa', 'activa-azul');
+                          m.style.borderColor = "#ddd";
+                      });
+                      
+                      coincidencia.classList.add('activa');
+                      coincidencia.style.borderColor = "#0f087e";
+                      
+                      const inputImg = panel.querySelector('#imagen_seleccionada_url');
+                      if (inputImg) inputImg.value = coincidencia.dataset.src;
+                  }
+              }
+              
+              validarEstadoModalUniversal(panel);
+          }
+
+          // --- MANEJO DE CLIC EN TALLA ---
+          const btnTalla = e.target.closest('.size-chip');
+          if (btnTalla) {
+              e.preventDefault();
+              panel.querySelectorAll('.size-chip').forEach(b => {
+                  b.classList.remove('selected', 'seleccionado');
+                  b.style.backgroundColor = "";
+                  b.style.color = "";
+              });
+              
+              btnTalla.classList.add('selected', 'seleccionado');
+              btnTalla.style.backgroundColor = "#0f087e";
+              btnTalla.style.color = "white";
+              
+              const inputTalla = panel.querySelector('#selected_size_hidden');
+              if (inputTalla) inputTalla.value = btnTalla.dataset.value;
+              
+              validarEstadoModalUniversal(panel);
+          }
+      });
+  });
+
+  // Función auxiliar universal para habilitar/deshabilitar el botón de agregar
+  function validarEstadoModalUniversal(panel) {
+      if (!panel) return;
+
+      // Buscamos el botón por ID o por clase dentro del panel
+      const btn = panel.querySelector('#btnAgregarModalPropio') || panel.querySelector('#btnAgregarModal') || panel.querySelector('.btn-agregar');
+      const valColor = panel.querySelector('#selected_color_hidden')?.value;
+      const valTalla = panel.querySelector('#selected_size_hidden')?.value;
+      
+      const tieneColores = panel.querySelectorAll('.color-chip').length > 0;
+      const tieneTallas = panel.querySelectorAll('.size-chip').length > 0;
+
+      const colorOk = !tieneColores || (valColor && valColor !== "");
+      const tallaOk = !tieneTallas || (valTalla && valTalla !== "");
+
+      if (btn) {
+          if (colorOk && tallaOk) {
+              btn.disabled = false;
+              btn.innerHTML = "🛒 AGREGAR AL CARRITO";
+              btn.style.backgroundColor = "#0f087e";
+              btn.style.opacity = "1";
+          } else {
+              btn.disabled = true;
+              btn.style.backgroundColor = "#ccc";
+              btn.style.opacity = "0.6";
+              if (!colorOk) btn.innerHTML = "🛒 ELIGE COLOR";
+              else if (!tallaOk) btn.innerHTML = "🛒 ELIGE TALLA";
+          }
+      }
+  }
+
+</script>
+
 {% endblock %}
