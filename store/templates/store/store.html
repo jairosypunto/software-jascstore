@@ -11,6 +11,27 @@
 <link rel="stylesheet" href="{% static 'store/css/estilos_productos_tienda.css' %}?v={{ STATIC_VERSION }}">
 
 <style>
+
+/* FORZAR HABILITACIÓN VISUAL */
+.color-chip, .size-chip, .jasc-cart, .btn-agregar {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+}
+
+.color-chip.seleccionado {
+    border: 2px solid var(--azul-hermoso) !important;
+    background-color: var(--azul-hermoso) !important;
+    color: white !important;
+}
+
+
+
+
+
+
+
+
     :root {
         --azul-premium: #1a237e;
         --azul-hermoso: #0f087e;

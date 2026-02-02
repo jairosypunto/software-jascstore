@@ -195,12 +195,13 @@ def ver_carrito(request):
     }
     return render(request, "store/carrito.html", context)
 
+
+
 # ============================================================
 # 🔄 Vista: agregar al carrito (CORREGIDA PARA IMÁGENES)
 # ============================================================
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from .models import Product
+
 
 def agregar_al_carrito(request, product_id):
     if request.method == 'POST':
@@ -253,54 +254,25 @@ def agregar_al_carrito(request, product_id):
 from django.shortcuts import redirect, get_object_or_404
 from .models import Product, ProductVariant
 from django.contrib import messages
-
+# ============================================================
+# 🔄 Vista: actualizar cantidad en carrito
+# ============================================================
 def actualizar_cantidad(request, item_key):
+    """Suma o resta 1 a la cantidad de un item específico."""
     carrito = request.session.get('carrito', {})
     accion = request.POST.get('accion')
     
     if item_key in carrito:
-        item = carrito[item_key]
-        p_id = item.get("producto_id")
-        talla_val = str(item.get("talla", "")).strip()
-        color_val = str(item.get("color", "")).strip()
-
-        # 1. Intentamos buscar el stock en la MATRIZ (Variantes)
-        variante = ProductVariant.objects.filter(
-            product_id=p_id, 
-            talla__iexact=talla_val, 
-            color__iexact=color_val
-        ).first()
-
-        # 2. Si no hay variante específica, intentamos por talla (respaldo matriz)
-        if not variante:
-            variante = ProductVariant.objects.filter(
-                product_id=p_id, 
-                talla__iexact=talla_val
-            ).first()
-
-        # 3. LÓGICA HÍBRIDA: Si sigue sin haber variante, miramos el STOCK GENERAL del producto
-        if variante:
-            stock_max = variante.stock
-        else:
-            producto_base = get_object_or_404(Product, id=p_id)
-            stock_max = producto_base.stock
-
-        # 4. Procesamos la acción de suma/resta con el stock_max validado
         if accion == 'sumar':
-            if item['cantidad'] < stock_max:
-                item['cantidad'] += 1
-            else:
-                messages.warning(request, f"Solo hay {stock_max} unidades disponibles de {item['nombre']}.")
-                
-        elif accion == 'restar' and item['cantidad'] > 1:
-            item['cantidad'] -= 1
+            # Nota: La validación de stock real se hace al renderizar 'ver_carrito'
+            carrito[item_key]['cantidad'] += 1
+        elif accion == 'restar' and carrito[item_key]['cantidad'] > 1:
+            carrito[item_key]['cantidad'] -= 1
         
-        # Guardamos cambios en la sesión sin tocar la imagen_url
         request.session['carrito'] = carrito
         request.session.modified = True
 
     return redirect('store:ver_carrito')
-
 
 # ============================================================
 # 🗑️ Vista: eliminar un item específico
@@ -316,7 +288,7 @@ def eliminar_del_carrito(request, item_key):
         request.session.modified = True
         messages.warning(request, f"{nombre_producto} fue eliminado del carrito.")
     else:
-        messages.error(request, "El producto que intentas eliminar no existe en tu carrito.")
+        messages.error(request, "El producto que intentas eliminar no existe.")
 
     # Soporte para AJAX (si usas carrito lateral o modal)
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -328,88 +300,20 @@ def eliminar_del_carrito(request, item_key):
         })
     
     return redirect('store:ver_carrito')
-    """Muestra la página del carrito validando disponibilidad real en DB."""
-    from .models import ProductVariant # Importación local para evitar ciclos
-    
-    carrito = request.session.get("carrito", {})
-    total = Decimal("0")
-    productos_carrito = []
-    carrito_modificado = False
 
-    # Copiamos las llaves para poder borrar items si es necesario sin error de iteración
-    keys_to_check = list(carrito.keys())
-
-    for key in keys_to_check:
-        item = carrito[key]
-        product_id = item["producto_id"]
-        talla = item.get("talla", "")
-        color = item.get("color", "")
-
-        # 🔍 BUSQUEDA DE STOCK REAL EN LA NUEVA TABLA
-        # Buscamos la variante específica
-        variante = ProductVariant.objects.filter(
-            product_id=product_id, 
-            talla=talla, 
-            color=color
-        ).first()
-
-        # 🚨 VALIDACIÓN PROFESIONAL
-        if not variante or variante.stock <= 0:
-            # Si ya no existe o no hay stock, lo marcamos para revisión o lo quitamos
-            # En este caso, lo dejamos pero marcamos 'disponible': False para el HTML
-            item_disponible = False
-            stock_actual = 0
-        else:
-            item_disponible = True
-            stock_actual = variante.stock
-            # Si el usuario pide más de lo que hay, ajustamos su carrito al máximo disponible
-            if item["cantidad"] > stock_actual:
-                item["cantidad"] = stock_actual
-                carrito_modificado = True
-
-        # Cálculos de dinero
-        subtotal = Decimal(item["precio"]) * item["cantidad"]
-        total += subtotal
-        
-        productos_carrito.append({
-            "item_key": key,
-            "producto_id": product_id,
-            "nombre": item["nombre"],
-            "precio": Decimal(item["precio"]),
-            "cantidad": item["cantidad"],
-            "talla": talla,
-            "color": color,
-            "imagen": item.get("imagen", ""),
-            "subtotal": subtotal,
-            "disponible": item_disponible, # 👈 Nuevo: Para mostrar alerta en el HTML
-            "stock_max": stock_actual      # 👈 Nuevo: Para limitar los botones +/-
-        })
-
-    # Si ajustamos cantidades por falta de stock, guardamos la sesión
-    if carrito_modificado:
-        request.session["carrito"] = carrito
-        request.session.modified = True
-        messages.warning(request, "Algunas cantidades se ajustaron por disponibilidad de stock.")
-
-    context = {
-        "carrito": productos_carrito,
-        "total_carrito": total,
-        "total_formateado": formatear_numero(total) if 'formatear_numero' in globals() else total,
-        "carrito_vacio": len(productos_carrito) == 0
-    }
-    
-    return render(request, "store/carrito.html", context)
 
 # ============================================================
-# 🛒 Vista: vaciar carrito
+# 🛒 Vista: vaciar carrito completo
 # ============================================================
 def vaciar_carrito(request):
     """
-    Limpia el carrito de la sesión.
+    Limpia el carrito de la sesión por completo.
     """
     request.session['carrito'] = {}
+    request.session.modified = True
     messages.info(request, "Tu carrito fue vaciado.")
     return redirect('store:ver_carrito')
+
 
 # ============================================================
 # 🛒 Vista: modal de carrito (contenido dinámico)
@@ -922,13 +826,21 @@ def enviar_factura_por_correo(factura, usuario, contexto=None):
     email.send()
 
 
-# ============================================================
-# 👁️ Vista: vista rápida de producto
-# ============================================================
 @login_required(login_url='/account/login/')
 def vista_rapida(request, id):
     producto = get_object_or_404(Product, id=id)
-    return render(request, 'store/vista_rapida.html', {'producto': producto})
+    variantes = ProductVariant.objects.filter(product=producto)
+    
+    # 🎯 Aseguramos que los nombres coincidan con tu HTML:
+    talla_list = variantes.values_list('talla', flat=True).distinct().order_by('talla')
+    color_list = variantes.values_list('color', flat=True).distinct().order_by('color')
+
+    context = {
+        'producto': producto,
+        'talla_list': talla_list, # <-- Tu HTML usa producto.talla_list, cámbialo a 'talla_list'
+        'color_list': color_list, # <-- Igual aquí
+    }
+    return render(request, 'store/vista_rapida.html', context)
 
 # ============================================================
 # 🏦 Vista: widget de pago bancario (VERSION ESTABILIZADA)

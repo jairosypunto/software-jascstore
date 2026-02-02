@@ -7,202 +7,218 @@
 <div class="container my-5">
   <div class="row g-4">
 
-    <div class="col-md-6">
-      <div id="contenedor-principal" class="mb-3 text-center bg-light rounded shadow-sm p-2" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
-        {% if producto.image %}
-          <img src="{{ producto.image.url }}" class="img-fluid rounded" style="max-height: 500px; object-fit: contain;" id="main-view">
-        {% else %}
-          <img src="{% static 'img/no-image.png' %}" class="img-fluid rounded" style="max-height: 500px;">
-        {% endif %}
-      </div>
-
-      <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
-        {% if producto.image %}
-          <img src="{{ producto.image.url }}"
-               class="miniatura activa-azul"
-               data-type="image"
-               data-src="{{ producto.image.url }}"
-               data-color="General" 
-               style="width: 75px; height: 75px; object-fit: cover; cursor: pointer; border-radius: 8px; border: 2px solid #eee;">
-        {% endif %}
-
-        {% for img in producto.images.all %}
-          <img src="{{ img.image.url }}"
-               class="miniatura"
-               data-type="image"
-               data-src="{{ img.image.url }}"
-               data-color="{{ img.color_vinculado|default:'' }}"
-               title="{{ img.color_vinculado }}"
-               style="width: 75px; height: 75px; object-fit: cover; cursor: pointer; border-radius: 8px; border: 2px solid #eee;">
-        {% endfor %}
-
-        {% if producto.video_file %}
-          <div class="miniatura position-relative" data-type="video" data-src="{{ producto.video_file.url }}" style="width: 75px; height: 75px; cursor: pointer;">
-            <img src="{{ producto.video_thumb.url }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 2px solid #eee;">
-            <i class="bi bi-play-circle-fill position-absolute top-50 start-50 translate-middle text-white fs-4"></i>
+    <div class="col-md-7">
+      <div class="row">
+        <div class="col-2 d-none d-md-block">
+          <div class="d-flex flex-column gap-2 side-gallery" style="max-height: 500px; overflow-y: auto;">
+            {% if producto.image %}
+              <img src="{{ producto.image.url }}" class="miniatura activa-azul img-thumbnail" data-src="{{ producto.image.url }}" data-color="General">
+            {% endif %}
+            {% for img in producto.images.all %}
+              <img src="{{ img.image.url }}" class="miniatura img-thumbnail" data-src="{{ img.image.url }}" data-color="{{ img.color_vinculado|default:'' }}">
+            {% endfor %}
           </div>
-        {% endif %}
+        </div>
+
+        <div class="col-10">
+          <div id="contenedor-principal" class="main-viewer shadow-sm rounded">
+            {% if producto.image %}
+              <img src="{{ producto.image.url }}" class="img-fluid rounded" id="main-view">
+            {% else %}
+              <img src="{% static 'img/no-image.png' %}" class="img-fluid rounded">
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="col-md-6">
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Inicio</a></li>
-          <li class="breadcrumb-item active">{{ producto.category.name }}</li>
-        </ol>
-      </nav>
-
-      <h2 class="fw-bold" style="color: #1a237e;">{{ producto.name }}</h2>
+    <div class="col-md-5">
+      <h2 class="fw-bold" style="color: #0f087e;">{{ producto.name }}</h2>
       
-      <div class="precios mb-3">
+      <div class="precios mb-4">
         {% if producto.discount > 0 %}
-          <div class="d-flex align-items-center gap-2">
-            <span class="fs-2 fw-bold text-danger">${{ producto.final_price|floatformat:0 }}</span>
+          <div class="d-flex align-items-baseline gap-2">
+            <span class="fs-1 fw-bold text-danger">${{ producto.final_price|floatformat:0 }}</span>
             <span class="text-muted text-decoration-line-through">${{ producto.cost|floatformat:0 }}</span>
-            <span class="badge bg-danger">OFERTA -{{ producto.discount }}%</span>
           </div>
         {% else %}
-          <span class="fs-2 fw-bold" style="color: #1a237e;">${{ producto.cost|floatformat:0 }}</span>
+          <span class="fs-1 fw-bold" style="color: #0f087e;">${{ producto.cost|floatformat:0 }}</span>
         {% endif %}
       </div>
-
-      <hr>
 
       <form method="POST" action="{% url 'store:agregar_al_carrito' producto.id %}" id="form-add-cart">
         {% csrf_token %}
 
+        {% if producto.color_list %}
+        <div class="mb-4">
+          <p class="fw-bold mb-2">Color: <span id="nombre-color-display" class="ms-2 badge text-white" style="background-color: #0f087e; font-weight: normal;">Selecciona uno</span></p>
+          <div class="d-flex gap-2 flex-wrap">
+            {% for color in producto.color_list %}
+              <label class="color-option">
+                <input type="radio" name="selected_color" value="{{ color }}" class="visually-hidden"> 
+                <span class="color-chip">{{ color }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         {% if producto.talla_list %}
         <div class="mb-4">
-          <label class="fw-bold mb-2">Selecciona tu Talla:</label>
+          <p class="fw-bold mb-2">Talla:</p>
           <div class="d-flex gap-2 flex-wrap">
             {% for talla in producto.talla_list %}
             <label class="size-option">
-              <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden" required>
-              <span class="btn btn-outline-dark px-3 py-2">{{ talla }}</span>
+              <input type="radio" name="selected_size" value="{{ talla }}" class="visually-hidden">
+              <span class="size-chip">{{ talla }}</span>
             </label>
             {% endfor %}
           </div>
         </div>
         {% endif %}
 
-        {% if producto.color_list %}
-{% if producto.color_list %}
-<div class="mb-4">
-  <label class="fw-bold mb-2">Color seleccionado: <span id="nombre-color-display" class="text-white badge" style="background-color: #1a237e;">Ninguno</span></label>
-  <div class="d-flex gap-2 flex-wrap">
-    {% for color in producto.color_list %}
-      <label class="color-option" style="pointer-events: none; opacity: 0.6;" id="wrapper-color-{{ color|slugify }}">
-        <input type="radio" 
-               name="selected_color" 
-               value="{{ color }}" 
-               class="visually-hidden" 
-               disabled> <span class="btn btn-sm btn-outline-secondary px-3 rounded-pill">{{ color }}</span>
-      </label>
-    {% endfor %}
-  </div>
-  <small class="text-muted d-block mt-1">Elige el color tocando la foto del producto.</small>
-</div>
-{% endif %}
-
         <input type="hidden" name="cantidad" value="1">
 
-        <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-lg text-white shadow-sm" id="btn-add-main" 
-                    style="background-color: #1a237e; border-radius: 50px; padding: 15px;" disabled>
-              <i class="bi bi-cart-plus-fill me-2"></i> AGREGAR AL CARRITO
-            </button>
-            <p class="text-center text-muted mt-2" style="font-size: 0.8rem;">
-              <i class="bi bi-shield-check"></i> Pago seguro y Garantía JascStore
-            </p>
+        <div class="d-grid mt-5">
+          <button type="submit" class="btn btn-lg btn-buy shadow-lg" id="btn-add-main" disabled>
+            <i class="bi bi-cart-plus-fill me-2"></i> AGREGAR AL CARRITO
+          </button>
         </div>
       </form>
     </div>
-
   </div>
 </div>
 
 <style>
-/* Tu Azul Hermoso como variable */
-:root { --jasc-azul: #1a237e; }
+/* VARIABLES Y BASE */
+:root { --azul-hermoso: #0f087e; }
 
-/* Miniaturas */
-.miniatura { transition: all 0.2s ease; }
-.miniatura:hover { transform: translateY(-3px); border-color: #ccc !important; }
+/* VISOR PRINCIPAL */
+.main-viewer {
+    background: #fff;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+    overflow: hidden;
+}
+#main-view { max-height: 100%; width: auto; transition: opacity 0.3s ease; }
+
+/* MINIATURAS */
+.miniatura {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid transparent !important;
+    transition: all 0.2s;
+}
+.miniatura:hover { border-color: #ccc !important; }
 .miniatura.activa-azul { 
-    border: 3px solid var(--jasc-azul) !important; 
-    box-shadow: 0 4px 10px rgba(26,35,126,0.3);
+    border-color: var(--azul-hermoso) !important; 
+    box-shadow: 0 0 8px rgba(15,8,126,0.2);
 }
 
-/* Botones de opción (Radio Buttons) */
-input[type="radio"]:checked + span {
-    background-color: var(--jasc-azul) !important;
+/* CHIPS DE COLOR Y TALLA */
+.color-chip, .size-chip {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+input[type="radio"]:checked + .color-chip,
+input[type="radio"]:checked + .size-chip {
+    background-color: var(--azul-hermoso) !important;
     color: white !important;
-    border-color: var(--jasc-azul) !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-color: var(--azul-hermoso) !important;
 }
 
-#btn-add-main:disabled {
-    background-color: #b0bec5 !important;
-    opacity: 0.7;
+/* BOTÓN COMPRA */
+.btn-buy {
+    background-color: var(--azul-hermoso);
+    color: white;
+    border-radius: 50px;
+    padding: 18px;
+    font-weight: 800;
+    border: none;
+    transition: transform 0.2s, background-color 0.3s;
+}
+.btn-buy:hover:not(:disabled) {
+    background-color: #0a065a;
+    transform: translateY(-2px);
+}
+.btn-buy:disabled {
+    background-color: #ccc;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const btnAdd = document.getElementById('btn-add-main');
-    const colorRadios = document.querySelectorAll('input[name="selected_color"]');
-    const sizeRadios = document.querySelectorAll('input[name="selected_size"]');
+document.addEventListener('click', function(e) {
+    const display = document.getElementById('contenedor-principal');
     const colorLabel = document.getElementById('nombre-color-display');
+    const btnAdd = document.getElementById('btn-add-main');
 
-    // Función para validar si el botón de compra se activa
-    function validarFormulario() {
-        const sizeOk = sizeRadios.length === 0 || Array.from(sizeRadios).some(r => r.checked);
-        const colorOk = colorRadios.length === 0 || Array.from(colorRadios).some(r => r.checked);
-        btnAdd.disabled = !(sizeOk && colorOk);
+    // 1. CLIC EN MINIATURA (Cambia imagen y selecciona color)
+    const thumb = e.target.closest('.miniatura');
+    if (thumb) {
+        const src = thumb.dataset.src;
+        const color = thumb.dataset.color?.trim();
+
+        // Actualizar Visor
+        if (display) {
+            display.innerHTML = `<img src="${src}" class="img-fluid rounded" id="main-view">`;
+        }
+
+        // Marcar miniatura activa
+        document.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa-azul'));
+        thumb.classList.add('activa-azul');
+
+        // Sincronizar Radio de Color
+        if (color && color.toLowerCase() !== 'general') {
+            const radio = Array.from(document.querySelectorAll('input[name="selected_color"]'))
+                .find(r => r.value.trim().toLowerCase() === color.toLowerCase());
+            if (radio) {
+                radio.checked = true;
+                if (colorLabel) colorLabel.textContent = radio.value;
+            }
+        }
     }
 
-    // Al hacer clic en una miniatura
-    document.querySelectorAll('.miniatura').forEach(thumb => {
-        thumb.addEventListener('click', function() {
-            const type = this.dataset.type;
-            const src = this.dataset.src;
-            const colorAsociado = this.dataset.color;
-            const display = document.getElementById('contenedor-principal');
+    // 2. CLIC EN OPCIÓN DE COLOR (Cambia imagen desde botón)
+    const colorOpt = e.target.closest('.color-option');
+    if (colorOpt) {
+        const input = colorOpt.querySelector('input');
+        if (input) {
+            const valor = input.value.trim().toLowerCase();
+            if (colorLabel) colorLabel.textContent = input.value;
 
-            // 1. Cambiar contenido principal (Imagen o Video)
-            if (type === 'video') {
-                display.innerHTML = `<video controls autoplay muted class="img-fluid rounded" style="max-height:500px;"><source src="${src}" type="video/mp4"></video>`;
-            } else {
-                display.innerHTML = `<img src="${src}" class="img-fluid rounded" style="max-height:500px; object-fit:contain;" id="main-view">`;
+            const match = Array.from(document.querySelectorAll('.miniatura'))
+                .find(m => m.dataset.color?.trim().toLowerCase() === valor);
+            
+            if (match && display) {
+                display.innerHTML = `<img src="${match.dataset.src}" class="img-fluid rounded" id="main-view">`;
+                document.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa-azul'));
+                match.classList.add('activa-azul');
             }
+        }
+    }
 
-            // 2. Resaltar miniatura seleccionada
-            document.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa-azul'));
-            this.classList.add('activa-azul');
-
-            // 3. LOGICA TEMU: Seleccionar automáticamente el botón de color
-            if (colorAsociado && colorAsociado !== 'General') {
-                colorRadios.forEach(radio => {
-                    if (radio.value.toLowerCase().trim() === colorAsociado.toLowerCase().trim()) {
-                        radio.checked = true;
-                        colorLabel.textContent = colorAsociado;
-                    }
-                });
-            }
-            validarFormulario();
-        });
-    });
-
-    // Escuchar cambios manuales en radios
-    [...colorRadios, ...sizeRadios].forEach(input => {
-        input.addEventListener('change', () => {
-            if(input.name === 'selected_color') colorLabel.textContent = input.value;
-            validarFormulario();
-        });
-    });
+    // 3. VALIDACIÓN CONSTANTE
+    const tallaOk = document.querySelectorAll('input[name="selected_size"]').length === 0 || 
+                    Array.from(document.querySelectorAll('input[name="selected_size"]')).some(r => r.checked);
+    const colorOk = document.querySelectorAll('input[name="selected_color"]').length === 0 || 
+                    Array.from(document.querySelectorAll('input[name="selected_color"]')).some(r => r.checked);
+    
+    if (btnAdd) btnAdd.disabled = !(tallaOk && colorOk);
 });
 </script>
 {% endblock %}
