@@ -229,12 +229,14 @@ function abrirVistaRapida(id) {
     
     if (!panel || !cont || !id) return;
 
+    // 1. Limpieza de modales previos
     const modalCarrito = document.getElementById("carritoModal");
     if (modalCarrito) {
         modalCarrito.classList.add("hidden");
         modalCarrito.style.display = "none";
     }
 
+    // 2. Mostrar estructura del modal
     panel.style.display = "block"; 
     panel.classList.remove("hidden");
     panel.classList.add("visible");
@@ -246,54 +248,90 @@ function abrirVistaRapida(id) {
     }
 
     document.body.style.overflow = "hidden";
+    
+    // Spinner con tu Azul Hermoso
     cont.innerHTML = `<div class="d-flex justify-content-center p-5"><div class="spinner-border" style="color: #0f087e;"></div></div>`;
 
+    // 3. Petición al servidor (Ruta absoluta para Home/Store)
     fetch(`/store/vista-rapida/${id}/`)
         .then(res => res.text())
         .then(html => {
             cont.innerHTML = html;
             
             setTimeout(() => {
-                // 1. Limpieza de chips vacíos o agotados
-                const todosLosChips = cont.querySelectorAll('.option-chip, .color-chip, .size-chip');
-                todosLosChips.forEach(btn => {
-                    if (btn.classList.contains('agotado') || btn.innerText.trim() === "") {
-                        btn.disabled = true;
-                        btn.style.opacity = "0.3";
-                        btn.style.pointerEvents = "none";
-                    }
+                const imgPrincipal = document.getElementById('imagen-principal-modal');
+                const botonesColor = cont.querySelectorAll('.color-chip');
+                const miniaturas = cont.querySelectorAll('.miniatura');
+
+                // --- LÓGICA DE SINCRONIZACIÓN MAESTRA ---
+                botonesColor.forEach(boton => {
+                    boton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // A. Activar visualmente el botón (Azul Hermoso)
+                        botonesColor.forEach(b => b.classList.remove('seleccionado', 'active'));
+                        this.classList.add('seleccionado', 'active');
+
+                        // Normalizamos el valor para evitar errores de comparación
+                        const colorBuscado = this.getAttribute('data-value').trim().toLowerCase();
+
+                        // B. Sincronizar Miniaturas (Vital para que el Carrito NO falle)
+                        miniaturas.forEach(m => {
+                            m.classList.remove('active', 'selected');
+                        });
+
+                        // Buscamos la miniatura comparando en minúsculas para mayor seguridad
+                        const miniCorrespondiente = Array.from(miniaturas).find(m => {
+                            const mColor = m.getAttribute('data-color');
+                            return mColor && mColor.trim().toLowerCase() === colorBuscado;
+                        });
+                        
+                        if (miniCorrespondiente) {
+                            // Marcamos como activa para que el script del carrito capture ESTA imagen
+                            miniCorrespondiente.classList.add('active', 'selected');
+                            
+                            // C. Cambiar Imagen Principal
+if (imgPrincipal) {
+    const nuevaRuta = miniCorrespondiente.getAttribute('data-src');
+    imgPrincipal.src = nuevaRuta;
+    
+    // Sincronizar el input oculto para que el envío AJAX lo vea
+    const inputImagenOculto = cont.querySelector('#imagen_seleccionada_url');
+    if (inputImagenOculto) {
+        inputImagenOculto.value = nuevaRuta;
+    }
+}
+                        }
+
+                        // D. Actualizar el Input Oculto del Formulario (Para Checkout y Factura)
+                        const inputColor = cont.querySelector('input[name="color"]');
+                        if (inputColor) {
+                            inputColor.value = this.getAttribute('data-value'); // Valor original
+                        }
+
+                        console.log("JascStore: Sistema sincronizado para el color:", colorBuscado);
+                    });
                 });
 
-                // 2. 🔥 SINCRONIZACIÓN INICIAL DE COLOR (Lo que faltaba)
-                const imgPrincipal = document.getElementById('imagen-principal-modal');
-                const normalizar = (t) => t ? t.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-                
-                if (imgPrincipal) {
-                    const srcActual = imgPrincipal.getAttribute('src');
-                    // Buscamos qué miniatura tiene esta misma imagen para saber su color
-                    const miniCorrespondiente = cont.querySelector(`.miniatura[data-src="${srcActual}"]`);
-                    
-                    if (miniCorrespondiente && miniCorrespondiente.dataset.color) {
-                        const colorVinculado = normalizar(miniCorrespondiente.dataset.color);
-                        // Buscamos el botón de color que coincida
-                        const btnColor = Array.from(cont.querySelectorAll('.color-chip'))
-                                              .find(b => normalizar(b.dataset.value) === colorVinculado);
-                        
-                        if (btnColor) {
-                            // Simulamos el clic para activar toda la lógica de imagen y formulario
-                            btnColor.click(); 
-                            console.log("Sincronización inicial: Color detectado y activado:", colorVinculado);
-                        }
-                    }
+                // --- Inicialización: Simular clic en el primer color disponible ---
+                if (botonesColor.length > 0) {
+                    // Si ya hay uno con clase 'seleccionado' de servidor, usamos ese, si no el primero
+                    const btnInicial = cont.querySelector('.color-chip.seleccionado') || botonesColor[0];
+                    btnInicial.click(); 
                 }
 
-                // 3. Inicializar lógica general
+                // Ejecutar lógica interna (tallas, validaciones de stock)
                 if (typeof window.initVistaRapida === "function") {
                     window.initVistaRapida(cont);
                 }
-            }, 150);
+            }, 250);
+        })
+        .catch(err => {
+            console.error("Error crítico en JascStore:", err);
+            cont.innerHTML = "<p class='text-center p-4'>Error al conectar con el servidor.</p>";
         });
 }
+
 
 function cerrarVistaRapida() {
     const panel = document.getElementById("vistaRapidaPanel");
@@ -417,9 +455,16 @@ document.addEventListener("click", (e) => {
     const form = btn.closest("form");
     if (!form) return;
 
-    const productId = btn.dataset.id || btn.dataset.productId;
-    const formData = new FormData(form);
-    const textoOriginal = btn.innerHTML;
+const productId = btn.dataset.id || btn.dataset.productId;
+const formData = new FormData(form);
+
+// 🔥 PARCHE JASCSTORE: Capturar la imagen seleccionada del modal
+const inputImagen = form.querySelector("#imagen_seleccionada_url");
+if (inputImagen && inputImagen.value) {
+    formData.set('imagen_seleccionada_url', inputImagen.value);
+}
+
+const textoOriginal = btn.innerHTML;
 
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
