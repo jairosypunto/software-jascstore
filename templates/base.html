@@ -7,68 +7,26 @@
 
   <title>{% block title %}JascStore{% endblock %}</title>
 
-  <meta name="description" content="Compra productos destacados con descuentos y envío rápido en JascStore.">
-  <meta name="keywords" content="tienda online, ecommerce, descuentos, productos, JascStore">
+  <meta name="description" content="Compra productos destacados en JascStore.">
   <meta name="author" content="JascStore">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
   <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 
-  <link rel="stylesheet" href="{% static 'home/css/bootstrap_home.css' %}?v={{ STATIC_VERSION }}">
   <link rel="stylesheet" href="{% static 'home/css/styles_home.css' %}?v={{ STATIC_VERSION }}">
-  <link rel="stylesheet" href="{% static 'home/css/navbar_home.css' %}?v={{ STATIC_VERSION }}">
   <link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}">
-  
-<style>
+
+  <style>
+    /* Estilos estructurales mínimos que dependen de variables dinámicas */
     :root {
-        --azul-hermoso: #1a237e;
-        --azul-brillante: #3949ab;
-        --gris-suave: #f8f9fa;
+        --azul-hermoso: #0f087e; /* Tu azul oficial [cite: 2026-01-26] */
+        --azul-brillante: #1a237e;
     }
 
-    /* === VISTA RÁPIDA (MODAL) PROFESIONAL === */
-    .vista-rapida-panel {
-        padding: 30px !important; /* ✅ MARGENES INTERNOS PARA QUE RESPIRE */
-        border-radius: 25px;
-        background: white;
-        box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-    }
-
-    /* ✅ SOLUCIÓN AL BOTÓN DE COLOR TAPADO POR BLANCO */
-    .color-option-container input[type="radio"] {
-        display: none !important; /* Esconde el control nativo del navegador */
-    }
-
-    .color-label {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        display: inline-block;
-        border: 2px solid #ddd;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    /* Efecto cuando el color está seleccionado */
-    .color-option-container input[type="radio"]:checked + .color-label {
-        border-color: var(--azul-hermoso) !important;
-        box-shadow: 0 0 0 2px white, 0 0 0 5px var(--azul-hermoso);
-        transform: scale(1.1);
-    }
-
-    /* ✅ BOTONES DESHABILITADOS (SIN STOCK) */
-    .btn-disabled {
-        opacity: 0.3 !important;
-        pointer-events: none !important;
-        filter: grayscale(1);
-        cursor: not-allowed !important;
-    }
-
-    /* Side Cart Estilos */
+    /* Side Cart Estilos (Mantener aquí si cambian por sesión, si no, mover a carrito.css) */
     .side-cart-overlay { 
         position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
         z-index: 1040; display: none; backdrop-filter: blur(2px); 
@@ -77,50 +35,30 @@
     .side-cart { 
         position: fixed; right: -380px; top: 0; width: 380px; height: 100vh; 
         background: white; z-index: 1050; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
-        padding: 0; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+        display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
     }
     .side-cart.visible { right: 0; }
 
-    .side-cart-header { padding: 20px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0; }
-
     .cart-items-container { 
-        flex-grow: 1; 
-        overflow-y: auto; 
-        padding: 25px 20px !important; /* ✅ Evita que se tape el primer producto */
+        flex-grow: 1; overflow-y: auto; padding: 25px 20px !important; 
         background: #fdfdfd;
     }
 
-    .side-cart-footer { padding: 20px; border-top: 1px solid #eee; background: white; flex-shrink: 0; }
-
-    /* Botones Premium */
-    .btn-temu { 
-        background-color: var(--azul-hermoso); color: white; border: none; 
-        transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+    /* Resalte de miniatura activa */
+    .miniatura.active {
+        border: 2px solid var(--azul-hermoso) !important;
+        box-shadow: 0 0 5px rgba(15, 8, 126, 0.5);
     }
-    .btn-temu:hover { 
-        background-color: var(--azul-brillante); color: white; 
-        transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3);
-    }
-    .cart-count { background-color: var(--azul-hermoso) !important; color: white !important; }
-
-    /* Resalte de miniatura activa vinculada al botón de color */
-.miniatura.active {
-    border: 2px solid #0f087e !important;
-    box-shadow: 0 0 5px rgba(15, 8, 126, 0.5);
-    opacity: 1 !important;
-}
-
-</style>
+  </style>
 
   {% block extra_css %}{% endblock %}
 </head>
 
 <body>
-
   <div id="sideCartOverlay" class="side-cart-overlay" onclick="cerrarSideCart()"></div>
   <div id="sideCart" class="side-cart">
     <div class="side-cart-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold" style="color: var(--azul-hermoso);">
+        <h5 class="mb-0 fw-bold color-jasc-azul">
             <i class="bi bi-bag-check-fill me-2"></i>Mi Selección
         </h5>
         <button class="btn-close" onclick="cerrarSideCart()"></button>
@@ -128,8 +66,8 @@
     <div id="sideCartContent" class="cart-items-container"></div>
     <div class="side-cart-footer border-top p-4 bg-light">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="h6 mb-0 fw-bold" style="color: #555;">Subtotal Estimado:</span>
-            <span id="sideCartTotal" class="h5 mb-0 fw-bold" style="color: var(--azul-hermoso) !important;">$0</span>
+            <span class="h6 mb-0 fw-bold text-muted">Subtotal Estimado:</span>
+            <span id="sideCartTotal" class="h5 mb-0 fw-bold color-jasc-azul">$0</span>
         </div>
         <a href="{% url 'store:ver_carrito' %}" class="btn btn-temu w-100 py-3 rounded-pill fw-bold">CONTINUAR COMPRA</a>
     </div>
@@ -137,24 +75,22 @@
 
   <div id="carritoModal" class="carrito-modal-temu hidden">
       <button type="button" class="cerrar-carrito" onclick="cerrarCarritoModal()">&times;</button>
-      <div id="contenidoCarrito" style="padding: 40px 20px !important;"> 
-          </div>
+      <div id="contenidoCarrito" class="p-4"></div>
   </div>
   <div class="carrito-overlay" id="carritoOverlay" onclick="cerrarCarritoModal()"></div>
 
   <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
-      <div id="contenidoProducto">
-          </div>
+      <div id="contenidoProducto"></div>
   </div>
 
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+  <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-xl d-flex justify-content-between align-items-center">
-      <a class="navbar-brand fw-bold text-info" href="{% url 'home:home' %}">JascStore</a>
+      <a class="navbar-brand fw-bold" href="{% url 'home:home' %}">JascStore</a>
       
       <div class="navbar-mobile-group order-lg-3">
         {% if user.is_authenticated %}
           <a class="nav-link position-relative px-2 d-inline-block text-white" href="javascript:void(0)" onclick="abrirSideCart()">
-            <i class="bi bi-cart3 h5"></i>
+            <i class="bi bi-cart3 h4"></i>
             <span class="cart-count badge position-absolute top-0 start-100 translate-middle rounded-pill">
               {{ total_items_carrito|default:0 }}
             </span>
@@ -167,9 +103,9 @@
 
       <div class="collapse navbar-collapse order-lg-2" id="navbarContenido">
         <ul class="navbar-nav me-auto gap-2">
-          <li class="nav-item"><a class="nav-link" href="{% url 'store:store' %}">Tienda</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'store:nosotros' %}">Nosotros</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'store:contacto' %}">Contacto</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:store' %}">Tienda</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:nosotros' %}">Nosotros</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:contacto' %}">Contacto</a></li>
         </ul>
         <ul class="navbar-nav ms-auto gap-3 align-items-center">
           {% if user.is_authenticated %}
@@ -177,7 +113,7 @@
                 <span class="nav-link text-white small">Hola, <strong>{{ user.first_name|default:user.username }}</strong></span>
             </li>
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mi Cuenta</a>
+                <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">Mi Cuenta</a>
                 <ul class="dropdown-menu dropdown-menu-end shadow">
                     <li><a class="dropdown-item" href="{% url 'usuario:dashboard' %}">Dashboard</a></li>
                     <li><hr class="dropdown-divider"></li>
@@ -190,8 +126,8 @@
                 </ul>
             </li>
           {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'usuario:login' %}">Login</a></li>
-            <li class="nav-item"><a class="btn btn-outline-success btn-sm fw-bold px-3" href="{% url 'usuario:register' %}">Registro</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'usuario:login' %}">Ingresar</a></li>
+            <li class="nav-item"><a class="btn btn-register fw-bold" href="{% url 'usuario:register' %}">Crear Cuenta</a></li>
           {% endif %}
         </ul>
       </div>
@@ -204,9 +140,9 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="bg-dark text-white mt-5 py-5 border-top border-secondary">
-    <div class="container text-center">
-      <p class="mb-4">© 2026 JascStore. Todos los derechos reservados.</p>
+  <footer class="footer-jasc mt-5 py-5">
+    <div class="container text-center text-white">
+      <p class="mb-0">© 2026 JascStore. Todos los derechos reservados.</p>
     </div>
   </footer>
 
@@ -215,6 +151,5 @@
   <script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 
   {% block extra_js %}{% endblock %}
-
 </body>
 </html>

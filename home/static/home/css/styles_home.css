@@ -1,139 +1,186 @@
 @charset "UTF-8";
-@import url("https://rsms.me/inter/inter.css");
 
-/* ================= 1. BASE & ESTRUCTURA DE PÁGINA ================= */
-html { 
-    font-family: "Inter", sans-serif; 
-    font-size: 15px; 
-    scroll-behavior: smooth; 
+/* ============================================================
+   1. VARIABLES GLOBALES (El ADN de JascStore)
+   ============================================================ */
+:root {
+    --azul-hermoso: #0f087e; /* Tu color principal [cite: 2026-01-26] */
+    --azul-light: #1a237e;
+    --verde-temu: #10b981;
+    --blanco: #ffffff;
+    --gris-fondo: #f8fafc;
+    --gris-borde: #e2e8f0;
+    --overlay-bg: rgba(0, 0, 0, 0.75);
+    --sombra-pro: 0 4px 12px rgba(0,0,0,0.15);
 }
-body { background-color: #f8f9fa; color: #212529; }
+
+/* ============================================================
+   2. RESET Y ESTRUCTURA BASE
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--gris-fondo);
+    color: #1e293b;
+    padding-top: 80px; /* Espacio fijo para el navbar */
+    overflow-x: hidden;
+}
+
 a { text-decoration: none; color: inherit; transition: 0.3s; }
 
-/* ESPACIADO CRÍTICO: Evita que el Navbar tape el catálogo */
-main, .contenedor-tienda, .padding-y {
-    margin-top: 70px !important; /* Ajuste para el menú fijo */
+/* ============================================================
+   3. NAVBAR UNIFICADA (Estilo Moderno)
+   ============================================================ */
+.navbar {
+    background: linear-gradient(135deg, var(--azul-hermoso) 0%, var(--azul-light) 100%);
+    padding: 0.7rem 2rem;
+    position: fixed;
+    top: 0; width: 100%; 
+    z-index: 2000;
+    box-shadow: var(--sombra-pro);
 }
 
-.content-body { flex: 1 1 auto; padding: 2rem 2.3rem; }
-.box { padding: 18px; background: #fff; border-radius: 0.37rem; border: 1px solid #e4e4e4; }
-
-/* ================= 2. IDENTIDAD: AZUL HERMOSO ================= */
-:root {
-    --azul-hermoso: #1a237e;
-    --azul-acento: #3949ab;
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
 }
 
-.bg-blue, .btn-primary, .btn-agregar-modal { 
-    background-color: var(--azul-hermoso) !important; 
-    border-color: var(--azul-hermoso) !important; 
-    color: #fff !important; 
+/* Buscador Estilo Temu */
+.search-bar {
+    flex: 1;
+    max-width: 600px;
+    display: flex;
+    background: var(--blanco);
+    border-radius: 50px;
+    overflow: hidden;
+    border: 2px solid transparent;
 }
 
-.text-blue { color: var(--azul-hermoso) !important; }
+.search-bar:focus-within { border-color: var(--verde-temu); }
 
-/* Estados activos en filtros y opciones */
-.btn-check input:checked ~ .btn, .js-check.active, .option-chip.active { 
-    border-color: var(--azul-hermoso) !important; 
-    background-color: var(--azul-hermoso) !important; 
-    color: #fff !important; 
+.search-input {
+    flex: 1;
+    padding: 0.7rem 1.2rem;
+    border: none;
+    outline: none;
 }
 
-/* ================= 3. CATÁLOGO & PRODUCTOS ================= */
-[class*=card-product] { 
-    margin-bottom: 25px; 
-    position: relative; 
-    background: #fff; 
-    border-radius: 12px; 
-    border: 1px solid #eee; 
-    transition: transform 0.3s, box-shadow 0.3s;
+.search-btn {
+    background: var(--verde-temu);
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
 }
 
-[class*=card-product]:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+/* ============================================================
+   4. COMPONENTES DEL CARRITO Y MODALES (Basado en tus capturas)
+   ============================================================ */
+/* Ajuste para las imágenes pequeñas en el Side Cart (image_64ebc1.png) */
+.cart-item-row img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--gris-borde);
 }
 
-[class*=card-product] .img-wrap { 
-    overflow: hidden; 
-    position: relative; 
-    height: 220px; 
-    text-align: center; 
-    border-radius: 12px 12px 0 0;
+.side-cart-overlay {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--overlay-bg) !important;
+    z-index: 2500;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-[class*=card-product] .img-wrap img { 
-    height: 100%; 
-    max-width: 100%; 
-    object-fit: cover; 
-}
-
-.price { font-weight: 700; color: #1a237e; font-size: 1.2rem; }
-.price-old { color: #969696; text-decoration: line-through; font-size: 85%; margin-left: 5px; }
-
-/* ================= 4. COMPONENTES FUNCIONALES ================= */
-/* Ratings de estrellas */
-.rating-stars { display: inline-block; list-style: none; margin: 0; padding: 0; position: relative; }
-.rating-stars i { font-size: 14px; color: #ccc; }
-.rating-stars .stars-active { position: absolute; top: 0; left: 0; overflow: hidden; color: orange !important; }
-
-/* Notificaciones del carrito (Header) */
-.widget-header .notify { 
-    position: absolute; top: -5px; right: -8px; 
-    display: inline-block; padding: 0.25em 0.6em; 
-    font-size: 11px; border-radius: 50%; background-color: #fa3434; color: #fff; 
-}
-
-/* Selector de cantidad */
-.input-spinner { width: 125px; flex-wrap: nowrap; display: inline-flex; border-radius: 5px; overflow: hidden; }
-.input-spinner input { text-align: center; max-width: 50px; border: 1px solid #ddd; border-left: 0; border-right: 0; font-weight: bold; }
-
-/* ================= 5. OPTIMIZACIÓN MÓVIL (SIN BLOQUEOS) ================= */
-@media (max-width: 768px) {
-    /* Desactivamos blur pesado para que el móvil no se quede estático */
-    .vista-rapida-overlay, .modal-backdrop, .overlay-active { 
-        backdrop-filter: none !important; 
-        -webkit-backdrop-filter: none !important;
-        background: rgba(0, 0, 0, 0.8) !important; 
-    }
-    
-    /* Imágenes fluidas */
-    .img-lg, .img-wrap img, .big-image { height: auto !important; width: 100% !important; }
-    
-    /* Evita scroll infinito al abrir modales */
-    body.modal-open { 
-        position: fixed; 
-        width: 100%; 
-        overflow: hidden;
-    }
-}
-
-/* ================= 6. ELEMENTOS DE NAVEGACIÓN ================= */
-.icon-sm { width: 48px; height: 48px; line-height: 48px !important; font-size: 20px; display: inline-block; text-align: center; }
-.itemside { display: flex; width: 100%; align-items: center; }
-.itemside .info { padding-left: 15px; }
-
-/* ================= 7. CORRECCIÓN DE CHIPS (DEPURACIÓN) ================= */
-.color-chip, .size-chip, .option-chip {
-    pointer-events: auto !important; /* Forza a que se puedan clickear */
-    cursor: pointer !important;
+.overlay-active {
+    display: block !important;
     opacity: 1 !important;
-    border: 1px solid #ddd;
-    background: #fff;
-    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
 }
 
-/* El estado cuando seleccionas un color o talla */
-.color-chip.selected, .size-chip.selected, .option-chip.active {
+/* ============================================================
+   5. BOTONES E IDENTIDAD (Azul Hermoso)
+   ============================================================ */
+.btn-jasc-primary, .btn-agregar-modal, .btn-primary {
     background-color: var(--azul-hermoso) !important;
-    color: #fff !important;
     border-color: var(--azul-hermoso) !important;
-    transform: scale(1.05);
+    color: var(--blanco) !important;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
-/* Botón Agregar al Carrito (Estado desactivado vs activo) */
-#btnAgregarModal:disabled {
-    background-color: #ccc !important;
-    opacity: 0.5;
-    cursor: not-allowed;
+.btn-jasc-primary:hover {
+    background-color: var(--azul-light) !important;
+    transform: translateY(-1px);
+}
+
+/* Chips de selección (Talla/Color) */
+.option-chip.active, .size-chip.selected {
+    background-color: var(--azul-hermoso) !important;
+    color: white !important;
+    border-color: var(--azul-hermoso) !important;
+}
+
+/* ============================================================
+   6. RESPONSIVO
+   ============================================================ */
+@media (max-width: 768px) {
+    body { padding-top: 130px; }
+    .nav-container { flex-wrap: wrap; }
+    .search-bar { width: 100%; order: 3; }
+    .search-select { display: none; }
+}
+
+/* ============================================================
+   UTILIDADES RESPONSIVE (Rescatadas de responsive.css)
+   ============================================================ */
+@media (max-width: 992px) {
+    .table-shopping-cart tr td:first-child { width: 200px; }
+    .table-shopping-cart .itemside .aside { display: none; }
+}
+
+@media (max-width: 768px) {
+    .mobile-hide { display: none !important; }
+    .mobile-block { display: block !important; }
+    
+    /* Control de orden en celular para el buscador estilo Temu */
+    .mobile-order-first { order: -1; }
+    .mobile-order-1 { order: 1; }
+    .mobile-order-2 { order: 2; }
+    .mobile-order-3 { order: 3; }
+    
+    .item-feature { margin-bottom: 20px; }
+}
+
+/* --- Efecto Pro de Tarjetas --- */
+.card-product {
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* --- Foco del Buscador Jasc --- */
+.search-bar:focus-within {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+    border-color: var(--verde-temu) !important;
+}
+
+.search-select {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: none;
+    padding: 0 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-right: 1px solid #e2e8f0;
 }

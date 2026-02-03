@@ -1,16 +1,44 @@
+/* ============================================================
+   ESTILOS LOGIN - JASCSTORE (Sincronizado con Azul Hermoso)
+   ============================================================ */
+
 .card {
-  border-radius: 10px;
+    border-radius: 15px !important; /* Más redondeado como tus productos */
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 .card-header {
-  background: linear-gradient(90deg, #007bff, #00c6ff);
+    /* Usamos tu gradiente oficial del navbar para el header del login */
+    background: linear-gradient(135deg, var(--azul-hermoso) 0%, var(--azul-light) 100%) !important;
+    color: white !important;
+    border-radius: 15px 15px 0 0 !important;
+    text-align: center;
+    padding: 1.5rem !important;
+    font-weight: bold;
 }
 
 .btn-primary {
-  background-color: #007bff;
-  border: none;
+    background-color: var(--azul-hermoso) !important;
+    border: none !important;
+    padding: 0.8rem !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+    background-color: var(--azul-light) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(15, 8, 126, 0.3);
+}
+
+/* Enlaces de "Olvidé mi contraseña" */
+.login-links a {
+    color: var(--azul-hermoso);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.login-links a:hover {
+    text-decoration: underline;
 }
