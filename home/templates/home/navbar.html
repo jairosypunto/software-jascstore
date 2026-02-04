@@ -3,32 +3,67 @@
 
 <style>
   :root {
-    --azul-premium: #0f087e; /* Tu Azul Hermoso sincronizado [cite: 2026-01-26] */
+    /* Tu Azul Hermoso sincronizado como base de lujo [cite: 2026-01-26] */
+    --azul-premium: #0f087e; 
     --azul-brillante: #1a237e;
-    --azul-oscuro: #0d1140;
+    --azul-oscuro: #0a055e;
+    /* Paleta para efecto plata */
+    --plata-brillante: #ffffff;
+    --plata-medio: #e0e0e0;
+    --plata-oscuro: #b0b0b0;
   }
 
-  /* Navbar con degradado profesional */
+  /* Navbar con degradado de profundidad */
   .navbar-fijo {
-    background: linear-gradient(135deg, var(--azul-premium) 0%, var(--azul-oscuro) 100%) !important;
-    padding: 0.8rem 0;
+    background: linear-gradient(180deg, var(--azul-premium) 0%, var(--azul-oscuro) 100%) !important;
+    padding: 0.7rem 0;
     transition: all 0.3s ease;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    z-index: 1030; /* Asegura que el navbar esté sobre el contenido */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1030;
   }
 
+  /* 💎 LOGO EFECTO PLATA PREMIUM */
   .navbar-brand {
-    font-size: 1.6rem;
-    font-weight: 800 !important;
-    letter-spacing: -0.8px;
-    color: #ffffff !important;
+    font-size: 1.7rem;
+    font-weight: 900 !important;
+    letter-spacing: -1px;
     text-transform: uppercase;
+    /* Degradado metálico */
+    background: linear-gradient(to bottom, var(--plata-brillante) 0%, var(--plata-medio) 50%, var(--plata-oscuro) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-brand i {
+    /* El rayo en oro blanco brillante */
+    color: #f5f5f5 !important;
+    -webkit-text-fill-color: initial; /* Resetea el gradient para el icono */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    margin-right: 5px;
+  }
+
+  /* ✨ SALUDO MÓVIL: EFECTO CRISTAL (Glassmorphism) */
+  .mobile-user-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f8f9fa !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: inline-block;
   }
 
   .nav-link {
     font-weight: 600;
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
     padding: 0.5rem 1rem !important;
     transition: all 0.2s ease;
     border-radius: 8px;
@@ -36,80 +71,76 @@
 
   .nav-link:hover {
     color: #ffffff !important;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-1px);
   }
 
   /* Contador del carrito vibrante */
   .cart-badge-container {
     position: relative;
-    display: inline-block;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   
   .cart-badge-container:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
   }
 
   .cart-count {
     position: absolute;
     top: -5px;
-    right: -10px;
-    background-color: #ff3d00;
+    right: -8px;
+    background: #ff3d00;
     color: white;
-    font-size: 0.75rem;
-    min-width: 20px;
-    height: 20px;
+    font-size: 0.7rem;
+    min-width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     font-weight: 800;
-    box-shadow: 0 0 10px rgba(255, 61, 0, 0.4);
+    box-shadow: 0 0 12px rgba(255, 61, 0, 0.5);
     border: 2px solid var(--azul-premium);
   }
 
   .btn-registro {
-    background-color: #ffffff !important;
+    background: #ffffff !important;
     color: var(--azul-premium) !important;
     border-radius: 12px;
-    padding: 8px 20px !important;
+    padding: 8px 22px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     transition: all 0.3s ease;
+    border: none !important;
   }
 
   .btn-registro:hover {
-    background-color: #ffd700 !important;
+    background: #ffd700 !important;
     color: #000 !important;
     transform: scale(1.05) translateY(-2px);
   }
 
-  .navbar-main-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  /* ✅ AJUSTES PARA MÓVIL (Lupa activada) */
+  /* ✅ OPTIMIZACIÓN MENÚ DESPLEGABLE MÓVIL */
   @media (max-width: 991px) {
     .navbar-collapse {
-      background: var(--azul-oscuro);
+      background: rgba(10, 5, 94, 0.98); /* Azul muy oscuro para contraste */
       margin-top: 1rem;
       padding: 1.5rem;
-      border-radius: 20px;
-      /* Forzar que el menú se vea sobre el banner y contenido */
+      border-radius: 24px;
       position: relative;
       z-index: 9999 !important;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
       border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* Asegurar visibilidad de enlaces en móvil */
     .navbar-collapse .nav-link {
-      padding: 0.8rem 1rem !important;
+      padding: 1rem !important;
       border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 1.1rem;
+    }
+
+    .navbar-toggler i {
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
   }
 </style>

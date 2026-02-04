@@ -235,7 +235,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ================================
 # 🔄 VERSIONADO DE STATIC (Azul Hermoso)
 # ================================
-STATIC_VERSION = "20260203_v1"  # Fecha de hoy [cite: 2026-02-03]
+STATIC_VERSION = "20260204_LUZ_V2" # Cámbialo por algo nuevo
 
 # ================================
 # 📊 LOGGING

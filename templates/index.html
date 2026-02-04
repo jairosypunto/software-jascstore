@@ -162,6 +162,25 @@
             margin-bottom: -35px;
         }
     }
+
+    /* Añade esto al final de tu <style> en este index.html */
+.modal-content {
+    border-radius: 25px !important;
+    border: none !important;
+    overflow: hidden !important;
+}
+
+/* Fuerza el estilo del botón del modal para que sea como el del Store */
+.modal-body button, 
+.modal-body .btn-primary {
+    background-color: var(--azul-hermoso) !important; /* Tu Azul Hermoso [cite: 2026-01-26] */
+    border-radius: 50px !important;
+    padding: 10px 30px !important;
+    width: auto !important;
+    margin: 15px auto !important;
+    display: block !important;
+    border: none !important;
+}
 </style>
 {% endblock %}
 

@@ -601,3 +601,15 @@ button[type="submit"].btn-primary,
     background-color: #0f087e !important;
     color: white !important;
 }
+
+/* Forzar el Azul Hermoso en el icono de menú de toda la web */
+.navbar-toggler-icon, 
+.navbar-dark .navbar-toggler-icon,
+.mobile-menu-btn i {
+    filter: invert(13%) sepia(91%) saturate(4521%) hue-rotate(242deg) brightness(85%) contrast(105%) !important;
+}
+
+.navbar-toggler {
+    border-color: #0f087e !important;
+    background-color: #0f087e !important;
+}
