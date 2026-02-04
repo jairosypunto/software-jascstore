@@ -35,20 +35,40 @@
     to { opacity: 1; }
 }
 
-/* 2. CARRITO LATERAL (DISEÑO BOUTIQUE) */
+/* 2. CARRITO LATERAL (DISEÑO BOUTIQUE - CORREGIDO) */
 #carritoModal {
     position: fixed !important;
-    top: 0; right: 0;
+    top: 80px !important; /* 🚀 AJUSTE: Empieza debajo de la Navbar */
+    right: 0;
     width: 450px;
-    height: 100vh !important;
+    height: calc(100vh - 80px) !important; /* 🚀 AJUSTE: Altura dinámica para no salirse */
     background: var(--blanco) !important;
     transform: translateX(100%);
     transition: transform 0.5s var(--curva-premium);
-    z-index: 10000 !important;
+    z-index: 15000 !important; /* Por debajo de la Navbar (20000) pero encima de todo lo demás */
     box-shadow: -15px 0 45px rgba(0,0,0,0.15);
     display: flex !important;
     flex-direction: column !important;
-    border-left: 6px solid var(--azul-hermoso); /* Detalles de marca */
+    border-left: 6px solid var(--azul-hermoso);
+}
+
+/* 7. BOTONES DE CIERRE (MÁXIMA VISIBILIDAD) */
+.cerrar-panel, .cerrar-carrito {
+    position: absolute !important;
+    top: 15px !important; /* 🚀 AJUSTE: Bajado un poco para no chocar con el borde */
+    right: 20px !important;
+    background: var(--azul-hermoso) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    width: 45px !important; /* 🚀 AJUSTE: Tamaño más estilizado */
+    height: 45px !important;
+    border: 3px solid white !important;
+    z-index: 20005 !important; /* 🚀 CRUCIAL: Por encima de la Navbar (20000) para poder cerrar siempre */
+    cursor: pointer;
+    display: flex !important;
+    align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+    transition: all 0.4s ease !important;
 }
 
 /* Estado Activo del Carrito */
@@ -279,4 +299,85 @@
     opacity: 0.7 !important;
     transform: none !important; 
     box-shadow: none !important;
+}
+
+/* SECCIÓN FINAL ADICIONAL PARA REFORZAR BANNER */
+.hero-banner-exclusivo {
+    z-index: 1 !important; /* Asegura que el banner no tape los modales */
+    position: relative;
+}
+
+/* =========================================================
+   🛡️ PROTECCIÓN DE CAPAS (SOLUCIÓN DE SUPERPOSICIÓN)
+   ========================================================= */
+
+/* 1. EL BANNER: Debe estar por debajo de la Navbar pero encima de los productos */
+.hero-banner-exclusivo, 
+.main-banner, 
+#header-banner {
+    position: relative !important;
+    z-index: 10 !important; /* Capa base */
+}
+
+/* 2. LOS PRODUCTOS: Deben pasar POR DEBAJO del banner y la navbar al hacer scroll */
+.grid-productos, 
+.product-card, 
+.item-articulo,
+.contenido-principal {
+    position: relative !important;
+    z-index: 1 !important; /* Capa más baja */
+}
+
+/* 3. LA NAVBAR: Siempre debe ser la reina (Azul Hermoso) */
+.navbar, 
+header, 
+#main-nav {
+    position: sticky !important;
+    top: 0;
+    z-index: 20000 !important; /* Por encima de todo los productos */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* 4. REFUERZO PARA MÓVIL */
+@media (max-width: 768px) {
+    .grid-productos {
+        z-index: 1 !important;
+    }
+}
+
+/* =========================================================
+   ✨ REFUERZO DE ELEGANCIA: CAPAS DE DESLIZAMIENTO
+   ========================================================= */
+
+/* 1. EL CONTENIDO: Se desliza por debajo de la jerarquía superior */
+main, 
+.contenedor-tienda, 
+.grid-productos, 
+#productos-lista {
+    position: relative !important;
+    z-index: 1 !important; /* Capa base para que nada flote encima del banner */
+}
+
+/* 2. EL BANNER: Actúa como un puente visual */
+.hero-banner-exclusivo, 
+[class*="banner"] {
+    position: relative !important;
+    z-index: 500 !important; /* Superior a los artículos pero inferior a la Navbar */
+}
+
+/* 3. LA NAVBAR (AZUL HERMOSO): La corona del sitio */
+nav, 
+.navbar, 
+header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20000 !important; /* Prioridad absoluta */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+/* 4. AJUSTE PARA EL TOAST "¡AÑADIDO!": Para que no tape el subtotal */
+#toast-carrito, 
+.toast-success {
+    z-index: 20010 !important; 
+    bottom: 30px !important; 
 }

@@ -3,7 +3,7 @@
 
 <style>
   :root {
-    --azul-premium: #0f087e; /* Tu Azul Hermoso sincronizado */
+    --azul-premium: #0f087e; /* Tu Azul Hermoso sincronizado [cite: 2026-01-26] */
     --azul-brillante: #1a237e;
     --azul-oscuro: #0d1140;
   }
@@ -14,6 +14,7 @@
     padding: 0.8rem 0;
     transition: all 0.3s ease;
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    z-index: 1030; /* Asegura que el navbar esté sobre el contenido */
   }
 
   .navbar-brand {
@@ -68,17 +69,6 @@
     border: 2px solid var(--azul-premium);
   }
 
-  /* Animación cuando se agrega algo */
-  .cart-bump {
-    animation: bump 0.4s ease-out;
-  }
-
-  @keyframes bump {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.4); }
-    100% { transform: scale(1); }
-  }
-
   .btn-registro {
     background-color: #ffffff !important;
     color: var(--azul-premium) !important;
@@ -102,12 +92,24 @@
     width: 100%;
   }
 
+  /* ✅ AJUSTES PARA MÓVIL (Lupa activada) */
   @media (max-width: 991px) {
     .navbar-collapse {
       background: var(--azul-oscuro);
       margin-top: 1rem;
       padding: 1.5rem;
       border-radius: 20px;
+      /* Forzar que el menú se vea sobre el banner y contenido */
+      position: relative;
+      z-index: 9999 !important;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Asegurar visibilidad de enlaces en móvil */
+    .navbar-collapse .nav-link {
+      padding: 0.8rem 1rem !important;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
   }
 </style>
@@ -132,7 +134,7 @@
           </a>
         {% endif %}
 
-        <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
+        <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
           <i class="bi bi-list fs-1 text-white"></i>
         </button>
       </div>
@@ -166,11 +168,13 @@
               </li>
             </ul>
           </li>
+          
           <li class="nav-item d-lg-none w-100 mt-2">
-            <a class="nav-link py-2" href="{% url 'usuario:dashboard' %}">Mi Panel</a>
+            <a class="nav-link py-2" href="{% url 'usuario:dashboard' %}"><i class="bi bi-person-circle me-2"></i>Mi Panel</a>
+            <a class="nav-link py-2" href="{% url 'store:mis_facturas' %}"><i class="bi bi-bag-check me-2"></i>Mis Pedidos</a>
             <form action="{% url 'usuario:logout' %}" method="post" class="mt-2">
               {% csrf_token %}
-              <button type="submit" class="btn btn-danger w-100">Cerrar Sesión</button>
+              <button type="submit" class="btn btn-danger w-100 mt-2">Cerrar Sesión</button>
             </form>
           </li>
         {% else %}

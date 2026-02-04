@@ -1,7 +1,6 @@
 /* =========================
    🌐 FULL-BLEED UTILITY
    ========================= */
-/* Utilidad para que un bloque ocupe todo el ancho real de la pantalla */
 .full-bleed {
   position: relative;
   width: 100vw;
@@ -9,19 +8,20 @@
   right: 50%;
   margin-left: -50vw !important;
   margin-right: -50vw !important;
+  /* 🛡️ AJUSTE 1: Prioridad sobre los artículos */
+  z-index: 10 !important; 
 }
-
 
 /* =========================
    🏪 BANNER PRINCIPAL
    ========================= */
-/* Configuración del Swiper principal del banner */
 .bannerSwiper.swiper {
   width: 100vw;
   max-width: 100vw !important;
   margin: 0 !important;
   padding: 0 !important;
-  height: 500px;
+  /* ⬇️ Ajustamos la altura a 420px para que sea proporcional a la tienda */
+  height: 420px; 
   position: relative;
   overflow: hidden;
   z-index: 1;
@@ -34,138 +34,112 @@
 .bannerSwiper .swiper-slide {
   position: relative;
   width: 100vw;
-  height: 500px;
+  /* ⬇️ Debe coincidir con la altura del swiper */
+  height: 420px; 
   overflow: hidden;
 }
 
 .bannerSwiper .swiper-slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;       /* Imagen cubre todo el slide */
-  object-position: center; /* Centrada */
+  width: 100% !important;
+  height: 100% !important;
+  /* 🛡️ AJUSTE 2: Mantiene la imagen perfecta sin repetición */
+  object-fit: cover !important; 
   display: block;
 }
 
-
-/* Fondo alternativo para slides con background */
+/* Fondo alternativo */
 .banner-bg {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
   background-position: center;
   z-index: 0;
 }
 
-
-/* Texto sobre el banner */
+/* =========================
+   ✍️ TEXTO SOBRE EL BANNER (RECORTE PROFESIONAL)
+   ========================= */
 .banner-caption {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  
+  /* 🚀 EL CAMBIO PARA QUE SE VEA COMO TEMU:
+     El fondo es ancho, pero el texto se queda en el centro de la tienda */
+  width: 90%;
+  max-width: 1200px; 
+  
+  height: auto;
+  display: flex !important;
   flex-direction: column;
-  justify-content: center;   /* centra vertical */
-  align-items: center;       /* centra horizontal */
-  z-index: 2;
+  justify-content: center;
+  align-items: center;
+  z-index: 999 !important; 
+  
   text-align: center;
-  color: white;
-  padding: 0 20px;           /* margen lateral */
+  color: #ffffff !important;
+  padding: 0 20px;
+  text-shadow: 2px 2px 15px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
 }
 
-.banner-caption h2 {
-  font-size: 2.5rem;
+/* Títulos forzados */
+.banner-caption h2, 
+.banner-caption .titulo-banner,
+.banner-caption [class*="title"] {
+  /* ⬇️ Reducimos un pelín de 3rem a 2.8rem para mayor elegancia */
+  font-size: 2.8rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   margin-bottom: 10px;
 }
 
-.banner-caption p {
-  font-size: 1.2rem;
+.banner-caption p,
+.banner-caption .subtitulo-banner {
+  font-size: 1.4rem !important;
+  color: #ffffff !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
-
-
-/* Controles visibles del Swiper */
-.bannerSwiper .swiper-button-prev,
-.bannerSwiper .swiper-button-next {
-  color: #fff;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
-}
-
-.bannerSwiper .swiper-pagination-bullet {
-  background: rgba(255,255,255,0.85);
-}
-
 
 /* =========================
-   ⭐ PRODUCTOS DESTACADOS (mySwiper)
+   🛡️ PROTECCIÓN DE SCROLL
    ========================= */
-/* Carrusel secundario para productos destacados */
+main, .contenedor-tienda, .grid-productos {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+header, .navbar {
+  z-index: 20000 !important; /* Tu Azul Hermoso siempre arriba */
+}
+
+/* =========================
+   ⭐ PRODUCTOS DESTACADOS & RESPONSIVE
+   ========================= */
 .mySwiper.swiper {
   max-width: 1200px;
   margin: 2rem auto;
 }
 
-.mySwiper .swiper-slide {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.mySwiper .swiper-slide img {
-  width: 220px;
-  height: 220px;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
-}
-
-.mySwiper .swiper-slide img:hover {
-  transform: scale(1.05);
-}
-
-
-/* =========================
-   📱 RESPONSIVE
-   ========================= */
 @media (max-width: 768px) {
-  .bannerSwiper.swiper {
-    height: 320px;
-    margin-left: 0 !important; /* ✅ Evita corte en celular vertical */
-  }
-
+  .bannerSwiper.swiper,
   .bannerSwiper .swiper-slide {
-    width: 100vw !important;
+    height: 320px; /* Altura para móvil */
   }
-
-  .bannerSwiper .swiper-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
   .banner-caption h2 {
-    font-size: 1.8rem;
-  }
-
-  .banner-caption p {
-    font-size: 1rem;
+    font-size: 2rem !important;
   }
 }
 
-@media (max-width: 480px) {
-  .bannerSwiper.swiper {
-    height: 280px;
-    margin-left: 0 !important; /* ✅ Refuerzo para pantallas muy estrechas */
-  }
-}
-
-
-/* =========================
-   🛑 EXTRA
-   ========================= */
-/* Evitar scroll horizontal causado por 100vw */
 html, body {
   overflow-x: hidden;
 }

@@ -12,16 +12,47 @@
         --dorado-suave: #ffd700;
     }
 
-    /* Hero Section: Ajustada para mayor impacto visual */
+    /* --- AJUSTES DE POSICIONAMIENTO (SOLUCIÓN A TU PROBLEMA) --- */
+    
+    /* 1. Quita el espacio blanco superior que empuja todo hacia abajo */
+    body {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    /* 2. Hace que la navegación sea estática (Sticky) para que no se suba al hacer scroll */
+    .navbar {
+        position: sticky !important;
+        top: 0;
+        z-index: 2000 !important;
+        background-color: var(--azul-hermoso) !important;
+    }
+
+    /* 3. Hero Section: Ajustada para pegarse arriba */
     .hero-section {
         background: linear-gradient(rgba(26, 35, 126, 0.85), rgba(13, 17, 64, 0.9)), 
                     url('https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop');
         background-size: cover;
         background-position: center;
-        padding: 80px 0 120px 0; /* Ajuste de padding para los filtros */
+        padding: 80px 0 120px 0;
         color: white;
         border-radius: 0 0 50px 50px;
         margin-bottom: 0;
+        margin-top: 0 !important; /* Asegura que no haya margen arriba */
+        position: relative;
+        z-index: 1;
+    }
+
+    /* FIX DEFINITIVO PARA EL BOTÓN: Atraviesa capas de Swiper */
+    .hero-section .container {
+        position: relative;
+        z-index: 1050 !important;
+    }
+
+    .hero-section a.btn {
+        position: relative !important;
+        z-index: 1051 !important;
+        pointer-events: auto !important; 
     }
 
     .hero-title {
@@ -31,7 +62,7 @@
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
-    /* Franja de Beneficios Profesional */
+    /* --- ESTILOS DE COMPONENTES (MANTENIDOS) --- */
     .trust-bar {
         background: white;
         padding: 30px 0;
@@ -50,7 +81,6 @@
         color: #333;
     }
 
-    /* Tarjetas de Producto Modernas */
     .product-card {
         border: none;
         border-radius: 20px;
@@ -81,7 +111,6 @@
         transform: scale(1.1);
     }
 
-    /* Filtros Elegantes */
     .filter-bar {
         background: white;
         padding: 25px;
@@ -89,7 +118,7 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         margin-top: -60px;
         position: relative;
-        z-index: 10;
+        z-index: 1000;
     }
 
     .btn-premium {
@@ -114,7 +143,6 @@
         border-radius: 10px;
     }
 
-    /* --- ORGANIZACIÓN DE GALERÍA EN VISTA RÁPIDA (Mantenida) --- */
     .galeria-producto { display: flex; flex-direction: row-reverse; gap: 15px; align-items: flex-start; }
     .imagen-principal { flex: 1; overflow: hidden; border-radius: 15px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
     .imagen-principal img { width: 100%; height: auto; max-height: 450px; object-fit: contain; }
@@ -127,6 +155,12 @@
         .galeria-producto { flex-direction: column; }
         .miniaturas-horizontal { flex-direction: row; width: 100%; overflow-x: auto; }
         .hero-title { font-size: 2.5rem; }
+        .saludo-movil-container {
+            position: relative;
+            z-index: 10;
+            margin-top: 15px;
+            margin-bottom: -35px;
+        }
     }
 </style>
 {% endblock %}
@@ -134,15 +168,24 @@
 {% block content %}
 <div class="hero-section text-center">
     <div class="container">
-        <h1 class="hero-title animate__animated animate__fadeInDown">Descubre el Estilo Jasc</h1>
-        <p class="fs-4 mb-4 opacity-75">Tu tienda de confianza con lo último en moda y tecnología.</p>
-        <div class="d-flex justify-content-center gap-3">
-            <a href="{% url 'store:store' %}" class="btn btn-light btn-lg px-5 py-3 fw-bold shadow" style="border-radius: 15px; color: var(--azul-hermoso);">
-                Ver Colección <i class="bi bi-bag-check ms-2"></i>
+        <h1 class="hero-title">Descubre el Estilo Jasc</h1>
+        <p class="fs-4 opacity-75">Moda y tecnología a un clic.</p>
+        
+        <div class="mt-4">
+            <a href="{% url 'store:store' %}" class="btn btn-light btn-lg px-5 fw-bold shadow-lg" style="border-radius: 10px; color: var(--azul-hermoso);">
+                Explorar Colección <i class="bi bi-arrow-right-short"></i>
             </a>
         </div>
     </div>
 </div>
+
+{% if user.is_authenticated %}
+<div class="container d-md-none saludo-movil-container">
+    <div class="p-3 border-start border-4 shadow-sm" style="background:white; border-color:var(--azul-hermoso) !important; border-radius:8px;">
+        <span style="color:var(--azul-hermoso); font-weight: bold;">👋 Hola, {{ user.first_name|default:user.username }}</span>
+    </div>
+</div>
+{% endif %}
 
 <div class="container">
     <div class="filter-bar border">

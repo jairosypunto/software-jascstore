@@ -181,6 +181,15 @@
 <section class="shop-section py-4">
   <div class="container">
 
+    {% if user.is_authenticated %}
+    <div class="welcome-mobile-container d-md-none mb-3">
+        <div class="welcome-mobile shadow-sm">
+            <i class="bi bi-person-circle me-2"></i>
+            Hola, <span class="fw-bold">{{ user.first_name|default:user.username }}</span> 👋
+        </div>
+    </div>
+    {% endif %}
+
     <div class="search-container-premium mb-5">
         <form method="get" class="row g-2">
           <div class="col-lg-4 col-md-12">
@@ -264,13 +273,13 @@
                   {% endif %}
                 </div>
 
-<button type="button" 
-        class="jasc-cart" 
-        data-id="{{ product.id }}" 
-        data-has-variants="{{ product.has_variants|yesno:'true,false' }}"
-        onclick="abrirCarritoModal('{{ product.id }}')">
-    <i class="bi bi-cart-plus"></i>
-</button>
+                <button type="button" 
+                        class="jasc-cart" 
+                        data-id="{{ product.id }}" 
+                        data-has-variants="{{ product.has_variants|yesno:'true,false' }}"
+                        onclick="abrirCarritoModal('{{ product.id }}')">
+                    <i class="bi bi-cart-plus"></i>
+                </button>
             </div>
           </div>
 

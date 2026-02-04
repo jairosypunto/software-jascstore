@@ -1,597 +1,603 @@
 /* =====================================================
-   🏬 STORE – LAYOUT GENERAL
+    🏬 STORE – LAYOUT GENERAL
 ===================================================== */
-
-/* Contenedor principal de la tienda */
-.shop-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+html, body {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
 }
 
-/* Ajuste pantallas grandes */
+.shop-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
 @media (min-width: 1400px) {
-  .shop-container {
-    max-width: 1400px;
-  }
+    .shop-container {
+        max-width: 1400px;
+    }
 }
 
 /* =====================================================
-   🔎 FILTROS / BUSCADOR
+    🔎 FILTROS / BUSCADOR
 ===================================================== */
-
 .search-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
 }
 .search-form > * {
-  flex: 1 1 200px; /* todos crecen igual y mínimo 200px */
+    flex: 1 1 200px;
 }
-
 .search-form .btn {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 /* =====================================================
-   ⭐ PRODUCTOS DESTACADOS (SWIPER)
+    ⭐ PRODUCTOS DESTACADOS (SWIPER)
 ===================================================== */
-
 .destacados-swiper {
-  margin: 30px 0;
+    margin: 30px 0;
 }
-
 .destacado-card {
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  text-align: center;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    text-align: center;
 }
-
 .destacado-card img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
 }
-
 .destacado-info {
-  padding: 12px;
+    padding: 12px;
 }
-
 .destacado-info h4 {
-  font-size: 15px;
-  margin: 0;
+    font-size: 15px;
+    margin: 0;
 }
-
 .destacado-info span {
-  font-weight: bold;
-  color: #0d6efd;
+    font-weight: bold;
+    color: #0d6efd;
 }
 
 /* =====================================================
-   🛍 GRID DE PRODUCTOS
+    🛍 GRID DE PRODUCTOS
 ===================================================== */
-
 .products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
 }
-
-/* Card producto */
 .product-card {
-  background: #fff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  transition: transform 0.25s ease;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: transform 0.25s ease;
 }
-
 .product-card:hover {
-  transform: translateY(-5px);
+    transform: translateY(-5px);
 }
-
-/* Imagen */
 .product-image-wrapper {
-  position: relative;
+    position: relative;
 }
-
 .product-img {
-  width: 100%;
-  height: 260px;
-  object-fit: cover;
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
 }
-
-/* Botones flotantes */
 .jasc-quick-view,
 .jasc-cart {
-  position: absolute;
-  background: #fff;
-  border: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  cursor: pointer;
+    position: absolute;
+    background: #fff;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
 }
-
 .jasc-quick-view {
-  top: 10px;
-  right: 10px;
+    top: 10px;
+    right: 10px;
 }
-
 .jasc-cart {
-  bottom: 10px;
-  right: 10px;
+    bottom: 10px;
+    right: 10px;
 }
-/* =====================================================
-   🧠 VISTA RÁPIDA – MODAL
-===================================================== */
 
-/* Overlay */
+/* =====================================================
+    🧠 VISTA RÁPIDA – MODAL
+===================================================== */
 .vista-rapida-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-  z-index: 998;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 2500; /* Aumentado para no bloquear */
 }
-
 .vista-rapida-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
+    opacity: 1;
+    pointer-events: auto;
 }
-
-/* Panel */
 .vista-rapida-panel {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 95%;
-  max-width: 980px;
-  max-height: 90vh;
-  background: #fff;
-  border-radius: 16px;
-  overflow-y: auto;
-  z-index: 999;
-  padding: 20px;
-
-  /* ✅ Borde con iluminación oscura */
-  border: 2px solid #222;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-  transition: box-shadow 0.3s ease;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    max-width: 980px;
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 16px;
+    overflow-y: auto;
+    z-index: 2600;
+    padding: 20px;
+    border: 2px solid #222;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    transition: box-shadow 0.3s ease;
 }
-
 .vista-rapida-panel.visible {
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
 }
-
 .vista-rapida-panel.hidden {
-  display: none;
+    display: none;
 }
-
-/* Botón cerrar */
 .cerrar-panel {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
 }
-
-/* ✅ Botón agregar al carrito dentro del modal */
 .vista-rapida-panel .btn-agregar {
-  background: linear-gradient(to right, #0f087e, #ff8000);
-  color: white;
-  font-weight: bold;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.2s ease;
-  padding: 12px;
-  border-radius: 8px;
-  width: 100%;
-  margin-top: 16px;
+    background: linear-gradient(to right, #0f087e, #ff8000);
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease;
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    margin-top: 16px;
 }
-
 .vista-rapida-panel .btn-agregar:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
+
 /* =====================================================
-   📸 GALERÍA PRODUCTO (TIPO JASC)
+    📸 GALERÍA PRODUCTO (TIPO JASC)
 ===================================================== */
-
 .galeria-producto {
-  display: flex;
-  gap: 16px;
+    display: flex;
+    gap: 16px;
 }
-
-/* Imagen / video principal */
 .imagen-principal {
-  min-height: 500px;          /* reserva espacio fijo */
-  max-height: 500px;          /* asegura que no crezca más */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;           /* evita que se desborde */
-  background-color: #f9f9f9;  /* fondo neutro para videos o imágenes pequeñas */
-  border-radius: 12px;
+    min-height: 500px;
+    max-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #f9f9f9;
+    border-radius: 12px;
 }
-
 .imagen-principal img,
 .imagen-principal video {
-  width: 100%;
-  height: auto;               /* mantiene proporción */
-  max-height: 500px;
-  object-fit: contain;        /* ajusta sin recortar */
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-/* ====== CONTENEDOR MINIATURAS ====== */
-.miniaturas-horizontal {
-  display: flex;
-  flex-direction: column; /* vertical */
-  gap: 8px;
-}
-
-/* ====== MINIATURA GENERAL ====== */
-.miniatura {
-  width: 60px;
-  height: 60px;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  background-color: #f9f9f9;
-}
-
-.miniatura img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Hover y selección */
-.miniatura:hover {
-  border-color: #007bff;
-  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
-}
-
-.miniatura.activa {
-  border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-}
-
-/* ====== MINIATURA VIDEO ====== */
-.video-thumb {
-  background: #000;
-  color: #fff;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-thumb::after {
-  content: "▶"; /* ícono de play */
-  font-size: 22px;
-  color: #fff;
-}
-
-/* =====================================================
-   🎨 OPCIONES (TALLAS / COLORES)
-===================================================== */
-
-.bloque-opciones {
-  margin-top: 16px;
-}
-
-.label-opcion {
-  font-weight: 600;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.opciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.option-chip {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.option-chip.seleccionado {
-  background: #0f087e;
-  color: #fff;
-  border-color: #0f087e;
-}
-
-/* =====================================================
-   🛒 BOTÓN CARRITO
-===================================================== */
-
-.btn-agregar {
-  margin-top: 16px;
-  width: 100%;
-  padding: 12px;
-  font-weight: 600;
-  border-radius: 8px;
-}
-
-/* =====================================================
-   📱 RESPONSIVE
-===================================================== */
-
-@media (max-width: 768px) {
-
-  .galeria-producto {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .imagen-principal {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1;
-  }
-
-  .miniaturas-horizontal {
-    flex-direction: row;
-  }
+    max-height: 500px;
+    object-fit: contain;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.miniaturas-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.miniatura {
+    width: 60px;
+    height: 60px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+.miniatura img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.miniatura:hover {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+}
+.miniatura.activa {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+.video-thumb {
+    background: #000;
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.video-thumb::after {
+    content: "▶";
+    font-size: 22px;
+    color: #fff;
 }
 
 /* =====================================================
-   🍞 TOASTS DE NOTIFICACIÓN
+    🎨 OPCIONES (TALLAS / COLORES)
+===================================================== */
+.bloque-opciones {
+    margin-top: 16px;
+}
+.label-opcion {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+}
+.opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.option-chip {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.option-chip.seleccionado {
+    background: #0f087e;
+    color: #fff;
+    border-color: #0f087e;
+}
+
+/* =====================================================
+    🛒 BOTÓN CARRITO
+===================================================== */
+.btn-agregar {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* =====================================================
+    📱 RESPONSIVE
+===================================================== */
+@media (max-width: 768px) {
+    .galeria-producto {
+        flex-direction: column;
+        align-items: center;
+    }
+    .imagen-principal {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+    }
+    .miniaturas-horizontal {
+        flex-direction: row;
+    }
+}
+
+/* =====================================================
+    🍞 TOASTS DE NOTIFICACIÓN
 ===================================================== */
 .jasc-toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #333;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  z-index: 9999;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  animation: fadeInOut 3s ease forwards;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    animation: fadeInOut 3s ease forwards;
 }
-
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(20px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(20px); }
+    0% { opacity: 0; transform: translateY(20px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(20px); }
 }
 
 /* =====================================================
-   🛒 MODAL DE CARRITO (panel lateral tipo Temu)
+    🛒 MODAL DE CARRITO (panel lateral tipo Temu)
 ===================================================== */
 .carrito-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 420px;
-  max-width: 100%;
-  height: 100%;
-  background: #fff;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
-  z-index: 9999;
-  overflow-y: auto;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 420px;
+    max-width: 100%;
+    height: 100%;
+    background: #fff;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+    z-index: 4000; /* Superior a todo para no bloquear */
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
 }
-
 .carrito-panel:not(.hidden) {
-  transform: translateX(0);
+    transform: translateX(0);
 }
-
 .carrito-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 9998;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 3500;
 }
-
 .hidden {
-  display: none !important;
+    display: none !important;
 }
-
 .miniaturas-abajo {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  justify-content: center;
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: center;
 }
-
 .miniatura-img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
 }
-
 .miniatura-img:hover {
-  border-color: #007bff;
+    border-color: #007bff;
 }
 
 /* 🎨 Estilos comunes para JascStore */
-
-/* 💬 Botón de WhatsApp */
 .btn-whatsapp {
-  display: inline-block;
-  background-color: #25D366; /* verde oficial de WhatsApp */
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 14px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: background-color 0.3s ease;
+    display: inline-block;
+    background-color: #25D366;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease;
 }
-
 .btn-whatsapp:hover {
-  background-color: #20b858;
-  color: white;
+    background-color: #20b858;
+    color: white;
 }
-
-/* Responsive: solo mostrar flotante en móviles */
 @media (min-width: 768px) {
-  .btn-whatsapp.floating {
-    display: none;
-  }
+    .btn-whatsapp.floating {
+        display: none;
+    }
 }
-
-/* 🛒 Estilos para la sección del carrito */
 .cart-section h2 {
-  font-size: 2rem;
-  color: #007bff;
+    font-size: 2rem;
+    color: #007bff;
 }
-
 .list-group-item {
-  border-left: 4px solid #f0f0f0;
-  transition: background 0.2s ease;
+    border-left: 4px solid #f0f0f0;
+    transition: background 0.2s ease;
 }
-
 .list-group-item:hover {
-  background-color: #f9f9f9;
+    background-color: #f9f9f9;
 }
-
 .btn-outline-danger, .btn-outline-primary {
-  min-width: 150px;
+    min-width: 150px;
 }
-
 .text-primary {
-  color: #007bff !important;
+    color: #007bff !important;
 }
 
 /* ============================
-   🎨 Estilos para productos por categoría
-   ============================ */
+    🎨 Estilos para productos por categoría
+============================ */
 .card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 8px;
 }
-
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
-
 .card-img-top {
-  height: 200px;
-  object-fit: cover;
-  border-bottom: 1px solid #eee;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
 }
-
 .card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
 }
-
 .card-text {
-  font-size: 0.95rem;
+    font-size: 0.95rem;
 }
-
 .btn-outline-primary {
-  border-radius: 20px;
+    border-radius: 20px;
 }
-
 .btn-success {
-  border-radius: 20px;
-  font-weight: 500;
+    border-radius: 20px;
+    font-weight: 500;
 }
-
 .alert-warning {
-  border-radius: 8px;
+    border-radius: 8px;
 }
-
 
 /* ============================
-   🎨 Estilos para selección de color (Sincronizado)
-   ============================ */
-
-/* Bloqueo de interacción manual en chips de color para que mande la foto */
+    🎨 Estilos para selección de color (Sincronizado)
+============================ */
 .color-chip {
-  pointer-events: none; /* Evita que el usuario lo cambie manualmente */
-  cursor: default;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-  border: 1px solid #ccc;
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    border: 1px solid #ccc;
 }
-
-/* Cuando el chip de color es activado por la miniatura */
 .color-chip.seleccionado, 
 .color-chip.selected {
-  opacity: 1 !important;
-  background-color: #0f087e !important; /* Tu Azul Hermoso */
-  color: #ffffff !important;
-  border-color: #0f087e !important;
-  box-shadow: 0 0 10px rgba(15, 8, 126, 0.4);
-  transform: scale(1.05);
+    opacity: 1 !important;
+    background-color: #0f087e !important;
+    color: #ffffff !important;
+    border-color: #0f087e !important;
+    box-shadow: 0 0 10px rgba(15, 8, 126, 0.4);
+    transform: scale(1.05);
 }
-
-/* Las tallas (size-chip) sí deben ser clickeables */
 .size-chip {
-  cursor: pointer;
-  transition: all 0.2s ease;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-
 .size-chip.seleccionado,
 .size-chip.selected {
-  background-color: #0f087e !important; /* Tu Azul Hermoso */
-  color: white !important;
-  border-color: #0f087e !important;
+    background-color: #0f087e !important;
+    color: white !important;
+    border-color: #0f087e !important;
 }
-
-/* Cuando el chip está seleccionado */
 .color-chip.seleccionado span {
-  border: 2px solid #007bff;
-  box-shadow: 0 0 6px rgba(0,123,255,0.6);
+    border: 2px solid #007bff;
+    box-shadow: 0 0 6px rgba(0,123,255,0.6);
 }
-
 .color-text {
-  font-weight: 500;
-  color: #111;
-  margin-bottom: .5rem;
+    font-weight: 500;
+    color: #111;
+    margin-bottom: .5rem;
 }
-
 .color-chips {
-  display: flex;
-  gap: .5rem;
-  flex-wrap: wrap;
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+.chip {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: .25rem .5rem;
+    border-radius: 4px;
+    font-size: .85rem;
+    cursor: pointer;
 }
 
-.chip {
-  border: 1px solid #ddd;
-  background: #fff;
-  padding: .25rem .5rem;
-  border-radius: 4px;
-  font-size: .85rem;
-  cursor: pointer;
+/* =====================================================
+    🎨 OPCIONES (Sincronización con tu Azul Hermoso)
+===================================================== */
+.option-chip.seleccionado,
+.size-chip.seleccionado,
+.color-chip.seleccionado {
+    background: #0f087e !important;
+    color: #fff !important;
+    border-color: #0f087e !important;
+}
+
+/* Fuerza la aparición del saludo en el celular */
+@media (max-width: 768px) {
+    .welcome-mobile-container {
+        display: flex !important;
+        justify-content: center;
+        width: 100%;
+        margin-top: 85px !important; /* Ajustado para que no lo tape el navbar */
+        margin-bottom: 10px;
+    }
+    .welcome-mobile {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 50px;
+        border: 1px solid #e0e0e0;
+        color: #0f087e;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+    }
+}
+
+@media (min-width: 769px) {
+    .welcome-mobile-container {
+        display: none !important;
+    }
+}
+
+/* =====================================================
+    ⚓ FIXES FINALES (ESPACIOS Y NAVBAR)
+===================================================== */
+.navbar {
+    position: fixed !important;
+    top: 0;
+    width: 100%;
+    z-index: 2000 !important;
+    background-color: #1a237e !important;
+}
+
+/* Evitar que el buscador tape el saludo en HOME */
+.filter-bar, .search-container {
+    margin-top: 10px !important; /* Cambiado de -30px a 10px positivo */
+    position: relative;
+    z-index: 1001;
+    background: white;
+}
+
+/* Espacio para el contenido bajo el navbar fijo */
+.hero-section, .swiper {
+    padding-top: 20px !important;
+    margin-top: 0 !important;
+}
+
+/* FIX: Desbloqueo forzado cuando no hay modales */
+body:not(.modal-open):not(.cart-open) {
+    overflow: auto !important;
+    filter: none !important;
+}
+
+
+
+/* FUERZA BRUTA PARA EL SALUDO Y BUSCADOR */
+
+/* 1. Empujamos el contenedor del saludo hacia abajo para que no lo tape el banner */
+div.welcome-mobile-container {
+    margin-top: 10px !important; /* Aumentamos el espacio */
+    position: relative !important;
+    z-index: 2000 !important;
+    display: flex !important;
+    visibility: visible !important;
+}
+
+/* 2. Evitamos que el buscador flote hacia arriba */
+.filter-bar, 
+section.search-container, 
+div.search-form-container {
+    margin-top: 20px !important; /* Espacio positivo para que baje */
+    transform: none !important;  /* Anula cualquier movimiento hacia arriba */
+    position: relative !important;
+    top: 0 !important;
+}
+
+/* 3. El Azul Hermoso en el botón de Filtrar del Home */
+.btn-filtrar, 
+button[type="submit"].btn-primary,
+.aplicar-filtros-btn {
+    background-color: #0f087e !important;
+    color: white !important;
 }

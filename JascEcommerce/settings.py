@@ -201,12 +201,15 @@ CLOUDINARY_STORAGE = {
 }
 
 # ================================
-# 🔐 LOGIN / LOGOUT Y SESIONES
+# 🔐 LOGIN / LOGOUT Y SESIONES (Sincronizado con URLs)
 # ================================
-LOGIN_URL = "account:login"
-LOGIN_REDIRECT_URL = "/account/dashboard/"
-LOGOUT_URL = "account:logout"
-LOGOUT_REDIRECT_URL = "/home/"
+# Django usa el NAMESPACE definido en app_name = 'usuario'
+LOGIN_URL = "usuario:login" 
+LOGIN_REDIRECT_URL = "usuario:dashboard"
+LOGOUT_URL = "usuario:logout" 
+
+# Redirección tras salir (apunta al name="inicio" de tu urls.py principal)
+LOGOUT_REDIRECT_URL = "inicio"
 
 SESSION_SAVE_EVERY_REQUEST = True  
 SESSION_COOKIE_HTTPONLY = True
@@ -232,7 +235,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ================================
 # 🔄 VERSIONADO DE STATIC (Azul Hermoso)
 # ================================
-STATIC_VERSION = "20260130_v2"
+STATIC_VERSION = "20260203_v1"  # Fecha de hoy [cite: 2026-02-03]
 
 # ================================
 # 📊 LOGGING
