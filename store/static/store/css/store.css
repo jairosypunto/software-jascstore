@@ -175,15 +175,19 @@ html, body {
 }
 
 /* =====================================================
-    📸 GALERÍA PRODUCTO (TIPO JASC)
+    📸 GALERÍA PRODUCTO (TIPO JASC - OPTIMIZADA)
 ===================================================== */
 .galeria-producto {
     display: flex;
     gap: 16px;
+    justify-content: center; /* Asegura que la galería esté centrada si el modal es ancho */
 }
+
 .imagen-principal {
-    min-height: 500px;
-    max-height: 500px;
+    /* 🚀 AJUSTE: Quitamos el min-height fijo de 500px que asfixiaba la vista */
+    min-height: 350px; 
+    max-height: 450px;
+    flex: 1; /* Permite que crezca proporcionalmente */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -191,20 +195,25 @@ html, body {
     background-color: #f9f9f9;
     border-radius: 12px;
 }
+
 .imagen-principal img,
 .imagen-principal video {
     width: 100%;
-    height: auto;
-    max-height: 500px;
-    object-fit: contain;
+    height: 100%;
+    object-fit: contain; /* Mantiene la sandalia perfecta sin recortes */
     border-radius: 12px;
     transition: all 0.3s ease;
 }
+
+/* Las miniaturas ahora se verán más limpias al lado */
 .miniaturas-horizontal {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    justify-content: center;
 }
+
+
 .miniatura {
     width: 60px;
     height: 60px;
@@ -246,20 +255,31 @@ html, body {
 }
 
 /* =====================================================
-    🎨 OPCIONES (TALLAS / COLORES)
+    🎨 OPCIONES (TALLAS / COLORES) - CENTRADO TOTAL
 ===================================================== */
 .bloque-opciones {
-    margin-top: 16px;
-}
-.label-opcion {
-    font-weight: 600;
-    margin-bottom: 6px;
-    display: block;
-}
-.opciones {
+    margin-top: 18px;
+    width: 100%; /* Ocupa todo el ancho disponible */
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    align-items: center; /* 👈 Centra horizontalmente todo el bloque */
+}
+
+.label-opcion {
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: block;
+    text-align: center; /* 👈 Centra el texto "TALLA" o "COLOR" */
+    width: 100%;
+}
+
+.opciones {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: center !important; /* 👈 Centra los botones en el medio */
+    align-items: center !important;
+    width: 100%;
 }
 .option-chip {
     padding: 6px 12px;
@@ -286,20 +306,40 @@ html, body {
 }
 
 /* =====================================================
-    📱 RESPONSIVE
+    📱 RESPONSIVE (MÁXIMO ESPACIO PARA VISTA RÁPIDA)
 ===================================================== */
 @media (max-width: 768px) {
     .galeria-producto {
         flex-direction: column;
         align-items: center;
+        gap: 10px;
     }
+
     .imagen-principal {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 1 / 1;
+        width: 100% !important;
+        height: auto !important; 
+        min-height: auto !important; /* 🔥 MATA el espacio vacío de 500px */
+        max-height: 300px !important; /* Limita la foto para que se vea el precio abajo */
+        aspect-ratio: auto !important; /* 🚀 Evita que sea un cuadrado gigante vacío */
     }
+
     .miniaturas-horizontal {
-        flex-direction: row;
+        flex-direction: row !important;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .miniatura {
+        width: 50px; /* Un poco más pequeñas en móvil para que quepan más */
+        height: 50px;
+    }
+
+    /* Forzar que el nombre del producto y precio se centren en móvil */
+    .vista-rapida-panel h2, 
+    .vista-rapida-panel .precio,
+    .vista-rapida-panel .btn-agregar {
+        text-align: center !important;
+        margin-top: 10px;
     }
 }
 

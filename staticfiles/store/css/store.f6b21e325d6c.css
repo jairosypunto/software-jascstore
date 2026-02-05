@@ -290,37 +290,63 @@
 }
 
 /* =====================================================
-   🎨 OPCIONES (TALLAS / COLORES)
+   🎨 OPCIONES (TALLAS / COLORES) - CENTRADO TOTAL
 ===================================================== */
 
 .bloque-opciones {
-  margin-top: 16px;
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 👈 Centra el título y el grupo de botones */
 }
 
 .label-opcion {
-  font-weight: 600;
-  margin-bottom: 6px;
-  display: block;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: block;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    color: var(--negro-lujo);
+    text-align: center; /* 👈 Centra el texto "TALLA" o "COLOR" */
 }
 
 .opciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: center !important; /* 👈 Centra los botones horizontalmente */
+    align-items: center !important;
+    width: 100%;
 }
 
 .option-chip {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
+    min-width: 45px; /* Para que las tallas cortas no se vean flacas */
+    height: 38px;
+    display: inline-flex !important;
+    align-items: center !important;    /* Centrado vertical del texto */
+    justify-content: center !important; /* Centrado horizontal del texto */
+    padding: 6px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px; /* Un toque más moderno, menos circular */
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.option-chip:hover {
+    border-color: var(--azul-hermoso);
+    color: var(--azul-hermoso);
+    transform: translateY(-2px);
 }
 
 .option-chip.seleccionado {
-  background: #0f087e;
-  color: #fff;
-  border-color: #0f087e;
+    background: var(--azul-hermoso) !important; /* Tu Azul Hermoso #0f087e */
+    color: #ffffff !important;
+    border-color: var(--azul-hermoso) !important;
+    box-shadow: 0 4px 12px rgba(15, 8, 126, 0.25);
 }
 
 /* =====================================================

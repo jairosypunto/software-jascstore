@@ -112,7 +112,7 @@
 #contenidoCarrito, .vista-rapida-info {
     flex-grow: 1 !important;
     overflow-y: auto !important;
-    padding: 40px !important;
+    padding: 15px 25px !important; /* 🚀 AJUSTE: Reducido de 40px a 15px para eliminar aire innecesario */
     scrollbar-width: thin;
     scrollbar-color: var(--azul-hermoso) transparent;
     -webkit-overflow-scrolling: touch;
@@ -210,23 +210,49 @@
         display: flex !important;
         flex-direction: column !important;
         overflow-y: auto !important;
+        gap: 0 !important;
+    }
+
+    /* 🚀 AJUSTE DE IMAGEN PRINCIPAL: MÁXIMO ESPACIO */
+    .imagen-principal {
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important; /* 🔥 MATA el min-height de 500px de la store */
+        aspect-ratio: auto !important; /* 🔥 Evita que el contenedor se estire como un cuadrado */
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center;
+        background: #f8f9fa; /* Fondo suave para que la imagen resalte */
     }
 
     .big-image {
         width: 100% !important;
-        max-height: 380px !important;
-        padding: 20px;
+        max-height: 50vh !important; /* Ocupa la mitad superior de la pantalla */
+        padding: 0 !important; /* 👈 CRUCIAL: Eliminamos el hueco de 20px */
+        object-fit: contain !important;
+        margin: 0 !important;
     }
 
     .cerrar-carrito, .cerrar-panel {
-        top: 20px !important;
-        right: 20px !important;
-        width: 45px !important;
-        height: 45px !important;
+        top: 15px !important;
+        right: 15px !important;
+        width: 42px !important;
+        height: 42px !important;
+        border: 2px solid white !important;
     }
 
     .vista-rapida-info {
-        padding: 25px !important;
+        padding: 15px 20px !important; /* 👈 Menos padding lateral para el texto */
+        text-align: center;
+        margin-top: -10px; /* Sube un poco el texto hacia la imagen */
+    }
+
+    /* Ajuste de los selectores de talla y color para que no ocupen tanto espacio vertical */
+    .opciones {
+        justify-content: center !important;
+        gap: 8px !important;
+        margin-bottom: 15px !important;
     }
 }
 
@@ -381,3 +407,4 @@ header {
     z-index: 20010 !important; 
     bottom: 30px !important; 
 }
+

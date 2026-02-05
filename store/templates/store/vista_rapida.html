@@ -25,13 +25,13 @@
     /* --- GALERÍA VERTICAL (IZQUIERDA) --- */
     .galeria-producto {
         display: flex !important;
-        flex-direction: row !important; /* Miniaturas a la IZQUIERDA */
+        flex-direction: row !important;
         gap: 15px;
-        flex: 1.4; /* Le da más espacio a la imagen que al texto */
-        min-width: 0; /* Evita desbordamiento en flexbox */
+        flex: 1.4;
+        min-width: 0;
     }
 
-    .miniaturas-vertical {
+    .miniaturas-vertical, .miniaturas-horizontal {
         display: flex !important;
         flex-direction: column !important;
         gap: 12px;
@@ -60,7 +60,7 @@
         object-fit: cover;
     }
 
-    /* --- IMAGEN PRINCIPAL (CENTRO) --- */
+/* --- IMAGEN PRINCIPAL (CENTRO) --- */
     .imagen-principal {
         flex-grow: 1;
         background: var(--gris-suave);
@@ -69,13 +69,16 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        aspect-ratio: 1 / 1.2; /* Un poco más alta que ancha para ropa */
+        /* Cambiamos esto para que no sobre espacio */
+        height: 400px; /* Altura fija para escritorio */
+        width: 100%;
     }
 
     .imagen-principal img {
         width: 100%;
         height: 100%;
-        object-fit: contain; /* Muestra la prenda completa sin recortes */
+        object-fit: contain; /* Esto mantiene la proporción sin estirar */
+        padding: 10px; /* Un padding pequeño para que la foto no toque los bordes */
     }
 
     /* --- INFORMACIÓN (DERECHA) --- */
@@ -87,14 +90,14 @@
         gap: 15px;
     }
 
-    .titulo-producto {
+    .titulo-producto, .titulo-modal {
         font-size: 28px;
         font-weight: 800;
         color: var(--azul-hermoso);
         margin: 0;
     }
 
-    .precio-actual {
+    .precio-actual, .precio-final {
         font-size: 32px;
         font-weight: 900;
         color: var(--azul-hermoso);
@@ -112,6 +115,7 @@
         text-transform: uppercase;
         cursor: pointer;
         transition: 0.3s;
+        width: 100%;
     }
 
     .btn-agregar:hover {
@@ -119,39 +123,121 @@
         transform: translateY(-2px);
     }
 
-    /* --- ADAPTACIÓN PARA MÓVIL --- */
+    .btn-agregar:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .option-chip {
+        all: unset !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 38px;
+        padding: 0 12px;
+        margin: 5px;
+        background-color: white !important;
+        border: 1.5px solid #ddd !important;
+        border-radius: 12px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: #333 !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-sizing: border-box !important;
+    }
+
+    .option-chip:hover {
+        border-color: var(--azul-hermoso) !important;
+        color: var(--azul-hermoso) !important;
+    }
+
+    .option-chip.selected {
+        background-color: var(--azul-hermoso) !important;
+        border-color: var(--azul-hermoso) !important;
+        color: white !important;
+        box-shadow: 0 4px 10px rgba(15, 8, 126, 0.3);
+    }
+
+    .opciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    /* --- ADAPTACIÓN PARA MÓVIL (CORREGIDA) --- */
     @media (max-width: 768px) {
         .vista-rapida-contenido {
-            flex-direction: column;
-            padding: 20px;
-            max-height: 90vh;
+            flex-direction: column !important;
+            padding: 15px !important; /* Quitamos el espacio excesivo que rodeaba la imagen */
+            max-height: 95vh;
             overflow-y: auto;
+            gap: 15px !important;
         }
 
         .galeria-producto {
-            flex-direction: column !important; /* Miniaturas pasan ABAJO de la foto */
+            flex-direction: column !important;
+            flex: none !important;
+            gap: 10px !important;
         }
 
-        .miniaturas-vertical {
-            flex-direction: row !important; /* Se vuelven horizontales */
-            width: 100%;
-            justify-content: center;
-            order: 2; /* Pone las fotos debajo de la principal */
+        .miniaturas-horizontal {
+            flex-direction: row !important; /* Miniaturas ahora en fila abajo de la imagen */
+            width: 100% !important;
+            justify-content: center !important;
+            order: 2 !important;
+            gap: 8px !important;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .miniatura {
+            width: 55px !important;
+            height: 55px !important;
+            flex-shrink: 0;
         }
 
         .imagen-principal {
-            order: 1;
-            width: 100%;
+            order: 1 !important;
+            width: 100% !important;
+            aspect-ratio: auto !important; /* Permite que la imagen dicte el alto sin dejar huecos */
+            max-height: 350px;
+            border-radius: 12px;
+        }
+
+        .imagen-principal img {
+            max-height: 350px;
+            width: auto;
         }
 
         .info-producto {
-            order: 3;
-            text-align: center;
+            order: 3 !important;
+            text-align: center !important;
+            gap: 10px !important;
+        }
+
+        .titulo-modal {
+            font-size: 22px !important;
+        }
+
+        .precio-final {
+            font-size: 26px !important;
+        }
+
+        .opciones {
+            justify-content: center !important;
+        }
+
+        .option-chip {
+            min-width: 50px !important; /* Más fáciles de tocar en móvil */
+            height: 42px !important;
         }
     }
 
-    /* Botón cerrar del modal */
-    .cerrar-modal {
+    .cerrar-panel {
         position: absolute;
         top: 15px;
         right: 15px;
@@ -163,53 +249,12 @@
         border-radius: 50%;
         font-size: 20px;
         cursor: pointer;
-        z-index: 10;
-    }
-
-    /* --- ESTILOS ESPECÍFICOS PARA LOS BOTONES DE TALLA Y COLOR (CHIPS) --- */
-    .option-chip {
-        all: unset !important; /* Limpia el borde negro feo del Home */
-        display: inline-flex !important;
+        z-index: 100;
+        display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 45px;
-        height: 38px;
-        padding: 0 12px;
-        margin: 5px;
-        background-color: white !important;
-        border: 1.5px solid #ddd !important;
-        border-radius: 12px !important; /* El redondeado que buscas */
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        color: #333 !important;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-sizing: border-box !important;
-    }
-
-    /* Estado cuando pasas el mouse */
-    .option-chip:hover {
-        border-color: var(--azul-hermoso) !important;
-        color: var(--azul-hermoso) !important;
-    }
-
-    /* Estado SELECCIONADO (El que activa tu JavaScript) */
-    .option-chip.selected {
-        background-color: var(--azul-hermoso) !important;
-        border-color: var(--azul-hermoso) !important;
-        color: white !important;
-        box-shadow: 0 4px 10px rgba(15, 8, 126, 0.3);
-    }
-
-    /* Ajuste para el contenedor de los botones */
-    .opciones {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 15px;
     }
 </style>
-
 
 <div class="vista-rapida-contenido" data-mode="quick" id="contenidoProducto">
     <button class="cerrar-panel" onclick="cerrarVistaRapida()" aria-label="Cerrar">✕</button>
@@ -219,16 +264,16 @@
             <img src="{% if producto.image %}{{ producto.image.url }}{% else %}{% static 'icons/no-image.png' %}{% endif %}" 
                  id="imagen-principal-modal" class="big-image" alt="{{ producto.name }}">
         </div>
-<div class="miniaturas-horizontal">
-    {% for img in producto.images.all %}
-        <div class="miniatura {% if forloop.first %}activa{% endif %}" 
-                data-src="{{ img.image.url }}" 
-                data-color="{{ img.color_vinculado|default:'' }}"
-                style="cursor: pointer;">
-            <img src="{{ img.image.url }}" alt="Vista previa" style="width: 60px; height: 60px; object-fit: cover;">
+        <div class="miniaturas-horizontal">
+            {% for img in producto.images.all %}
+                <div class="miniatura {% if forloop.first %}activa{% endif %}" 
+                        data-src="{{ img.image.url }}" 
+                        data-color="{{ img.color_vinculado|default:'' }}"
+                        style="cursor: pointer;">
+                    <img src="{{ img.image.url }}" alt="Vista previa">
+                </div>
+            {% endfor %}
         </div>
-    {% endfor %}
-</div>
     </div>
 
     <div class="info-producto">
@@ -236,7 +281,7 @@
         <p class="descripcion text-muted small">{{ producto.description|truncatewords:20 }}</p>
 
         <div class="precio mb-3">
-            <span class="precio-final" style="font-size: 1.8rem; color: var(--azul-hermoso); font-weight: 900;">
+            <span class="precio-final">
                 ${{ producto.final_price|floatformat:0|intcomma }}
             </span>
             {% if producto.discount > 0 %}
@@ -277,24 +322,22 @@
             <input type="hidden" name="color" id="selected_color_hidden" value="">
             <input type="hidden" name="cantidad" value="1">
 
-<button type="button" 
-        id="btnAgregarModalPropio" 
-        class="btn-agregar" 
-        data-id="{{ producto.id }}" 
-        disabled>
-    🛒 SELECCIONA OPCIONES
-</button>
+            <button type="button" 
+                    id="btnAgregarModalPropio" 
+                    class="btn-agregar" 
+                    data-id="{{ producto.id }}" 
+                    disabled>
+                🛒 SELECCIONA OPCIONES
+            </button>
         </form>
     </div>
 </div>
 
 <script>
 (function() {
-    // Referencia al contenedor único de este producto
     const contenedor = document.getElementById('contenidoProducto') || document.querySelector('.vista-rapida-contenido');
     if (!contenedor) return;
 
-    // Normalización para que "Café" coincida con "cafe" o "Cafe "
     const normalizar = (t) => t ? t.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
     function validar() {
@@ -317,54 +360,40 @@
         }
     }
 
-    // Listener único con delegación de eventos
     contenedor.onclick = function(e) {
         const target = e.target;
 
-        // 1. Lógica de selección de COLOR
         if (target.classList.contains('color-chip')) {
             const colorSeleccionado = target.dataset.value;
-            console.log("🎨 Color clickeado:", colorSeleccionado);
-
-            // Actualizar UI de botones
             contenedor.querySelectorAll('.color-chip').forEach(b => b.classList.remove('selected'));
             target.classList.add('selected');
 
-            // Guardar valor en el input hidden
             const inputC = contenedor.querySelector('#selected_color_hidden');
             if (inputC) inputC.value = colorSeleccionado;
 
-            // Buscar miniatura asociada al color
             const buscado = normalizar(colorSeleccionado);
             const miniaturas = contenedor.querySelectorAll('.miniatura');
             let coincidencia = Array.from(miniaturas).find(m => normalizar(m.dataset.color) === buscado);
 
             if (coincidencia) {
-                console.log("✅ Miniatura encontrada para color:", coincidencia.dataset.src);
-                coincidencia.click(); // Simular clic en la miniatura
-            } else {
-                console.warn("⚠️ No se encontró miniatura para el color:", colorSeleccionado);
+                coincidencia.click();
             }
             validar();
         }
 
-        // 2. Lógica de selección de TALLA
         if (target.classList.contains('size-chip')) {
             contenedor.querySelectorAll('.size-chip').forEach(b => b.classList.remove('selected'));
             target.classList.add('selected');
             const inputT = contenedor.querySelector('#selected_size_hidden');
             if (inputT) inputT.value = target.dataset.value;
-            console.log("👟 Talla seleccionada:", target.dataset.value);
             validar();
         }
 
-        // 3. Lógica al dar clic directamente en una MINIATURA
         const mini = target.closest('.miniatura');
         if (mini) {
             const imgP = contenedor.querySelector('#imagen-principal-modal');
             if (imgP) {
                 imgP.src = mini.dataset.src;
-                console.log("🖼 Imagen principal cambiada a:", mini.dataset.src);
                 const inputImg = contenedor.querySelector('#imagen_seleccionada_url');
                 if (inputImg) inputImg.value = mini.dataset.src;
             }
@@ -372,7 +401,6 @@
             contenedor.querySelectorAll('.miniatura').forEach(m => m.classList.remove('activa'));
             mini.classList.add('activa');
 
-            // Si la miniatura tiene color, marcar el botón de color correspondiente
             const colorDeFoto = normalizar(mini.dataset.color);
             if (colorDeFoto) {
                 const btnCorrespondiente = Array.from(contenedor.querySelectorAll('.color-chip'))
@@ -383,18 +411,15 @@
                     btnCorrespondiente.classList.add('selected');
                     const inputC = contenedor.querySelector('#selected_color_hidden');
                     if (inputC) inputC.value = btnCorrespondiente.dataset.value;
-                    console.log("🔗 Botón de color sincronizado con miniatura:", btnCorrespondiente.dataset.value);
                 }
             }
             validar();
         }
     };
 
-    // Auto-selección: al abrir, clickeamos el primer color para inicializar la vista
     setTimeout(() => {
         const primerColor = contenedor.querySelector('.color-chip');
         if (primerColor) primerColor.click();
     }, 400);
-
 })();
 </script>
