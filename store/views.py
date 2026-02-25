@@ -521,6 +521,79 @@ def generar_factura(request):
     from decimal import Decimal
     from django.db import transaction, models
     from django.shortcuts import redirect, render
+    import logging # Para registrar errores si el correo falla
+
+    if request.method != "POST":
+        return redirect("store:checkout")
+
+    items_carrito = _items_carrito(request)
+    
+    if not items_carrito:
+        return redirect("store:ver_carrito")
+
+    nombre_cliente = request.POST.get("nombre")
+    total_final = sum(item['subtotal'] for item in items_carrito)
+
+    # Bloque de base de datos
+    with transaction.atomic():
+        factura = Factura.objects.create(
+            usuario=request.user,
+            total=total_final,
+            metodo_pago=request.POST.get("metodo_pago", "Contra Entrega"),
+            estado_pago="Aprobado",
+            nombre=nombre_cliente,
+            email=request.user.email,
+            telefono=request.POST.get("telefono"),
+            direccion=request.POST.get("direccion"),
+            ciudad=request.POST.get("ciudad"),
+            departamento=request.POST.get("departamento")
+        )
+
+        for i in items_carrito:
+            prod = i['producto']
+
+            variante = ProductVariant.objects.filter(
+                product=prod, 
+                talla__iexact=i['talla'], 
+                color__iexact=i['color']
+            ).first()
+
+            if variante:
+                variante.stock -= i["cantidad"]
+                variante.save()
+                prod.actualizar_stock_total()
+            else:
+                Product.objects.filter(id=prod.id).update(stock=models.F('stock') - i["cantidad"])
+
+            DetalleFactura.objects.create(
+                factura=factura,
+                producto=prod,
+                cantidad=i["cantidad"],
+                subtotal=i["subtotal"],
+                talla=i['talla'],
+                color=i['color'],
+                imagen_url=i['imagen_url']
+            )
+
+    # --- FUERA DEL ATOMIC (Para mayor estabilidad en Railway) ---
+
+    # 1. Intento de envío de correo (Protegido)
+    try:
+        # Usamos la función que ya tienes importada al inicio de tu views.py
+        enviar_factura_por_correo(factura, request.user)
+    except Exception as e:
+        # Si el correo falla (por créditos o backend), la factura SIGUE GUARDADA
+        print(f"DEBUG ERROR: El correo no se pudo enviar, pero la factura {factura.id} es válida. Error: {e}")
+
+    # 2. Limpieza de sesión
+    request.session["carrito"] = {}
+    request.session.modified = True
+    
+    return render(request, "store/confirmacion_pago.html", {"factura": factura})
+    from .models import ProductVariant, Factura, DetalleFactura, ProductImage, Product
+    from decimal import Decimal
+    from django.db import transaction, models
+    from django.shortcuts import redirect, render
 
     if request.method != "POST":
         return redirect("store:checkout")
@@ -580,11 +653,39 @@ def generar_factura(request):
     
     return render(request, "store/confirmacion_pago.html", {"factura": factura})
 
-# ============================================================
-# 🧾 Vista: ver factura
-# ============================================================
 @login_required(login_url='/account/login/')
 def ver_factura(request, factura_id):
+    """
+    Permite al usuario autenticado ver una factura específica.
+    Usa prefetch_related para que cargue los ítems en una sola consulta a Postgres.
+    """
+    from decimal import Decimal
+    
+    # 1. Traemos la factura asegurando que pertenezca al usuario (Seguridad OK)
+    # Usamos prefetch_related('detalles') para que sea ultra rápido en Railway
+    factura = get_object_or_404(
+        Factura.objects.prefetch_related('detalles'), 
+        id=factura_id, 
+        usuario=request.user
+    )
+
+    # 2. Sincronizamos con tu nueva lógica de "Sin IVA" 
+    # Si en el PDF el total es el mismo subtotal, aquí debe ser igual.
+    total_final = factura.total
+    subtotal = total_final  # Cambiado para coincidir con tu lógica de JascStore
+    iva = Decimal("0.00")   # Cambiado a 0 para evitar discrepancias con el PDF
+
+    contexto = {
+        "factura": factura,
+        "items": factura.detalles.all(),
+        "subtotal": subtotal,
+        "iva": iva,
+        "descuento": Decimal('0.00'),
+        "total_final": total_final,
+        "estado_pago": factura.estado_pago,
+    }
+    
+    return render(request, "store/factura_pdf.html", contexto)
     """
     Permite al usuario autenticado ver una factura específica.
     Protegida: solo el dueño puede acceder.
@@ -610,6 +711,37 @@ from django.core.paginator import Paginator
 @login_required(login_url='/account/login/')
 def mis_facturas(request):
     """
+    Muestra el historial de compras optimizado.
+    Validado: Coherencia con 'Cero IVA' y eficiencia en PostgreSQL.
+    """
+    from django.core.paginator import Paginator
+    from .models import Factura
+
+    # 1. Consulta optimizada
+    # Agregamos .select_related('usuario') si vas a mostrar el nombre del cliente en la lista,
+    # pero con prefetch_related('detalles') ya vas ganando mucha velocidad.
+    facturas_list = Factura.objects.filter(
+        usuario=request.user
+    ).prefetch_related('detalles').order_by('-fecha')
+
+    # 2. Paginación profesional
+    paginator = Paginator(facturas_list, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 3. Cálculo de totales (Sin IVA)
+    # Aunque el 'total' ya viene en la factura, a veces es bueno pasar 
+    # la suma total de todas las compras para un "Dashboard" del cliente.
+    # total_invertido = sum(f.total for f in facturas_list) # Opcional
+
+    context = {
+        'facturas': page_obj,
+        'total_pedidos': facturas_list.count(),
+        'iva_config': 0, # Mandamos un indicador al template para que sepa que el IVA es 0
+    }
+
+    return render(request, 'store/mis_facturas.html', context)
+    """
     Muestra el historial de compras optimizado con precarga de detalles
     y paginación profesional.
     """
@@ -634,60 +766,64 @@ def mis_facturas(request):
 # ============================================================
 # 📄 Vista: generar factura en PDF
 # ============================================================
+@login_required(login_url='/account/login/')
 def generar_factura_pdf(request, factura_id):
     """
-    Genera un PDF de la factura usando ReportLab y lo devuelve como respuesta HTTP.
+    Genera un PDF profesional con el Azul Hermoso de JascStore.
+    Sin IVA y con cálculo de ahorro para el cliente.
     """
-    from django.utils.timezone import localtime # Aseguramos la importación
-    
+    from .models import Factura, DetalleFactura
+
+    # 1. Obtener datos con seguridad de usuario
     factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
-    detalles = DetalleFactura.objects.filter(factura=factura)
+    detalles = factura.detalles.all() # Usamos el related_name para eficiencia
 
-    # 🧮 Totales (Sincronizados con Checkout: Sin IVA)
-    subtotal = sum(d.subtotal for d in detalles)
+    # 2. 🧮 Totales Sincronizados (Sin IVA)
+    subtotal = sum(Decimal(str(d.subtotal)) for d in detalles)
     
-    # El ahorro se calcula sobre el precio base 'cost' vs 'final_price'
-    ahorro_total = sum(
-        (d.producto.cost - d.producto.final_price) * d.cantidad
-        for d in detalles if d.producto.discount > 0
-    )
+    # Lógica de ahorro: Comparamos precio original vs precio final
+    ahorro_total = Decimal("0.00")
+    for d in detalles:
+        # Verificamos si el producto tiene los campos de costo/descuento
+        costo_orig = getattr(d.producto, 'cost', d.producto.final_price)
+        if costo_orig > d.producto.final_price:
+            ahorro_total += (costo_orig - d.producto.final_price) * d.cantidad
 
-    # IVA en 0.00 según tu requerimiento de no utilizarlo más
-    iva = Decimal("0.00")
-    total = subtotal # El total es el subtotal directamente
+    total = subtotal # Coherente con tu política de JascStore
 
-    # 🧾 Generar PDF
+    # 3. 🧾 Configuración del PDF
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
     styles = getSampleStyleSheet()
     elements = []
 
-    # Título y encabezado (Usando tu Azul Hermoso #1a237e)
+    # Estilo del Título (Azul Hermoso)
     titulo_style = styles['Title']
     titulo_style.textColor = colors.HexColor("#1a237e")
+    titulo_style.fontSize = 22
     
     elements.append(Paragraph(f"JascStore - Factura #{factura.id}", titulo_style))
     elements.append(Paragraph(f"Fecha: {localtime(factura.fecha).strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
     elements.append(Paragraph(f"Cliente: {factura.nombre}", styles['Normal']))
-    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f"Método de Pago: {factura.metodo_pago}", styles['Normal']))
+    elements.append(Spacer(1, 20))
 
-    # Tabla de productos
-    data = [["Producto", "Talla", "Color", "Cant.", "P. Unitario", "Subtotal"]]
+    # 4. Tabla de productos
+    data = [["PRODUCTO", "TALLA", "COLOR", "CANT.", "P. UNIT", "SUBTOTAL"]]
     
     for d in detalles:
-        # Limpieza estética para el PDF (No mostrar "Único")
-        t_display = d.talla if d.talla not in ["Única", "Único", "None", ""] else ""
-        c_display = d.color if d.color not in ["Única", "Único", "None", ""] else ""
+        # Limpieza de textos "Único" o vacíos
+        t_display = d.talla if d.talla not in ["Única", "Único", "None", "", None] else "-"
+        c_display = d.color if d.color not in ["Única", "Único", "None", "", None] else "-"
         
-        # LÓGICA PODEROSA: Intentamos traer el nombre guardado, o el del producto (name o nombre)
-        nombre_final = d.nombre_producto if hasattr(d, 'nombre_producto') and d.nombre_producto else \
-                       getattr(d.producto, 'name', getattr(d.producto, 'nombre', 'Producto'))
-
-        # Calculamos el unitario real para evitar discrepancias
+        # Nombre del producto robusto
+        nombre_final = getattr(d.producto, 'name', getattr(d.producto, 'nombre', 'Producto'))
+        
+        # Unitario real
         unitario_real = d.subtotal / d.cantidad if d.cantidad > 0 else 0
         
         data.append([
-            nombre_final.upper(), # Nombre en mayúsculas para que resalte
+            nombre_final.upper()[:30], # Acortamos si es muy largo para no romper la tabla
             t_display,
             c_display,
             d.cantidad,
@@ -695,33 +831,34 @@ def generar_factura_pdf(request, factura_id):
             f"${d.subtotal:,.0f}",
         ])
 
-    # Configuración de la tabla (Manteniendo tus colWidths)
-    table = Table(data, hAlign='LEFT', colWidths=[180, 60, 60, 40, 80, 80])
+    # Estilo de la Tabla
+    table = Table(data, hAlign='LEFT', colWidths=[190, 50, 60, 40, 85, 85])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1a237e")), # Tu Azul Hermoso
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#1a237e")), # Encabezado Azul
         ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('ALIGN', (0,0), (0,-1), 'LEFT'), # Alineamos nombre del producto a la izquierda
+        ('ALIGN', (0,0), (0,-1), 'LEFT'),
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
         ('FONTSIZE', (0,0), (-1,-1), 9),
         ('BOTTOMPADDING', (0,0), (-1,0), 10),
-        ('TOPPADDING', (0,0), (-1,0), 10),
     ]))
     elements.append(table)
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 25))
 
-    # Bloque de Totales (A la derecha)
+    # 5. Bloque de Totales
     style_right = styles['Normal']
-    style_right.alignment = 2 # Right alignment
+    style_right.alignment = 2 # Alineación derecha
 
     elements.append(Paragraph(f"<b>Subtotal:</b> ${subtotal:,.0f}", style_right))
+    
     if ahorro_total > 0:
-        elements.append(Paragraph(f"<font color='#1a237e'><b>Usted ahorró:</b> ${ahorro_total:,.0f}</font>", style_right))
+        elements.append(Paragraph(f"<font color='#1a237e'><b>¡Usted ahorró!:</b> ${ahorro_total:,.0f}</font>", style_right))
     
     elements.append(Spacer(1, 5))
     elements.append(Paragraph(f"<font size=14 color='#1a237e'><b>TOTAL A PAGAR:</b> ${total:,.0f}</font>", style_right))
 
+    # Construir y responder
     doc.build(elements)
     pdf = buffer.getvalue()
     buffer.close()

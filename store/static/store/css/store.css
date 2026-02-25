@@ -579,7 +579,6 @@ html, body {
         display: none !important;
     }
 }
-
 /* =====================================================
     ⚓ FIXES FINALES (ESPACIOS Y NAVBAR)
 ===================================================== */
@@ -588,19 +587,29 @@ html, body {
     top: 0;
     width: 100%;
     z-index: 2000 !important;
-    background-color: #1a237e !important;
+    /* ✅ CAMBIO: Usamos el Azul Hermoso exacto */
+    background-color: #0f087e !important;
 }
 
-/* Evitar que el buscador tape el saludo en HOME */
-.filter-bar, .search-container {
-    margin-top: 10px !important; /* Cambiado de -30px a 10px positivo */
+/* Evitar que el buscador tape el saludo en la tienda y Home */
+.filter-bar,
+.search-container,
+.search-container-premium {
+    margin-top: 20px !important;
     position: relative;
     z-index: 1001;
     background: white;
 }
 
-/* Espacio para el contenido bajo el navbar fijo */
-.hero-section, .swiper {
+/* ✅ CRUCIAL: Empuja la tienda hacia abajo para que el Navbar no la tape */
+.contenedor-tienda,
+main.contenedor-tienda {
+    padding-top: 90px !important;
+}
+
+/* Espacio para el contenido bajo el navbar fijo en Home */
+.hero-section,
+.swiper {
     padding-top: 20px !important;
     margin-top: 0 !important;
 }
@@ -611,45 +620,49 @@ body:not(.modal-open):not(.cart-open) {
     filter: none !important;
 }
 
+/* =====================================================
+    🔥 FUERZA BRUTA PARA EL SALUDO Y BUSCADOR
+===================================================== */
 
-
-/* FUERZA BRUTA PARA EL SALUDO Y BUSCADOR */
-
-/* 1. Empujamos el contenedor del saludo hacia abajo para que no lo tape el banner */
-div.welcome-mobile-container {
-    margin-top: 10px !important; /* Aumentamos el espacio */
-    position: relative !important;
-    z-index: 2000 !important;
-    display: flex !important;
-    visibility: visible !important;
+/* 1. Empujamos el contenedor del saludo hacia abajo en móviles */
+@media (max-width: 768px) {
+    div.welcome-mobile-container {
+        margin-top: 100px !important;
+        /* Espacio suficiente para el navbar fijo */
+        position: relative !important;
+        z-index: 2000 !important;
+        display: flex !important;
+        visibility: visible !important;
+    }
 }
 
 /* 2. Evitamos que el buscador flote hacia arriba */
-.filter-bar, 
-section.search-container, 
+.filter-bar,
+section.search-container,
 div.search-form-container {
-    margin-top: 20px !important; /* Espacio positivo para que baje */
-    transform: none !important;  /* Anula cualquier movimiento hacia arriba */
+    margin-top: 20px !important;
+    transform: none !important;
     position: relative !important;
     top: 0 !important;
 }
 
-/* 3. El Azul Hermoso en el botón de Filtrar del Home */
-.btn-filtrar, 
+/* 3. El Azul Hermoso en todos los botones de acción */
+.btn-filtrar,
 button[type="submit"].btn-primary,
-.aplicar-filtros-btn {
+.aplicar-filtros-btn,
+.btn-premium-banner {
     background-color: #0f087e !important;
+    border-color: #0f087e !important;
     color: white !important;
 }
 
-/* Forzar el Azul Hermoso en el icono de menú de toda la web */
-.navbar-toggler-icon, 
-.navbar-dark .navbar-toggler-icon,
-.mobile-menu-btn i {
-    filter: invert(13%) sepia(91%) saturate(4521%) hue-rotate(242deg) brightness(85%) contrast(105%) !important;
+/* Forzar que el icono de menú hamburguesa sea blanco (mejor que azul sobre azul) */
+.navbar-toggler-icon {
+    filter: invert(1) !important;
+    /* Lo pone blanco para que resalte en el fondo azul */
 }
 
 .navbar-toggler {
-    border-color: #0f087e !important;
-    background-color: #0f087e !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    background-color: transparent !important;
 }

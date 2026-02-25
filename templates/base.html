@@ -1,155 +1,185 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>{% block title %}JascStore{% endblock %}</title>
+    <title>{% block title %}JascStore{% endblock %}</title>
 
-  <meta name="description" content="Compra productos destacados en JascStore.">
-  <meta name="author" content="JascStore">
+    <meta name="description" content="Compra productos destacados en JascStore." />
+    <meta name="author" content="JascStore" />
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
 
-  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
 
-  <link rel="stylesheet" href="{% static 'home/css/styles_home.css' %}?v={{ STATIC_VERSION }}">
-  <link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}">
+    <link rel="stylesheet" href="{% static 'home/css/styles_home.css' %}?v={{ STATIC_VERSION }}" />
+    <link rel="stylesheet" href="{% static 'store/css/vista_rapida.css' %}?v={{ STATIC_VERSION }}" />
 
-  <style>
-    /* Estilos estructurales mínimos que dependen de variables dinámicas */
-    :root {
+    <style>
+      :root {
         --azul-hermoso: #0f087e; /* Tu azul oficial [cite: 2026-01-26] */
         --azul-brillante: #1a237e;
-    }
+      }
 
-    /* Side Cart Estilos (Mantener aquí si cambian por sesión, si no, mover a carrito.css) */
-    .side-cart-overlay { 
-        position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
-        z-index: 1040; display: none; backdrop-filter: blur(2px); 
-    }
+      /* BLINDAJE PARA EL NAVBAR */
+      .navbar-jasc-custom {
+        background-color: var(--azul-hermoso) !important;
+      }
+      .navbar-jasc-custom .nav-link, 
+      .navbar-jasc-custom .navbar-brand {
+        color: #ffffff !important;
+      }
 
-    .side-cart { 
-        position: fixed; right: -380px; top: 0; width: 380px; height: 100vh; 
-        background: white; z-index: 1050; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
-        display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
-    }
-    .side-cart.visible { right: 0; }
+      /* Estilos Estructurales Restaurados */
+      .side-cart-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1040;
+        display: none;
+        backdrop-filter: blur(2px);
+      }
 
-    .cart-items-container { 
-        flex-grow: 1; overflow-y: auto; padding: 25px 20px !important; 
+      .side-cart {
+        position: fixed;
+        right: -380px;
+        top: 0;
+        width: 380px;
+        height: 100vh;
+        background: white;
+        z-index: 1050;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+      }
+      .side-cart.visible {
+        right: 0;
+      }
+
+      .cart-items-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 25px 20px !important;
         background: #fdfdfd;
-    }
+      }
 
-    /* Resalte de miniatura activa */
-    .miniatura.active {
+      .miniatura.active {
         border: 2px solid var(--azul-hermoso) !important;
         box-shadow: 0 0 5px rgba(15, 8, 126, 0.5);
-    }
-  </style>
+      }
 
-  {% block extra_css %}{% endblock %}
-</head>
+      .bg-jasc-azul { background-color: var(--azul-hermoso) !important; }
+      .color-jasc-azul { color: var(--azul-hermoso) !important; }
+    </style>
 
-<body>
-  <div id="sideCartOverlay" class="side-cart-overlay" onclick="cerrarSideCart()"></div>
-  <div id="sideCart" class="side-cart">
-    <div class="side-cart-header d-flex justify-content-between align-items-center">
+    {% block extra_css %}{% endblock %}
+  </head>
+
+  <body>
+    <div id="sideCartOverlay" class="side-cart-overlay" onclick="cerrarSideCart()"></div>
+    
+    <div id="sideCart" class="side-cart">
+      <div class="side-cart-header d-flex justify-content-between align-items-center p-3 border-bottom">
         <h5 class="mb-0 fw-bold color-jasc-azul">
-            <i class="bi bi-bag-check-fill me-2"></i>Mi Selección
+          <i class="bi bi-bag-check-fill me-2"></i>Mi Selección
         </h5>
         <button class="btn-close" onclick="cerrarSideCart()"></button>
-    </div>
-    <div id="sideCartContent" class="cart-items-container"></div>
-    <div class="side-cart-footer border-top p-4 bg-light">
+      </div>
+      <div id="sideCartContent" class="cart-items-container"></div>
+      <div class="side-cart-footer border-top p-4 bg-light">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="h6 mb-0 fw-bold text-muted">Subtotal Estimado:</span>
-            <span id="sideCartTotal" class="h5 mb-0 fw-bold color-jasc-azul">$0</span>
+          <span class="h6 mb-0 fw-bold text-muted">Subtotal Estimado:</span>
+          <span id="sideCartTotal" class="h5 mb-0 fw-bold color-jasc-azul">$0</span>
         </div>
-        <a href="{% url 'store:ver_carrito' %}" class="btn btn-temu w-100 py-3 rounded-pill fw-bold">CONTINUAR COMPRA</a>
+        <a href="{% url 'store:ver_carrito' %}" class="btn w-100 py-3 rounded-pill fw-bold text-white bg-jasc-azul">CONTINUAR COMPRA</a>
+      </div>
     </div>
-  </div>
 
-  <div id="carritoModal" class="carrito-modal-temu hidden">
+    <div id="carritoModal" class="carrito-modal-temu hidden">
       <button type="button" class="cerrar-carrito" onclick="cerrarCarritoModal()">&times;</button>
       <div id="contenidoCarrito" class="p-4"></div>
-  </div>
-  <div class="carrito-overlay" id="carritoOverlay" onclick="cerrarCarritoModal()"></div>
+    </div>
+    
+    <div class="carrito-overlay" id="carritoOverlay" onclick="cerrarCarritoModal()"></div>
 
-  <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
+    <div id="vistaRapidaPanel" class="vista-rapida-panel hidden">
       <div id="contenidoProducto"></div>
-  </div>
+    </div>
 
-  <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container-xl d-flex justify-content-between align-items-center">
-      <a class="navbar-brand fw-bold" href="{% url 'home:home' %}">JascStore</a>
-      
-      <div class="navbar-mobile-group order-lg-3">
-        {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg sticky-top navbar-dark navbar-jasc-custom" style="background-color: #0f087e !important">
+      <div class="container-xl d-flex justify-content-between align-items-center">
+        <a class="navbar-brand fw-bold" href="{% url 'home:home' %}">JascStore</a>
+
+        <div class="navbar-mobile-group order-lg-3">
+          {% if user.is_authenticated %}
           <a class="nav-link position-relative px-2 d-inline-block text-white" href="javascript:void(0)" onclick="abrirSideCart()">
             <i class="bi bi-cart3 h4"></i>
             <span class="cart-count badge position-absolute top-0 start-100 translate-middle rounded-pill">
               {{ total_items_carrito|default:0 }}
             </span>
           </a>
-        {% endif %}
-        <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-      </div>
+          {% endif %}
+          <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
 
-      <div class="collapse navbar-collapse order-lg-2" id="navbarContenido">
-        <ul class="navbar-nav me-auto gap-2">
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:store' %}">Tienda</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:nosotros' %}">Nosotros</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:contacto' %}">Contacto</a></li>
-        </ul>
-        <ul class="navbar-nav ms-auto gap-3 align-items-center">
-          {% if user.is_authenticated %}
+        <div class="collapse navbar-collapse order-lg-2" id="navbarContenido">
+          <ul class="navbar-nav me-auto gap-2">
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:store' %}">Tienda</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:nosotros' %}">Nosotros</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'store:contacto' %}">Contacto</a></li>
+          </ul>
+          <ul class="navbar-nav ms-auto gap-3 align-items-center">
+            {% if user.is_authenticated %}
             <li class="nav-item d-none d-lg-block">
-                <span class="nav-link text-white small">Hola, <strong>{{ user.first_name|default:user.username }}</strong></span>
+              <span class="nav-link text-white small">Hola, <strong>{{ user.first_name|default:user.username }}</strong></span>
             </li>
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">Mi Cuenta</a>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><a class="dropdown-item" href="{% url 'usuario:dashboard' %}">Dashboard</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="{% url 'usuario:logout' %}" method="post" class="px-3">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm w-100">Cerrar Sesión</button>
-                        </form>
-                    </li>
-                </ul>
+              <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">Mi Cuenta</a>
+              <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item" href="{% url 'usuario:dashboard' %}">Dashboard</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <form action="{% url 'usuario:logout' %}" method="post" class="px-3">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm w-100">Cerrar Sesión</button>
+                  </form>
+                </li>
+              </ul>
             </li>
-          {% else %}
+            {% else %}
             <li class="nav-item"><a class="nav-link text-white" href="{% url 'usuario:login' %}">Ingresar</a></li>
-            <li class="nav-item"><a class="btn btn-register fw-bold" href="{% url 'usuario:register' %}">Crear Cuenta</a></li>
-          {% endif %}
-        </ul>
+            <li class="nav-item">
+              <a class="btn btn-light fw-bold color-jasc-azul px-3 rounded-pill" href="{% url 'usuario:register' %}">Crear Cuenta</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  {% block banner_full %}{% endblock %}
+    {% block banner_full %}{% endblock %}
 
-  <main class="contenedor-tienda">
-    {% block content %}{% endblock %}
-  </main>
+    <main class="contenedor-tienda">
+      {% block content %}{% endblock %}
+    </main>
 
-  <footer class="footer-jasc mt-5 py-5">
-    <div class="container text-center text-white">
-      <p class="mb-0">© 2026 JascStore. Todos los derechos reservados.</p>
-    </div>
-  </footer>
+    <footer class="footer-jasc mt-5 py-5" style="background-color: #0a055e;">
+      <div class="container text-center text-white">
+        <p class="mb-0">© 2026 JascStore. Todos los derechos reservados.</p>
+      </div>
+    </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-  <script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="{% static 'js/store.js' %}?v={{ STATIC_VERSION }}"></script>
 
-  {% block extra_js %}{% endblock %}
-</body>
+    {% block extra_js %}{% endblock %}
+  </body>
 </html>

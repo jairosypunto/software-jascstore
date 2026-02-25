@@ -217,15 +217,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 86400  # 24 Horas de retención del cliente
 
 # ================================
-# 📧 MAIL (SendGrid)
+# 📧 MAIL (MODO DESARROLLO/PRODUCCIÓN SIN BLOQUEO)
 # ================================
-EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
-SENDGRID_API_KEY = config("SENDGRID_API_KEY", default="")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@jascstore.com")
-SENDGRID_SANDBOX_MODE_IN_DEBUG = False
-SENDGRID_ECHO_TO_STDOUT = True
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
+# Usamos 'console' para que Railway no se bloquee buscando SendGrid
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_FAIL_SILENTLY = True 
+DEFAULT_FROM_EMAIL = "no-reply@jascstore.com"
 
 # ================================
 # 🆔 LLAVES PRIMARIAS Y TZ
@@ -235,7 +232,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ================================
 # 🔄 VERSIONADO DE STATIC (Azul Hermoso)
 # ================================
-STATIC_VERSION = "20260204_LUZ_V2" # Cámbialo por algo nuevo
+STATIC_VERSION = "20260224_AJUSTE_MENU"
 
 # ================================
 # 📊 LOGGING
@@ -255,5 +252,6 @@ LOGGING = {
 # Logs de validación en arranque (No afectan el rebinding)
 print(f"--- JascEcommerce Status ---")
 print(f"DEBUG: {DEBUG}")
+print(f"EMAIL_BACKEND: {EMAIL_BACKEND}") # <-- Agrega esto para estar 100% seguro
 print(f"STORAGE: {DEFAULT_FILE_STORAGE}")
 print(f"----------------------------")
