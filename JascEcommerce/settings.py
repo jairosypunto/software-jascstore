@@ -232,7 +232,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ================================
 # 🔄 VERSIONADO DE STATIC (Azul Hermoso)
 # ================================
-STATIC_VERSION = "20260224_AJUSTE_MENU"
+STATIC_VERSION = "20260225_FIX_MOBILE"
 
 # ================================
 # 📊 LOGGING
